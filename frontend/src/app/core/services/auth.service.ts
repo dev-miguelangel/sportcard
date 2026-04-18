@@ -1,0 +1,102 @@
+import { Injectable, signal, computed } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { Observable, catchError, of, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
+
+interface DevCredentials {
+  email: string;
+  password: string;
+}
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+}
+
+const TOKEN_KEY = 'sc_token';
+const USER_KEY = 'sc_user';
+
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private readonly _token = signal<string | null>(
+    localStorage.getItem(TOKEN_KEY),
+  );
+  private readonly _user = signal<AuthUser | null>(this.loadUser());
+
+  readonly isLoggedIn = computed(() => !!this._token());
+  readonly currentUser = this._user.asReadonly();
+  readonly token = this._token.asReadonly();
+
+  constructor(
+    private readonly http: HttpClient,
+    private readonly router: Router,
+  ) {}
+
+  readonly devAuthEnabled = environment.devAuthEnabled ?? false;
+
+  /** Redirige el navegador al endpoint de Google OAuth en el backend */
+  loginWithGoogle(): void {
+    window.location.href = `${environment.apiUrl}/auth/google`;
+  }
+
+  /** Obtiene las credenciales de dev desde el backend (vienen del .env) */
+  fetchDevCredentials(): Observable<DevCredentials | null> {
+    return this.http
+      .get<DevCredentials | null>(`${environment.apiUrl}/auth/dev-credentials`)
+      .pipe(catchError(() => of(null)));
+  }
+
+  /** Login con usuario/clave preconfigurado en .env (solo development) */
+  devLogin(email: string, password: string) {
+    return this.http
+      .post<{ token: string }>(`${environment.apiUrl}/auth/dev-login`, { email, password })
+      .pipe(
+        tap(({ token }) => {
+          this.saveToken(token);
+          this.fetchMe();
+        }),
+      );
+  }
+
+  /** Llamado desde AuthCallbackComponent tras recibir el token en la URL */
+  handleCallback(token: string): void {
+    this.saveToken(token);
+    this.fetchMe();
+  }
+
+  /** Obtiene el perfil del usuario actual desde el backend */
+  fetchMe(): void {
+    this.http.get<AuthUser>(`${environment.apiUrl}/auth/me`).subscribe({
+      next: (user) => {
+        this.saveUser(user);
+        this.router.navigate(['/dashboard']);
+      },
+      error: () => this.logout(),
+    });
+  }
+
+  logout(): void {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    this._token.set(null);
+    this._user.set(null);
+    this.router.navigate(['/login']);
+  }
+
+  private saveToken(token: string): void {
+    localStorage.setItem(TOKEN_KEY, token);
+    this._token.set(token);
+  }
+
+  private saveUser(user: AuthUser): void {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    this._user.set(user);
+  }
+
+  private loadUser(): AuthUser | null {
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? (JSON.parse(raw) as AuthUser) : null;
+  }
+}

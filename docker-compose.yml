@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-sportcard}
+      POSTGRES_USER: ${DATABASE_USER:-sportcard}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-sportcard_dev}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USER:-sportcard}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      target: development
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env
+    volumes:
+      - ./backend/src:/app/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: npm run start:dev
+
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    restart: unless-stopped
+    ports:
+      - '4200:4200'
+    env_file:
+      - .env
+    volumes:
+      - ./frontend/src:/app/src
+    depends_on:
+      - backend
+    command: npm run start -- --host 0.0.0.0 --poll 1000
+
+volumes:
+  postgres_data:

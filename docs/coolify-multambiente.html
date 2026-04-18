@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sport Card — Despliegue multi-ambiente en Coolify</title>
+<style>
+  :root {
+    --bg: #0a0a0f; --bg2: #111118; --bg3: #1a1a24; --bg4: #22222f;
+    --border: #2a2a3a; --accent: #00e87a; --accent2: #ff5f2e; --accent3: #4f8dff;
+    --text: #e8e8f0; --text2: #9090a8; --text3: #5a5a72;
+    --red: #ff3b5c; --yellow: #ffd234; --purple: #a855f7;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  .doc { max-width: 960px; margin: 0 auto; padding: 48px 24px; }
+
+  /* HEADER */
+  .header { display: flex; align-items: center; gap: 16px; margin-bottom: 48px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+  .logo { width: 46px; height: 46px; background: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: var(--bg); flex-shrink: 0; }
+  .header h1 { font-size: 22px; font-weight: 900; }
+  .header p { font-size: 13px; color: var(--text2); margin-top: 3px; }
+  .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .bg { background: rgba(0,232,122,0.12); color: var(--accent); }
+  .bo { background: rgba(255,95,46,0.12); color: var(--accent2); }
+  .bb { background: rgba(79,141,255,0.12); color: var(--accent3); }
+  .bp { background: rgba(168,85,247,0.12); color: var(--purple); }
+  .by { background: rgba(255,210,52,0.12); color: var(--yellow); }
+  .br { background: rgba(255,59,92,0.12); color: var(--red); }
+
+  /* ARCH */
+  .arch { background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 48px; }
+  .arch-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 20px; }
+  .arch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .arch-env { border-radius: 14px; overflow: hidden; }
+  .arch-env-header { padding: 12px 16px; font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .arch-env-header.prod { background: rgba(0,232,122,0.1); border: 1px solid rgba(0,232,122,0.2); color: var(--accent); border-bottom: none; border-radius: 14px 14px 0 0; }
+  .arch-env-header.dev { background: rgba(79,141,255,0.1); border: 1px solid rgba(79,141,255,0.2); color: var(--accent3); border-bottom: none; border-radius: 14px 14px 0 0; }
+  .arch-env-body { background: var(--bg4); border: 1px solid var(--border); border-top: none; border-radius: 0 0 14px 14px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .arch-service { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; background: var(--bg3); border: 1px solid var(--border); }
+  .arch-service-icon { font-size: 14px; flex-shrink: 0; }
+  .arch-service-name { font-size: 12px; font-weight: 700; }
+  .arch-service-domain { font-size: 11px; color: var(--text3); margin-top: 1px; font-family: monospace; }
+  .arch-service-branch { margin-left: auto; flex-shrink: 0; }
+
+  /* SECTION TITLE */
+  .sec { margin-bottom: 56px; }
+  .sec-title { font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+  .sec-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* STEPS */
+  .steps { display: flex; flex-direction: column; }
+  .step { display: flex; gap: 18px; padding-bottom: 32px; }
+  .step-left { display: flex; flex-direction: column; align-items: center; width: 32px; flex-shrink: 0; }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; z-index: 1; }
+  .step-num.g { border: 2px solid var(--accent); color: var(--accent); background: rgba(0,232,122,0.08); }
+  .step-num.b { border: 2px solid var(--accent3); color: var(--accent3); background: rgba(79,141,255,0.08); }
+  .step-num.o { border: 2px solid var(--accent2); color: var(--accent2); background: rgba(255,95,46,0.08); }
+  .step-num.p { border: 2px solid var(--purple); color: var(--purple); background: rgba(168,85,247,0.08); }
+  .step-num.y { border: 2px solid var(--yellow); color: var(--yellow); background: rgba(255,210,52,0.08); }
+  .step-line { width: 2px; flex: 1; background: var(--border); margin: 4px 0; min-height: 16px; }
+  .step-body { flex: 1; }
+  .step-title { font-size: 16px; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .step-desc { font-size: 13px; color: var(--text2); margin-bottom: 14px; }
+
+  /* FORMS MOCK */
+  .config-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+  .config-card-header { background: var(--bg4); border-bottom: 1px solid var(--border); padding: 10px 16px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); display: flex; align-items: center; gap: 8px; }
+  .config-body { padding: 16px; }
+  .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .config-field { display: flex; flex-direction: column; gap: 4px; }
+  .config-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); }
+  .config-val { background: var(--bg4); border: 1px solid var(--border); border-radius: 7px; padding: 7px 11px; font-size: 12px; font-family: monospace; color: var(--accent3); }
+  .config-val.highlight { border-color: rgba(0,232,122,0.3); color: var(--accent); }
+  .config-val.branch-main { border-color: rgba(0,232,122,0.3); color: var(--accent); }
+  .config-val.branch-dev { border-color: rgba(79,141,255,0.3); color: var(--accent3); }
+
+  /* ENV TABLE */
+  .env-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 12px; }
+  .env-table thead th { background: var(--bg4); color: var(--text3); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  .env-table tbody td { padding: 8px 12px; border-bottom: 1px solid var(--bg4); vertical-align: top; }
+  .env-table tbody tr:last-child td { border-bottom: none; }
+  .env-key { font-family: monospace; color: var(--yellow); font-size: 11px; white-space: nowrap; }
+  .env-val-prod { font-family: monospace; color: var(--accent); font-size: 11px; }
+  .env-val-dev { font-family: monospace; color: var(--accent3); font-size: 11px; }
+  .env-secret { color: var(--text3); font-style: italic; font-size: 11px; }
+  .env-diff { background: rgba(255,210,52,0.06); }
+
+  /* DNS */
+  .dns-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .dns-cell { background: var(--bg4); border: 1px solid var(--border); border-radius: 7px; padding: 6px 12px; font-family: monospace; font-size: 12px; }
+  .dns-type { color: var(--accent2); min-width: 40px; text-align: center; }
+  .dns-name { color: var(--yellow); min-width: 80px; }
+  .dns-val { color: var(--accent3); flex: 1; }
+
+  /* FLOW */
+  .flow { display: flex; flex-direction: column; gap: 0; }
+  .flow-row { display: flex; align-items: flex-start; gap: 0; }
+  .flow-node { background: var(--bg3); border: 1px solid var(--border); border-radius: 9px; padding: 8px 14px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .flow-node.green { border-color: rgba(0,232,122,0.3); color: var(--accent); }
+  .flow-node.blue { border-color: rgba(79,141,255,0.3); color: var(--accent3); }
+  .flow-arrow-h { display: flex; align-items: center; padding: 0 4px; color: var(--text3); font-size: 16px; }
+  .flow-arrow-v { display: flex; justify-content: center; padding: 4px 0; color: var(--text3); font-size: 16px; width: 60px; }
+  .flow-branch { display: flex; align-items: flex-start; gap: 8px; padding: 4px 0; }
+  .flow-branch-line { display: flex; flex-direction: column; gap: 0; }
+
+  /* CHECKLIST */
+  .checklist { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .check-row { display: flex; align-items: flex-start; gap: 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: 9px; padding: 10px 14px; font-size: 13px; }
+  .check-icon { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; margin-top: 1px; }
+  .check-icon.g { background: rgba(0,232,122,0.12); color: var(--accent); border: 1px solid rgba(0,232,122,0.3); }
+  .check-icon.b { background: rgba(79,141,255,0.12); color: var(--accent3); border: 1px solid rgba(79,141,255,0.3); }
+  .check-url { font-family: monospace; font-size: 12px; color: var(--accent3); }
+  .check-expected { font-size: 11px; color: var(--text3); font-style: italic; margin-top: 2px; }
+
+  /* SUMMARY TABLE */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 14px; }
+  thead th { background: var(--bg3); color: var(--text2); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 9px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  tbody td { padding: 9px 14px; border-bottom: 1px solid var(--border); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg3); }
+  .mono { font-family: monospace; font-size: 12px; }
+
+  /* MISC */
+  pre { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; font-family: 'Fira Code', 'Cascadia Code', monospace; font-size: 12px; color: var(--text2); line-height: 1.8; overflow-x: auto; margin-bottom: 12px; }
+  code { font-family: monospace; background: var(--bg3); border: 1px solid var(--border); padding: 2px 6px; border-radius: 5px; font-size: 12px; color: var(--accent3); }
+  .info { border-radius: 9px; padding: 11px 14px; font-size: 13px; display: flex; gap: 9px; margin-bottom: 12px; }
+  .info.tip { background: rgba(0,232,122,0.07); border: 1px solid rgba(0,232,122,0.2); color: var(--accent); }
+  .info.warn { background: rgba(255,210,52,0.07); border: 1px solid rgba(255,210,52,0.2); color: var(--yellow); }
+  .info.note { background: rgba(79,141,255,0.07); border: 1px solid rgba(79,141,255,0.2); color: var(--accent3); }
+  h3 { font-size: 14px; font-weight: 800; color: var(--text2); margin-bottom: 10px; display: flex; align-items: center; gap: 7px; }
+  h3::before { content: ''; width: 3px; height: 14px; background: var(--accent); border-radius: 2px; flex-shrink: 0; }
+  p { font-size: 13px; color: var(--text2); margin-bottom: 12px; }
+  .divider { height: 1px; background: var(--border); margin: 40px 0; }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">SC</div>
+    <div>
+      <h1>Despliegue multi-ambiente en Coolify</h1>
+      <p>Producción (main) · Desarrollo (dev) · Despliegue automático · SSL automático</p>
+    </div>
+    <div style="margin-left:auto; display:flex; gap:6px; flex-wrap:wrap;">
+      <span class="badge bg">Prod</span>
+      <span class="badge bb">Dev</span>
+      <span class="badge bp">Coolify</span>
+    </div>
+  </div>
+
+  <!-- ARQUITECTURA -->
+  <div class="arch">
+    <div class="arch-label">Arquitectura final</div>
+    <div class="arch-grid">
+      <div class="arch-env">
+        <div class="arch-env-header prod">
+          🟢 Proyecto: sportcard-prod &nbsp;<span class="badge bg" style="font-size:10px">rama main</span>
+        </div>
+        <div class="arch-env-body">
+          <div class="arch-service">
+            <div class="arch-service-icon">🦅</div>
+            <div>
+              <div class="arch-service-name">sportcard-prod-backend</div>
+              <div class="arch-service-domain">api.tudominio.com</div>
+            </div>
+            <div class="arch-service-branch"><span class="badge bg" style="font-size:10px">main</span></div>
+          </div>
+          <div class="arch-service">
+            <div class="arch-service-icon">🅰️</div>
+            <div>
+              <div class="arch-service-name">sportcard-prod-frontend</div>
+              <div class="arch-service-domain">app.tudominio.com</div>
+            </div>
+            <div class="arch-service-branch"><span class="badge bg" style="font-size:10px">main</span></div>
+          </div>
+          <div class="arch-service">
+            <div class="arch-service-icon">🐘</div>
+            <div>
+              <div class="arch-service-name">sportcard-prod-db</div>
+              <div class="arch-service-domain">red interna · sportcard</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="arch-env">
+        <div class="arch-env-header dev">
+          🔵 Proyecto: sportcard-dev &nbsp;<span class="badge bb" style="font-size:10px">rama dev</span>
+        </div>
+        <div class="arch-env-body">
+          <div class="arch-service">
+            <div class="arch-service-icon">🦅</div>
+            <div>
+              <div class="arch-service-name">sportcard-dev-backend</div>
+              <div class="arch-service-domain">api-dev.tudominio.com</div>
+            </div>
+            <div class="arch-service-branch"><span class="badge bb" style="font-size:10px">dev</span></div>
+          </div>
+          <div class="arch-service">
+            <div class="arch-service-icon">🅰️</div>
+            <div>
+              <div class="arch-service-name">sportcard-dev-frontend</div>
+              <div class="arch-service-domain">app-dev.tudominio.com</div>
+            </div>
+            <div class="arch-service-branch"><span class="badge bb" style="font-size:10px">dev</span></div>
+          </div>
+          <div class="arch-service">
+            <div class="arch-service-icon">🐘</div>
+            <div>
+              <div class="arch-service-name">sportcard-dev-db</div>
+              <div class="arch-service-domain">red interna · sportcard_dev</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARTE 1: REPO -->
+  <div class="sec">
+    <div class="sec-title">Parte 1 — Preparar el repositorio</div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-left"><div class="step-num g">1</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Crear la rama <code>dev</code></div>
+          <pre>git checkout -b dev
+git push -u origin dev</pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num g">2</div><div class="step-line" style="display:none"></div></div>
+        <div class="step-body">
+          <div class="step-title">Proteger ramas en GitHub</div>
+          <p>Ve a <strong>Settings → Branches → Add branch ruleset</strong></p>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div class="config-card">
+              <div class="config-card-header"><span class="badge bg" style="font-size:10px">main</span> Producción</div>
+              <div class="config-body" style="font-size:12px; display:flex; flex-direction:column; gap:6px; color:var(--text2)">
+                <div>✅ Require pull request before merging</div>
+                <div>✅ Required approvals: 1</div>
+                <div>✅ Require status checks to pass</div>
+                <div>🚫 No direct pushes</div>
+              </div>
+            </div>
+            <div class="config-card">
+              <div class="config-card-header"><span class="badge bb" style="font-size:10px">dev</span> Staging</div>
+              <div class="config-body" style="font-size:12px; display:flex; flex-direction:column; gap:6px; color:var(--text2)">
+                <div>⚪ PR opcional en esta etapa</div>
+                <div>✅ Permite push directo</div>
+                <div style="color:var(--text3); margin-top:4px;">Para desarrollo ágil sin fricción</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PARTE 2: PROYECTOS -->
+  <div class="sec">
+    <div class="sec-title">Parte 2 — Crear proyectos en Coolify</div>
+    <p>Los proyectos agrupan servicios en una red Docker interna compartida. Cada ambiente necesita su propio proyecto.</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+      <div class="config-card">
+        <div class="config-card-header">🟢 Proyecto producción</div>
+        <div class="config-body">
+          <div class="config-field" style="margin-bottom:8px">
+            <div class="config-label">Name</div>
+            <div class="config-val highlight">sportcard-prod</div>
+          </div>
+          <div class="config-field">
+            <div class="config-label">Description</div>
+            <div class="config-val" style="color:var(--text2)">Sport Card — Producción (rama main)</div>
+          </div>
+        </div>
+      </div>
+      <div class="config-card">
+        <div class="config-card-header">🔵 Proyecto desarrollo</div>
+        <div class="config-body">
+          <div class="config-field" style="margin-bottom:8px">
+            <div class="config-label">Name</div>
+            <div class="config-val" style="border-color:rgba(79,141,255,0.3);color:var(--accent3)">sportcard-dev</div>
+          </div>
+          <div class="config-field">
+            <div class="config-label">Description</div>
+            <div class="config-val" style="color:var(--text2)">Sport Card — Desarrollo (rama dev)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info tip">💡 Panel lateral → <strong>Projects → New Project</strong> — repite para cada uno.</div>
+  </div>
+
+  <!-- PARTE 3: DEV -->
+  <div class="sec">
+    <div class="sec-title">Parte 3 — Ambiente de desarrollo <span class="badge bb" style="font-size:10px; margin-left:6px">rama dev</span></div>
+    <div class="info note">💡 Empieza por dev. Es más seguro equivocarse aquí que en producción.</div>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-left"><div class="step-num b">3.1</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Base de datos dev</div>
+          <p>Dentro del proyecto <code>sportcard-dev</code> → <strong>New Resource → PostgreSQL</strong></p>
+          <div class="config-card" style="margin-bottom:10px">
+            <div class="config-card-header">🐘 sportcard-dev-db · PostgreSQL 16</div>
+            <div class="config-body">
+              <div class="config-grid">
+                <div class="config-field"><div class="config-label">Name</div><div class="config-val">sportcard-dev-db</div></div>
+                <div class="config-field"><div class="config-label">Version</div><div class="config-val">16</div></div>
+                <div class="config-field"><div class="config-label">DB Name</div><div class="config-val">sportcard_dev</div></div>
+                <div class="config-field"><div class="config-label">User</div><div class="config-val">sportcard_dev</div></div>
+              </div>
+              <div class="config-field">
+                <div class="config-label">Password</div>
+                <div class="config-val" style="display:flex;justify-content:space-between;align-items:center;"><span style="color:var(--text3)">•••••••••••••••••</span><span style="color:var(--accent);font-size:10px;cursor:default">Generate</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="info tip">✅ Una vez iniciada, copia la <strong>Internal Database URL</strong>: <span style="font-family:monospace;font-size:11px;color:var(--text2)">postgresql://sportcard_dev:PASSWORD@sportcard-dev-db:5432/sportcard_dev</span></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num b">3.2</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Backend dev</div>
+          <p>Dentro del proyecto <code>sportcard-dev</code> → <strong>New Resource → Application</strong></p>
+          <div class="config-card" style="margin-bottom:10px">
+            <div class="config-card-header">🦅 sportcard-dev-backend · NestJS</div>
+            <div class="config-body">
+              <div class="config-grid">
+                <div class="config-field"><div class="config-label">Build Pack</div><div class="config-val">Dockerfile</div></div>
+                <div class="config-field"><div class="config-label">Port</div><div class="config-val">3000</div></div>
+                <div class="config-field"><div class="config-label">Base Directory</div><div class="config-val">/backend</div></div>
+                <div class="config-field"><div class="config-label">Dockerfile Location</div><div class="config-val">/backend/Dockerfile</div></div>
+                <div class="config-field"><div class="config-label">Dockerfile Target</div><div class="config-val">production</div></div>
+                <div class="config-field"><div class="config-label">⭐ Watch Branch</div><div class="config-val branch-dev">dev</div></div>
+              </div>
+              <div class="config-field" style="margin-top:8px">
+                <div class="config-label">Domain</div>
+                <div class="config-val" style="color:var(--text2)">api-dev.tudominio.com</div>
+              </div>
+            </div>
+          </div>
+          <h3>Environment Variables</h3>
+          <table class="env-table">
+            <thead><tr><th>Variable</th><th>Valor dev</th></tr></thead>
+            <tbody>
+              <tr><td class="env-key">DATABASE_HOST</td><td class="env-val-dev">sportcard-dev-db</td></tr>
+              <tr><td class="env-key">DATABASE_PORT</td><td class="env-val-dev">5432</td></tr>
+              <tr><td class="env-key">DATABASE_USER</td><td class="env-val-dev">sportcard_dev</td></tr>
+              <tr><td class="env-key">DATABASE_PASSWORD</td><td class="env-secret">generado en paso 3.1</td></tr>
+              <tr><td class="env-key">DATABASE_NAME</td><td class="env-val-dev">sportcard_dev</td></tr>
+              <tr><td class="env-key">GOOGLE_CALLBACK_URL</td><td class="env-val-dev">https://api-dev.tudominio.com/api/auth/google/callback</td></tr>
+              <tr><td class="env-key">JWT_SECRET</td><td class="env-secret">secreto único para dev</td></tr>
+              <tr><td class="env-key">JWT_EXPIRES_IN</td><td class="env-val-dev">7d</td></tr>
+              <tr><td class="env-key">PORT</td><td class="env-val-dev">3000</td></tr>
+              <tr><td class="env-key">FRONTEND_URL</td><td class="env-val-dev">https://app-dev.tudominio.com</td></tr>
+              <tr class="env-diff"><td class="env-key">NODE_ENV</td><td class="env-val-dev">development</td></tr>
+              <tr class="env-diff"><td class="env-key">DEV_AUTH_ENABLED</td><td class="env-val-dev">true</td></tr>
+              <tr><td class="env-key">DEV_AUTH_EMAIL</td><td class="env-val-dev">dev@sportcard.dev</td></tr>
+              <tr><td class="env-key">DEV_AUTH_PASSWORD</td><td class="env-secret">contraseña para dev</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num b">3.3</div><div class="step-line" style="display:none"></div></div>
+        <div class="step-body">
+          <div class="step-title">Frontend dev</div>
+          <p>Dentro del proyecto <code>sportcard-dev</code> → <strong>New Resource → Application</strong></p>
+          <div class="config-card" style="margin-bottom:10px">
+            <div class="config-card-header">🅰️ sportcard-dev-frontend · Angular</div>
+            <div class="config-body">
+              <div class="config-grid">
+                <div class="config-field"><div class="config-label">Build Pack</div><div class="config-val">Dockerfile</div></div>
+                <div class="config-field"><div class="config-label">Port</div><div class="config-val">80</div></div>
+                <div class="config-field"><div class="config-label">Base Directory</div><div class="config-val">/frontend</div></div>
+                <div class="config-field"><div class="config-label">Dockerfile Location</div><div class="config-val">/frontend/Dockerfile</div></div>
+                <div class="config-field"><div class="config-label">Dockerfile Target</div><div class="config-val">production</div></div>
+                <div class="config-field"><div class="config-label">⭐ Watch Branch</div><div class="config-val branch-dev">dev</div></div>
+              </div>
+              <div class="config-field" style="margin-top:8px">
+                <div class="config-label">Domain</div>
+                <div class="config-val" style="color:var(--text2)">app-dev.tudominio.com</div>
+              </div>
+              <div style="margin-top:10px">
+                <div class="config-label" style="margin-bottom:6px">Environment Variables</div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <div style="font-family:monospace;font-size:11px;color:var(--yellow);background:var(--bg4);padding:6px 10px;border-radius:6px;border:1px solid var(--border)">API_URL</div>
+                  <span style="color:var(--text3)">=</span>
+                  <div style="font-family:monospace;font-size:11px;color:var(--accent3);background:var(--bg4);padding:6px 10px;border-radius:6px;border:1px solid var(--border)">https://api-dev.tudominio.com</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PARTE 4: PROD -->
+  <div class="sec">
+    <div class="sec-title">Parte 4 — Ambiente de producción <span class="badge bg" style="font-size:10px; margin-left:6px">rama main</span></div>
+    <div class="info warn">⚠️ Usa credenciales y secretos completamente distintos a los de dev.</div>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-left"><div class="step-num g">4.1</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Base de datos prod</div>
+          <p>Dentro del proyecto <code>sportcard-prod</code> → <strong>New Resource → PostgreSQL</strong></p>
+          <div class="config-card" style="margin-bottom:10px">
+            <div class="config-card-header">🐘 sportcard-prod-db · PostgreSQL 16</div>
+            <div class="config-body">
+              <div class="config-grid">
+                <div class="config-field"><div class="config-label">Name</div><div class="config-val highlight">sportcard-prod-db</div></div>
+                <div class="config-field"><div class="config-label">Version</div><div class="config-val">16</div></div>
+                <div class="config-field"><div class="config-label">DB Name</div><div class="config-val highlight">sportcard</div></div>
+                <div class="config-field"><div class="config-label">User</div><div class="config-val highlight">sportcard</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num g">4.2</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Backend prod</div>
+          <p>Dentro del proyecto <code>sportcard-prod</code> → <strong>New Resource → Application</strong></p>
+          <div class="config-card" style="margin-bottom:10px">
+            <div class="config-card-header">🦅 sportcard-prod-backend · NestJS</div>
+            <div class="config-body">
+              <div class="config-grid">
+                <div class="config-field"><div class="config-label">Build Pack</div><div class="config-val">Dockerfile</div></div>
+                <div class="config-field"><div class="config-label">Port</div><div class="config-val">3000</div></div>
+                <div class="config-field"><div class="config-label">Base Directory</div><div class="config-val">/backend</div></div>
+                <div class="config-field"><div class="config-label">Dockerfile Location</div><div class="config-val">/backend/Dockerfile</div></div>
+                <div class="config-field"><div class="config-label">Dockerfile Target</div><div class="config-val">production</div></div>
+                <div class="config-field"><div class="config-label">⭐ Watch Branch</div><div class="config-val branch-main">main</div></div>
+              </div>
+              <div class="config-field" style="margin-top:8px">
+                <div class="config-label">Domain</div>
+                <div class="config-val highlight">api.tudominio.com</div>
+              </div>
+            </div>
+          </div>
+          <h3>Environment Variables</h3>
+          <table class="env-table">
+            <thead><tr><th>Variable</th><th>Valor prod</th><th style="color:var(--accent3)">Diferencia con dev</th></tr></thead>
+            <tbody>
+              <tr><td class="env-key">DATABASE_HOST</td><td class="env-val-prod">sportcard-prod-db</td><td style="font-size:11px;color:var(--text3)">distinto host</td></tr>
+              <tr><td class="env-key">DATABASE_USER</td><td class="env-val-prod">sportcard</td><td style="font-size:11px;color:var(--text3)">distinto usuario</td></tr>
+              <tr><td class="env-key">DATABASE_NAME</td><td class="env-val-prod">sportcard</td><td style="font-size:11px;color:var(--text3)">distinta DB</td></tr>
+              <tr><td class="env-key">GOOGLE_CALLBACK_URL</td><td class="env-val-prod">https://api.tudominio.com/api/auth/google/callback</td><td style="font-size:11px;color:var(--text3)">dominio prod</td></tr>
+              <tr><td class="env-key">JWT_SECRET</td><td class="env-secret">secreto único para prod</td><td style="font-size:11px;color:var(--text3)">¡distinto al de dev!</td></tr>
+              <tr><td class="env-key">FRONTEND_URL</td><td class="env-val-prod">https://app.tudominio.com</td><td style="font-size:11px;color:var(--text3)">dominio prod</td></tr>
+              <tr class="env-diff"><td class="env-key">NODE_ENV</td><td class="env-val-prod">production</td><td style="font-size:11px;color:var(--yellow)">⭐ diferente</td></tr>
+              <tr class="env-diff"><td class="env-key">DEV_AUTH_ENABLED</td><td class="env-val-prod">false</td><td style="font-size:11px;color:var(--yellow)">⭐ desactivado</td></tr>
+            </tbody>
+          </table>
+          <div class="info tip">✅ <code>DEV_AUTH_ENABLED=false</code> bloquea el endpoint de dev login aunque alguien lo intente llamar.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num g">4.3</div><div class="step-line" style="display:none"></div></div>
+        <div class="step-body">
+          <div class="step-title">Frontend prod</div>
+          <p>Dentro del proyecto <code>sportcard-prod</code> → <strong>New Resource → Application</strong></p>
+          <div class="config-card">
+            <div class="config-card-header">🅰️ sportcard-prod-frontend · Angular</div>
+            <div class="config-body">
+              <div class="config-grid">
+                <div class="config-field"><div class="config-label">Base Directory</div><div class="config-val">/frontend</div></div>
+                <div class="config-field"><div class="config-label">⭐ Watch Branch</div><div class="config-val branch-main">main</div></div>
+              </div>
+              <div class="config-field" style="margin-top:8px">
+                <div class="config-label">Domain</div>
+                <div class="config-val highlight">app.tudominio.com</div>
+              </div>
+              <div style="margin-top:10px">
+                <div class="config-label" style="margin-bottom:6px">Environment Variables</div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <div style="font-family:monospace;font-size:11px;color:var(--yellow);background:var(--bg4);padding:6px 10px;border-radius:6px;border:1px solid var(--border)">API_URL</div>
+                  <span style="color:var(--text3)">=</span>
+                  <div style="font-family:monospace;font-size:11px;color:var(--accent);background:var(--bg4);padding:6px 10px;border-radius:6px;border:1px solid var(--border)">https://api.tudominio.com</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PARTE 5: DNS -->
+  <div class="sec">
+    <div class="sec-title">Parte 5 — DNS</div>
+    <p>Cuatro registros tipo A en tu proveedor de dominio, todos apuntando a la IP del VPS.</p>
+    <div class="config-card" style="margin-bottom:12px">
+      <div class="config-card-header">Registros DNS</div>
+      <div class="config-body" style="display:flex;flex-direction:column;gap:6px;">
+        <div class="dns-row"><div class="dns-cell dns-type">A</div><div class="dns-cell dns-name">api</div><div class="dns-cell dns-val">TU_VPS_IP</div><span class="badge bg" style="font-size:10px">prod</span></div>
+        <div class="dns-row"><div class="dns-cell dns-type">A</div><div class="dns-cell dns-name">app</div><div class="dns-cell dns-val">TU_VPS_IP</div><span class="badge bg" style="font-size:10px">prod</span></div>
+        <div class="dns-row"><div class="dns-cell dns-type">A</div><div class="dns-cell dns-name">api-dev</div><div class="dns-cell dns-val">TU_VPS_IP</div><span class="badge bb" style="font-size:10px">dev</span></div>
+        <div class="dns-row"><div class="dns-cell dns-type">A</div><div class="dns-cell dns-name">app-dev</div><div class="dns-cell dns-val">TU_VPS_IP</div><span class="badge bb" style="font-size:10px">dev</span></div>
+      </div>
+    </div>
+    <div class="info note">💡 Coolify + Traefik distinguen los servicios por el header <code>Host</code> y emiten un certificado SSL individual por dominio.</div>
+    <div class="info warn">⏳ Propagación DNS puede tardar hasta 24h. Verifica con: <code>dig api.tudominio.com</code></div>
+  </div>
+
+  <!-- PARTE 6: WEBHOOKS -->
+  <div class="sec">
+    <div class="sec-title">Parte 6 — Despliegue automático</div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-left"><div class="step-num p">6.1</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Activar auto-deploy en cada servicio</div>
+          <p>Para los 4 servicios de aplicación (no las bases de datos):</p>
+          <ol style="font-size:13px;color:var(--text2);padding-left:20px;display:flex;flex-direction:column;gap:5px;margin-bottom:12px;">
+            <li>Abre el servicio en Coolify</li>
+            <li>Ve a <strong style="color:var(--text)">Settings → Deployments</strong></li>
+            <li>Activa <strong style="color:var(--text)">Auto Deploy on Push → ON</strong></li>
+            <li>Copia el <strong style="color:var(--accent)">Webhook URL</strong> generado</li>
+          </ol>
+          <div class="info tip">✅ Coolify filtra por rama automáticamente — el webhook de <code>sportcard-dev-backend</code> solo reacciona a pushes en <code>dev</code>.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num p">6.2</div><div class="step-line" style="display:none"></div></div>
+        <div class="step-body">
+          <div class="step-title">Registrar webhooks en GitHub</div>
+          <p>Repositorio → <strong>Settings → Webhooks → Add webhook</strong><br>Repite 4 veces (una por servicio):</p>
+          <div class="config-card">
+            <div class="config-card-header">GitHub Webhook</div>
+            <div class="config-body">
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <div class="config-field"><div class="config-label">Payload URL</div><div class="config-val" style="color:var(--text2)">https://TU_VPS_IP:8000/api/webhooks/deploy/...</div></div>
+                <div class="config-grid">
+                  <div class="config-field"><div class="config-label">Content type</div><div class="config-val">application/json</div></div>
+                  <div class="config-field"><div class="config-label">SSL verification</div><div class="config-val" style="color:var(--accent)">Enable ✅</div></div>
+                </div>
+                <div class="config-field"><div class="config-label">Which events?</div><div class="config-val">Just the push event</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PARTE 7: VERIFICACION -->
+  <div class="sec">
+    <div class="sec-title">Parte 7 — Verificación</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <h3>Ambiente dev</h3>
+        <div class="checklist">
+          <div class="check-row">
+            <div class="check-icon b">✓</div>
+            <div><div class="check-url">https://api-dev.tudominio.com/api/health</div><div class="check-expected">→ {"status":"ok"}</div></div>
+          </div>
+          <div class="check-row">
+            <div class="check-icon b">✓</div>
+            <div><div class="check-url">https://app-dev.tudominio.com</div><div class="check-expected">→ Login con formulario Dev Auth visible</div></div>
+          </div>
+          <div class="check-row">
+            <div class="check-icon b">✓</div>
+            <div><div style="font-size:12px;color:var(--text2)">NODE_ENV en respuesta</div><div class="check-expected">→ "environment":"development"</div></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3>Ambiente prod</h3>
+        <div class="checklist">
+          <div class="check-row">
+            <div class="check-icon g">✓</div>
+            <div><div class="check-url">https://api.tudominio.com/api/health</div><div class="check-expected">→ {"status":"ok"}</div></div>
+          </div>
+          <div class="check-row">
+            <div class="check-icon g">✓</div>
+            <div><div class="check-url">https://app.tudominio.com</div><div class="check-expected">→ Login solo con botón Google (sin Dev Auth)</div></div>
+          </div>
+          <div class="check-row">
+            <div class="check-icon g">✓</div>
+            <div><div style="font-size:12px;color:var(--text2)">NODE_ENV en respuesta</div><div class="check-expected">→ "environment":"production"</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARTE 8: FLUJO -->
+  <div class="sec">
+    <div class="sec-title">Parte 8 — Flujo de trabajo diario</div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:24px;overflow-x:auto;">
+      <div style="display:flex;flex-direction:column;gap:0;min-width:480px;">
+
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <div class="flow-node">feature/xxx<br><span style="font-size:10px;color:var(--text3);font-weight:400">local + Docker</span></div>
+          <div class="flow-arrow-h">→</div>
+          <div style="font-size:12px;color:var(--text3)">Pull Request</div>
+          <div class="flow-arrow-h">→</div>
+          <div class="flow-node blue">rama dev<br><span style="font-size:10px;color:var(--text3);font-weight:400">merge</span></div>
+        </div>
+
+        <div style="display:flex;padding-left:calc(100% / 2 - 20px);"><div style="width:2px;height:24px;background:var(--border);margin-left:200px"></div></div>
+
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;padding-left:160px;">
+          <div style="font-size:12px;color:var(--accent3)">⚡ Coolify detecta push en <code style="font-size:11px">dev</code></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;padding-left:140px;">
+          <div class="flow-node blue" style="font-size:11px;">build dev-backend + dev-frontend</div>
+          <div class="flow-arrow-h">→</div>
+          <div class="flow-node blue">app-dev.tudominio.com</div>
+        </div>
+
+        <div style="display:flex;padding-left:calc(100% / 2 + 40px);"><div style="width:2px;height:24px;background:var(--border);margin-left:56px"></div></div>
+
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;padding-left:200px;">
+          <div style="font-size:12px;color:var(--text2)">✅ QA en dev &nbsp;→&nbsp; Pull Request a main (con review)</div>
+        </div>
+
+        <div style="display:flex;padding-left:calc(100% / 2 + 40px);"><div style="width:2px;height:24px;background:var(--border);margin-left:56px"></div></div>
+
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;padding-left:160px;">
+          <div class="flow-node green">rama main<br><span style="font-size:10px;color:var(--text3);font-weight:400">merge</span></div>
+          <div class="flow-arrow-h">→</div>
+          <div style="font-size:12px;color:var(--accent)">⚡ Coolify detecta push en <code style="font-size:11px">main</code></div>
+        </div>
+
+        <div style="display:flex;padding-left:calc(100% / 2 + 40px);"><div style="width:2px;height:24px;background:var(--border);margin-left:56px"></div></div>
+
+        <div style="display:flex;align-items:center;gap:6px;padding-left:140px;">
+          <div class="flow-node green" style="font-size:11px;">build prod-backend + prod-frontend</div>
+          <div class="flow-arrow-h">→</div>
+          <div class="flow-node green">app.tudominio.com ✅</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="sec">
+    <div class="sec-title">Resumen</div>
+    <table>
+      <thead><tr><th>Recurso</th><th>Proyecto</th><th>Watch Branch</th><th>Dominio</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span style="font-family:monospace;font-size:12px">sportcard-dev-db</span></td>
+          <td><span class="badge bb" style="font-size:10px">sportcard-dev</span></td>
+          <td><span style="color:var(--text3);font-size:12px">—</span></td>
+          <td><span style="color:var(--text3);font-size:12px">red interna</span></td>
+        </tr>
+        <tr>
+          <td><span style="font-family:monospace;font-size:12px">sportcard-dev-backend</span></td>
+          <td><span class="badge bb" style="font-size:10px">sportcard-dev</span></td>
+          <td><code>dev</code></td>
+          <td><span style="font-family:monospace;font-size:11px;color:var(--accent3)">api-dev.tudominio.com</span></td>
+        </tr>
+        <tr>
+          <td><span style="font-family:monospace;font-size:12px">sportcard-dev-frontend</span></td>
+          <td><span class="badge bb" style="font-size:10px">sportcard-dev</span></td>
+          <td><code>dev</code></td>
+          <td><span style="font-family:monospace;font-size:11px;color:var(--accent3)">app-dev.tudominio.com</span></td>
+        </tr>
+        <tr>
+          <td><span style="font-family:monospace;font-size:12px">sportcard-prod-db</span></td>
+          <td><span class="badge bg" style="font-size:10px">sportcard-prod</span></td>
+          <td><span style="color:var(--text3);font-size:12px">—</span></td>
+          <td><span style="color:var(--text3);font-size:12px">red interna</span></td>
+        </tr>
+        <tr>
+          <td><span style="font-family:monospace;font-size:12px">sportcard-prod-backend</span></td>
+          <td><span class="badge bg" style="font-size:10px">sportcard-prod</span></td>
+          <td><code>main</code></td>
+          <td><span style="font-family:monospace;font-size:11px;color:var(--accent)">api.tudominio.com</span></td>
+        </tr>
+        <tr>
+          <td><span style="font-family:monospace;font-size:12px">sportcard-prod-frontend</span></td>
+          <td><span class="badge bg" style="font-size:10px">sportcard-prod</span></td>
+          <td><code>main</code></td>
+          <td><span style="font-family:monospace;font-size:11px;color:var(--accent)">app.tudominio.com</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:20px">Variables que deben diferir entre ambientes</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+      <div style="background:var(--bg3);border:1px solid rgba(255,210,52,0.2);border-radius:9px;padding:10px 12px;font-size:12px;"><span style="font-family:monospace;color:var(--yellow)">NODE_ENV</span><br><span style="color:var(--text3);font-size:11px;margin-top:3px;display:block">production vs development</span></div>
+      <div style="background:var(--bg3);border:1px solid rgba(255,210,52,0.2);border-radius:9px;padding:10px 12px;font-size:12px;"><span style="font-family:monospace;color:var(--yellow)">DEV_AUTH_ENABLED</span><br><span style="color:var(--text3);font-size:11px;margin-top:3px;display:block">false vs true</span></div>
+      <div style="background:var(--bg3);border:1px solid rgba(255,210,52,0.2);border-radius:9px;padding:10px 12px;font-size:12px;"><span style="font-family:monospace;color:var(--yellow)">JWT_SECRET</span><br><span style="color:var(--text3);font-size:11px;margin-top:3px;display:block">secretos distintos</span></div>
+      <div style="background:var(--bg3);border:1px solid rgba(255,210,52,0.2);border-radius:9px;padding:10px 12px;font-size:12px;"><span style="font-family:monospace;color:var(--yellow)">DATABASE_*</span><br><span style="color:var(--text3);font-size:11px;margin-top:3px;display:block">bases de datos separadas</span></div>
+      <div style="background:var(--bg3);border:1px solid rgba(255,210,52,0.2);border-radius:9px;padding:10px 12px;font-size:12px;"><span style="font-family:monospace;color:var(--yellow)">FRONTEND_URL</span><br><span style="color:var(--text3);font-size:11px;margin-top:3px;display:block">dominios distintos</span></div>
+      <div style="background:var(--bg3);border:1px solid rgba(255,210,52,0.2);border-radius:9px;padding:10px 12px;font-size:12px;"><span style="font-family:monospace;color:var(--yellow)">GOOGLE_CALLBACK_URL</span><br><span style="color:var(--text3);font-size:11px;margin-top:3px;display:block">dominios distintos</span></div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="padding-top:24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="logo" style="width:34px;height:34px;font-size:13px;">SC</div>
+      <div>
+        <div style="font-size:13px;font-weight:800;">Sport Card</div>
+        <div style="font-size:11px;color:var(--text3);">Coolify multi-ambiente · Abril 2026</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <span class="badge bg">Prod · main</span>
+      <span class="badge bb">Dev · dev</span>
+      <span class="badge bp">Coolify</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

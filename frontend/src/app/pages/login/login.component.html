@@ -1,0 +1,106 @@
+<div class="min-h-screen bg-neutral-950 flex items-center justify-center p-6"
+     style="background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,232,122,0.06) 0%, transparent 70%)">
+
+  <div class="w-full max-w-sm">
+
+    <!-- Logo -->
+    <div class="flex flex-col items-center mb-8">
+      <div class="w-16 h-16 bg-brand rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-brand/20">
+        <span class="text-2xl font-black text-neutral-950">SC</span>
+      </div>
+      <h1 class="text-2xl font-black tracking-tight">Sport Card</h1>
+      <p class="text-neutral-400 text-sm mt-1">Gestiona tus eventos deportivos</p>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-8">
+
+      <div class="flex flex-wrap gap-2 justify-center mb-6">
+        @for (sport of sports; track sport) {
+          <span class="text-xs px-3 py-1 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-400">
+            {{ sport }}
+          </span>
+        }
+      </div>
+
+      <button
+        (click)="loginWithGoogle()"
+        class="w-full flex items-center justify-center gap-3 bg-white text-neutral-900 font-bold py-3 px-4 rounded-xl hover:bg-neutral-100 transition-colors duration-150 cursor-pointer"
+      >
+        <!-- Google Icon SVG -->
+        <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        Continuar con Google
+      </button>
+
+      <!-- Dev Auth — solo visible cuando DEV_AUTH_ENABLED=true -->
+      @if (devAuthEnabled) {
+        <div class="mt-5">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="flex-1 h-px bg-neutral-800"></div>
+            <span class="text-xs text-neutral-600 font-mono px-1">dev</span>
+            <div class="flex-1 h-px bg-neutral-800"></div>
+          </div>
+
+          <form (ngSubmit)="devLogin()" class="flex flex-col gap-3">
+
+            @if (devError()) {
+              <div class="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                <span class="material-symbols-outlined text-red-400" style="font-size:16px">error</span>
+                <span class="text-xs text-red-400">{{ devError() }}</span>
+              </div>
+            }
+
+            <div class="flex flex-col gap-1">
+              <label class="text-xs text-neutral-500 font-medium">Email</label>
+              <input
+                type="email"
+                [(ngModel)]="devEmail"
+                [ngModelOptions]="{ standalone: true }"
+                placeholder="dev@sportcard.dev"
+                autocomplete="username"
+                class="bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-brand transition-colors"
+              />
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-xs text-neutral-500 font-medium">Contraseña</label>
+              <input
+                type="password"
+                [(ngModel)]="devPassword"
+                [ngModelOptions]="{ standalone: true }"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                class="bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-brand transition-colors"
+              />
+            </div>
+
+            <button
+              type="submit"
+              [disabled]="devLoading()"
+              class="w-full flex items-center justify-center gap-2 bg-neutral-800 border border-neutral-700 hover:border-brand/50 hover:bg-neutral-700 text-neutral-300 font-semibold py-2.5 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              @if (devLoading()) {
+                <span class="w-4 h-4 border-2 border-neutral-500 border-t-brand rounded-full animate-spin"></span>
+              } @else {
+                <span class="material-symbols-outlined text-neutral-500" style="font-size:16px">terminal</span>
+              }
+              Entrar como dev
+            </button>
+
+          </form>
+        </div>
+      }
+
+      <p class="text-center text-xs text-neutral-500 mt-4">
+        Al continuar aceptas los
+        <span class="text-neutral-400 underline cursor-pointer">Términos de uso</span>
+      </p>
+    </div>
+
+  </div>
+</div>

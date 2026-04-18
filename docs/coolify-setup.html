@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sport Card — Deploy en Coolify</title>
+<style>
+  :root {
+    --bg: #0a0a0f; --bg2: #111118; --bg3: #1a1a24; --bg4: #22222f;
+    --border: #2a2a3a; --accent: #00e87a; --accent2: #ff5f2e; --accent3: #4f8dff;
+    --text: #e8e8f0; --text2: #9090a8; --text3: #5a5a72;
+    --red: #ff3b5c; --yellow: #ffd234; --purple: #a855f7;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  .doc { max-width: 960px; margin: 0 auto; padding: 48px 24px; }
+
+  /* HEADER */
+  .doc-header { display: flex; align-items: center; gap: 18px; margin-bottom: 48px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+  .logo { width: 48px; height: 48px; background: var(--accent); border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; color: var(--bg); flex-shrink: 0; }
+  .doc-header h1 { font-size: 24px; font-weight: 900; letter-spacing: -0.3px; }
+  .doc-header p { font-size: 13px; color: var(--text2); margin-top: 3px; }
+  .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+  .badge-green { background: rgba(0,232,122,0.12); color: var(--accent); }
+  .badge-orange { background: rgba(255,95,46,0.12); color: var(--accent2); }
+  .badge-blue { background: rgba(79,141,255,0.12); color: var(--accent3); }
+  .badge-red { background: rgba(255,59,92,0.12); color: var(--red); }
+  .badge-purple { background: rgba(168,85,247,0.12); color: var(--purple); }
+
+  /* ARCH DIAGRAM */
+  .arch-box {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 16px;
+    padding: 28px; margin-bottom: 48px;
+  }
+  .arch-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 20px; }
+  .arch-diagram { display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
+  .arch-node {
+    background: var(--bg4); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 18px; text-align: center; min-width: 120px;
+  }
+  .arch-node.internet { border-color: var(--text3); }
+  .arch-node.coolify { border-color: var(--purple); background: rgba(168,85,247,0.07); }
+  .arch-node.backend { border-color: var(--accent); background: rgba(0,232,122,0.07); }
+  .arch-node.frontend { border-color: var(--accent3); background: rgba(79,141,255,0.07); }
+  .arch-node.db { border-color: var(--yellow); background: rgba(255,210,52,0.07); }
+  .arch-node .node-icon { font-size: 20px; margin-bottom: 6px; }
+  .arch-node .node-label { font-size: 11px; font-weight: 800; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; }
+  .arch-node .node-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .arch-arrow { font-size: 20px; color: var(--text3); padding: 0 8px; }
+  .arch-branch { display: flex; flex-direction: column; gap: 10px; }
+  .arch-branch-row { display: flex; align-items: center; gap: 8px; }
+
+  /* STEPS */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step-item { display: flex; gap: 20px; padding-bottom: 0; }
+  .step-left { display: flex; flex-direction: column; align-items: center; gap: 0; flex-shrink: 0; width: 36px; }
+  .step-num {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--bg3);
+    border: 2px solid var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; flex-shrink: 0; z-index: 1;
+  }
+  .step-num.green { border-color: var(--accent); color: var(--accent); background: rgba(0,232,122,0.1); }
+  .step-num.orange { border-color: var(--accent2); color: var(--accent2); background: rgba(255,95,46,0.1); }
+  .step-num.blue { border-color: var(--accent3); color: var(--accent3); background: rgba(79,141,255,0.1); }
+  .step-num.yellow { border-color: var(--yellow); color: var(--yellow); background: rgba(255,210,52,0.1); }
+  .step-num.purple { border-color: var(--purple); color: var(--purple); background: rgba(168,85,247,0.1); }
+  .step-num.red { border-color: var(--red); color: var(--red); background: rgba(255,59,92,0.1); }
+  .step-line { width: 2px; flex: 1; background: var(--border); min-height: 24px; margin: 4px 0; }
+  .step-line.done { background: var(--accent); }
+  .step-body { flex: 1; padding-bottom: 32px; }
+  .step-title { font-size: 17px; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .step-desc { font-size: 13px; color: var(--text2); margin-bottom: 14px; }
+
+  /* CODE BLOCKS */
+  pre {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 20px; overflow-x: auto; font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 12px; color: var(--text2); margin-bottom: 12px; line-height: 1.9;
+    position: relative;
+  }
+  pre .file-tag {
+    position: absolute; top: 10px; right: 12px;
+    font-size: 10px; color: var(--text3); font-style: normal;
+    background: var(--bg4); padding: 2px 8px; border-radius: 5px;
+  }
+  .kw { color: var(--accent2); }
+  .str { color: var(--accent); }
+  .cm { color: var(--text3); }
+  .type { color: var(--accent3); }
+  .fn { color: var(--yellow); }
+  .num { color: var(--purple); }
+  code { font-family: 'Fira Code', monospace; background: var(--bg3); border: 1px solid var(--border); padding: 2px 7px; border-radius: 5px; font-size: 12px; color: var(--accent3); }
+
+  /* INFO BLOCKS */
+  .info-block {
+    border-radius: 10px; padding: 12px 16px; margin-bottom: 12px; font-size: 13px; display: flex; gap: 10px;
+  }
+  .info-block.tip { background: rgba(0,232,122,0.07); border: 1px solid rgba(0,232,122,0.2); color: var(--accent); }
+  .info-block.warn { background: rgba(255,210,52,0.07); border: 1px solid rgba(255,210,52,0.2); color: var(--yellow); }
+  .info-block.note { background: rgba(79,141,255,0.07); border: 1px solid rgba(79,141,255,0.2); color: var(--accent3); }
+  .info-block.danger { background: rgba(255,59,92,0.07); border: 1px solid rgba(255,59,92,0.2); color: var(--red); }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 14px; }
+  thead th { background: var(--bg3); color: var(--text2); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 9px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  tbody td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--text); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg3); }
+  .mono { font-family: monospace; color: var(--accent3); font-size: 12px; }
+
+  /* COOLIFY UI MOCKUPS */
+  .coolify-mock {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 16px;
+    overflow: hidden; margin-bottom: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .mock-topbar {
+    background: var(--bg3); border-bottom: 1px solid var(--border);
+    padding: 10px 16px; display: flex; align-items: center; gap: 12px;
+    font-size: 13px;
+  }
+  .mock-topbar .dots { display: flex; gap: 5px; }
+  .mock-topbar .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .mock-topbar .url-bar {
+    background: var(--bg4); border: 1px solid var(--border); border-radius: 7px;
+    padding: 4px 14px; font-size: 11px; color: var(--text3); flex: 1;
+    font-family: monospace;
+  }
+  .mock-layout { display: flex; min-height: 240px; }
+  .mock-sidebar {
+    width: 200px; background: var(--bg3); border-right: 1px solid var(--border);
+    padding: 12px 0; flex-shrink: 0;
+  }
+  .mock-sidebar-item {
+    padding: 8px 16px; font-size: 12px; color: var(--text3); cursor: default;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .mock-sidebar-item.active { background: rgba(0,232,122,0.08); color: var(--accent); }
+  .mock-sidebar-section { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text3); padding: 12px 16px 4px; }
+  .mock-content { flex: 1; padding: 20px; }
+  .mock-page-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+  .mock-page-sub { font-size: 12px; color: var(--text3); margin-bottom: 16px; }
+  .mock-form { display: flex; flex-direction: column; gap: 12px; }
+  .mock-field { display: flex; flex-direction: column; gap: 5px; }
+  .mock-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); }
+  .mock-input {
+    background: var(--bg4); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 12px; font-size: 12px; color: var(--text);
+  }
+  .mock-input.focus { border-color: var(--accent); }
+  .mock-input.filled { color: var(--accent3); }
+  .mock-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .mock-btn {
+    padding: 9px 18px; border-radius: 8px; font-size: 12px; font-weight: 700;
+    border: none; cursor: default; display: inline-flex; align-items: center; gap: 6px; width: fit-content;
+  }
+  .mock-btn.primary { background: var(--accent); color: var(--bg); }
+  .mock-btn.ghost { background: var(--bg4); color: var(--text2); border: 1px solid var(--border); }
+  .mock-btn.danger { background: rgba(255,59,92,0.15); color: var(--red); border: 1px solid rgba(255,59,92,0.3); }
+  .env-row { display: flex; gap: 8px; align-items: center; }
+  .env-key { font-family: monospace; font-size: 11px; color: var(--yellow); background: var(--bg4); padding: 7px 10px; border-radius: 7px; border: 1px solid var(--border); min-width: 140px; }
+  .env-sep { color: var(--text3); font-size: 13px; }
+  .env-val { font-family: monospace; font-size: 11px; color: var(--accent); background: var(--bg4); padding: 7px 10px; border-radius: 7px; border: 1px solid var(--border); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* RESOURCE CARDS */
+  .resource-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .resource-card {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+  }
+  .resource-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .resource-name { font-size: 13px; font-weight: 700; }
+  .resource-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .resource-status { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .status-dot.green { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+  .status-dot.orange { background: var(--accent2); }
+  .status-dot.grey { background: var(--text3); }
+
+  /* FLOW DIAGRAM */
+  .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 0; margin-bottom: 12px; }
+  .flow-node {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 16px; font-size: 12px; font-weight: 700; text-align: center;
+    min-width: 100px;
+  }
+  .flow-arrow { color: var(--accent); font-size: 18px; padding: 0 8px; }
+
+  /* DNS TABLE */
+  .dns-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .dns-cell { background: var(--bg4); border: 1px solid var(--border); border-radius: 7px; padding: 7px 12px; font-family: monospace; font-size: 12px; }
+  .dns-cell.type { color: var(--accent2); min-width: 50px; text-align: center; }
+  .dns-cell.name { color: var(--yellow); min-width: 80px; }
+  .dns-cell.value { color: var(--accent3); flex: 1; }
+
+  /* VERIFY */
+  .verify-box {
+    background: var(--bg3); border: 1px solid var(--accent); border-radius: 12px;
+    padding: 20px; margin-bottom: 14px;
+  }
+  .verify-box h4 { font-size: 13px; font-weight: 800; color: var(--accent); margin-bottom: 10px; }
+  .verify-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; }
+  .verify-check { width: 20px; height: 20px; border-radius: 50%; background: rgba(0,232,122,0.15); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--accent); flex-shrink: 0; }
+  .verify-url { font-family: monospace; color: var(--accent3); }
+  .verify-expected { color: var(--text2); font-style: italic; }
+
+  /* MISC */
+  .divider { height: 1px; background: var(--border); margin: 32px 0; }
+  h3 { font-size: 14px; font-weight: 800; color: var(--text2); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  h3::before { content: ''; width: 3px; height: 14px; background: var(--accent); border-radius: 2px; }
+  p { font-size: 13px; color: var(--text2); margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- HEADER -->
+  <div class="doc-header">
+    <div class="logo">SC</div>
+    <div>
+      <h1>Deploy en Coolify — Hello World</h1>
+      <p>VPS · Coolify · NestJS + Angular + PostgreSQL · SSL automático</p>
+    </div>
+    <div style="margin-left:auto; display:flex; gap:6px; flex-wrap:wrap;">
+      <span class="badge badge-green">NestJS</span>
+      <span class="badge badge-blue">Angular 20+</span>
+      <span class="badge badge-orange">PostgreSQL</span>
+      <span class="badge badge-purple">Coolify</span>
+    </div>
+  </div>
+
+  <!-- ARQUITECTURA -->
+  <div class="arch-box">
+    <div class="arch-title">Arquitectura en producción</div>
+    <div class="arch-diagram">
+      <div class="arch-node internet">
+        <div class="node-icon">🌐</div>
+        <div class="node-label">Internet</div>
+        <div class="node-sub">HTTPS / 443</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node coolify">
+        <div class="node-icon">⚡</div>
+        <div class="node-label">Coolify + Traefik</div>
+        <div class="node-sub">SSL Let's Encrypt</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-branch">
+        <div class="arch-branch-row">
+          <div class="arch-node backend">
+            <div class="node-icon">🦅</div>
+            <div class="node-label">NestJS API</div>
+            <div class="node-sub">api.tudominio.com</div>
+          </div>
+        </div>
+        <div class="arch-branch-row">
+          <div class="arch-node frontend">
+            <div class="node-icon">🅰️</div>
+            <div class="node-label">Angular</div>
+            <div class="node-sub">app.tudominio.com</div>
+          </div>
+        </div>
+      </div>
+      <div class="arch-arrow">↔</div>
+      <div class="arch-node db">
+        <div class="node-icon">🐘</div>
+        <div class="node-label">PostgreSQL 16</div>
+        <div class="node-sub">Red interna</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps">
+
+    <!-- STEP 1 -->
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num green">1</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">Prereqs locales <span class="badge badge-green">Tu máquina</span></div>
+        <div class="step-desc">Verifica que tienes instaladas las herramientas necesarias antes de empezar.</div>
+        <pre><span class="cm"># Verificar versiones requeridas</span>
+<span class="fn">node</span> --version        <span class="cm"># >= 20</span>
+<span class="fn">docker</span> --version      <span class="cm"># >= 24</span>
+<span class="fn">git</span> --version
+
+<span class="cm"># Instalar CLIs</span>
+<span class="fn">npm</span> install -g @nestjs/cli @angular/cli</pre>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num green">2</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">Estructura del monorepo <span class="badge badge-green">Local</span></div>
+        <div class="step-desc">Un solo repositorio con backend y frontend como subcarpetas independientes. Coolify permite apuntar a subdirectorios.</div>
+        <pre><span class="fn">mkdir</span> sportcard && <span class="fn">cd</span> sportcard
+<span class="fn">git</span> init
+<span class="fn">nest</span> new backend --package-manager npm --skip-git
+<span class="fn">ng</span> new frontend --routing --style=scss --skip-git --ssr=false</pre>
+        <div class="info-block note">💡 Con <code>--skip-git</code> evitas que cada CLI cree su propio repo. El git init de la raíz controla todo.</div>
+        <pre><span class="cm">sportcard/
+├── backend/          ← NestJS (Base Directory en Coolify)
+├── frontend/         ← Angular (Base Directory en Coolify)
+├── docker-compose.yml  ← solo desarrollo local
+└── .gitignore</span></pre>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num green">3</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">Backend NestJS — Hello World <span class="badge badge-green">backend/</span></div>
+        <div class="step-desc">Endpoint raíz que devuelve el estado del servicio y confirma si la base de datos está configurada.</div>
+
+        <h3>backend/src/app.service.ts</h3>
+        <pre><span class="file-tag">app.service.ts</span><span class="kw">import</span> { <span class="type">Injectable</span> } <span class="kw">from</span> <span class="str">'@nestjs/common'</span>;
+
+<span class="kw">@Injectable</span>()
+<span class="kw">export class</span> <span class="type">AppService</span> {
+  <span class="fn">getHello</span>() {
+    <span class="kw">return</span> {
+      status: <span class="str">'ok'</span>,
+      service: <span class="str">'Sport Card API'</span>,
+      version: <span class="str">'1.0.0'</span>,
+      timestamp: <span class="kw">new</span> <span class="type">Date</span>().<span class="fn">toISOString</span>(),
+      db: process.env.<span class="type">DATABASE_URL</span> ? <span class="str">'configured'</span> : <span class="str">'not configured'</span>,
+    };
+  }
+}</pre>
+
+        <h3>backend/src/main.ts</h3>
+        <pre><span class="file-tag">main.ts</span><span class="kw">import</span> { <span class="type">NestFactory</span> } <span class="kw">from</span> <span class="str">'@nestjs/core'</span>;
+<span class="kw">import</span> { <span class="type">AppModule</span> } <span class="kw">from</span> <span class="str">'./app.module'</span>;
+
+<span class="kw">async function</span> <span class="fn">bootstrap</span>() {
+  <span class="kw">const</span> app = <span class="kw">await</span> <span class="type">NestFactory</span>.<span class="fn">create</span>(<span class="type">AppModule</span>);
+
+  app.<span class="fn">enableCors</span>({
+    origin: process.env.<span class="type">FRONTEND_URL</span> || <span class="str">'http://localhost:4200'</span>,
+    credentials: <span class="kw">true</span>,
+  });
+
+  app.<span class="fn">setGlobalPrefix</span>(<span class="str">'api'</span>);
+
+  <span class="kw">const</span> port = process.env.<span class="type">PORT</span> || <span class="num">3000</span>;
+  <span class="kw">await</span> app.<span class="fn">listen</span>(port);
+}</pre>
+
+        <h3>backend/Dockerfile</h3>
+        <pre><span class="file-tag">Dockerfile</span><span class="cm"># ── Build stage ────────────────────────────────</span>
+<span class="kw">FROM</span> node:20-alpine <span class="kw">AS</span> build
+<span class="kw">WORKDIR</span> /app
+<span class="kw">COPY</span> package*.json ./
+<span class="kw">RUN</span> npm ci
+<span class="kw">COPY</span> . .
+<span class="kw">RUN</span> npm run build
+
+<span class="cm"># ── Production stage ───────────────────────────</span>
+<span class="kw">FROM</span> node:20-alpine <span class="kw">AS</span> production
+<span class="kw">WORKDIR</span> /app
+<span class="kw">ENV</span> NODE_ENV=production
+<span class="kw">COPY</span> package*.json ./
+<span class="kw">RUN</span> npm ci --omit=dev
+<span class="kw">COPY</span> --from=build /app/dist ./dist
+<span class="kw">EXPOSE</span> 3000
+<span class="kw">CMD</span> ["node", "dist/main"]</pre>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num blue">4</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">Frontend Angular — Hello World <span class="badge badge-blue">frontend/</span></div>
+        <div class="step-desc">Componente que llama al backend y muestra el estado. La URL de la API se inyecta en tiempo de ejecución vía nginx, lo que permite cambiarla sin reconstruir la imagen.</div>
+
+        <h3>frontend/nginx.conf — Inyección runtime de API_URL</h3>
+        <pre><span class="file-tag">nginx.conf</span>server {
+    listen 80;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    <span class="cm"># Genera config.js con la URL de la API en runtime</span>
+    location /config.js {
+        default_type application/javascript;
+        return 200 <span class="str">'window.__API_URL__ = "$API_URL";'</span>;
+    }
+
+    <span class="cm"># SPA fallback</span>
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}</pre>
+
+        <h3>frontend/Dockerfile</h3>
+        <pre><span class="file-tag">Dockerfile</span><span class="kw">FROM</span> node:20-alpine <span class="kw">AS</span> build
+<span class="kw">WORKDIR</span> /app
+<span class="kw">COPY</span> package*.json ./
+<span class="kw">RUN</span> npm ci
+<span class="kw">COPY</span> . .
+<span class="kw">RUN</span> npm run build
+
+<span class="kw">FROM</span> nginx:alpine <span class="kw">AS</span> production
+<span class="kw">COPY</span> --from=build /app/dist/frontend/browser /usr/share/nginx/html
+<span class="kw">COPY</span> nginx.conf /etc/nginx/conf.d/default.conf
+<span class="kw">EXPOSE</span> 80
+<span class="kw">CMD</span> ["nginx", "-g", "daemon off;"]</pre>
+
+        <div class="info-block warn">⚠️ Agrega <code>&lt;script src="/config.js"&gt;&lt;/script&gt;</code> en el <code>&lt;head&gt;</code> de <code>src/index.html</code> antes del cierre <code>&lt;/head&gt;</code>.</div>
+
+        <div class="info-block note">💡 En el componente Angular lee la URL con: <code>(window as any).__API_URL__ || 'http://localhost:3000'</code></div>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num orange">5</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">Docker Compose local <span class="badge badge-orange">Prueba local</span></div>
+        <div class="step-desc">Levanta los 3 servicios localmente para verificar que todo funciona antes de subir a Coolify.</div>
+
+        <h3>docker-compose.yml (raíz del proyecto)</h3>
+        <pre><span class="file-tag">docker-compose.yml</span>services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: sportcard
+      POSTGRES_USER: sportcard
+      POSTGRES_PASSWORD: sportcard_dev
+    ports:
+      - <span class="str">"5432:5432"</span>
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [<span class="str">"CMD-SHELL"</span>, <span class="str">"pg_isready -U sportcard"</span>]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    ports:
+      - <span class="str">"3000:3000"</span>
+    environment:
+      DATABASE_URL: postgresql://sportcard:sportcard_dev@postgres:5432/sportcard
+      FRONTEND_URL: http://localhost:4200
+      PORT: <span class="num">3000</span>
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - <span class="str">"4200:80"</span>
+    environment:
+      API_URL: http://localhost:3000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:</pre>
+
+        <pre><span class="cm"># Probar localmente</span>
+<span class="fn">docker</span> compose up --build
+
+<span class="cm"># Verifica:</span>
+<span class="cm"># → http://localhost:3000/api  (backend)</span>
+<span class="cm"># → http://localhost:4200      (frontend)</span></pre>
+      </div>
+    </div>
+
+    <!-- STEP 6 -->
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num orange">6</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">Subir a GitHub <span class="badge badge-orange">GitHub</span></div>
+        <pre><span class="cm"># .gitignore en la raíz</span>
+node_modules/
+dist/
+.env
+.env.*
+*.local
+.angular/
+
+<span class="cm"># Commit y push</span>
+<span class="fn">git</span> add .
+<span class="fn">git</span> commit -m <span class="str">"feat: hello world - NestJS + Angular + PostgreSQL"</span>
+<span class="fn">gh</span> repo create sportcard --public --push --source=.</pre>
+        <div class="info-block tip">✓ El repositorio debe estar en GitHub (no GitLab ni Bitbucket) para conectarlo a Coolify via GitHub App.</div>
+      </div>
+    </div>
+
+    <!-- STEP 7 -->
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num purple">7</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">Coolify — Conectar GitHub <span class="badge badge-purple">Coolify UI</span></div>
+        <p>Entra a tu Coolify en <code>http://TU_VPS_IP:8000</code></p>
+
+        <div class="coolify-mock">
+          <div class="mock-topbar">
+            <div class="dots">
+              <div class="dot" style="background:#ff5f57"></div>
+              <div class="dot" style="background:#febc2e"></div>
+              <div class="dot" style="background:#28c840"></div>
+            </div>
+            <div class="url-bar">http://TU_VPS_IP:8000/settings/sources</div>
+          </div>
+          <div class="mock-layout">
+            <div class="mock-sidebar">
+              <div class="mock-sidebar-section">General</div>
+              <div class="mock-sidebar-item">🏠 Dashboard</div>
+              <div class="mock-sidebar-item">📦 Resources</div>
+              <div class="mock-sidebar-section">Config</div>
+              <div class="mock-sidebar-item active">⚙️ Settings</div>
+              <div class="mock-sidebar-item">🔑 SSH Keys</div>
+              <div class="mock-sidebar-item">📡 Sources</div>
+            </div>
+            <div class="mock-content">
+              <div class="mock-page-title">Sources → GitHub</div>
+              <div class="mock-page-sub">Conecta tu cuenta de GitHub para deployar desde repositorios privados o públicos.</div>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <div class="resource-card">
+                  <div class="resource-icon" style="background:rgba(255,255,255,0.05)">🐙</div>
+                  <div>
+                    <div class="resource-name">GitHub App</div>
+                    <div class="resource-sub">Haz clic en "Register Now" → instala en tu cuenta → selecciona repo sportcard</div>
+                  </div>
+                  <div style="margin-left:auto"><div class="mock-btn primary">Register Now →</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 8 -->
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num purple">8</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">Coolify — Crear PostgreSQL <span class="badge badge-purple">Coolify UI</span></div>
+        <p>Ve a <strong>Resources → New Resource → PostgreSQL</strong></p>
+
+        <div class="coolify-mock">
+          <div class="mock-topbar">
+            <div class="dots">
+              <div class="dot" style="background:#ff5f57"></div>
+              <div class="dot" style="background:#febc2e"></div>
+              <div class="dot" style="background:#28c840"></div>
+            </div>
+            <div class="url-bar">http://TU_VPS_IP:8000/resources/new/database/postgresql</div>
+          </div>
+          <div class="mock-layout">
+            <div class="mock-sidebar">
+              <div class="mock-sidebar-item">🏠 Dashboard</div>
+              <div class="mock-sidebar-item active">📦 Resources</div>
+              <div class="mock-sidebar-item">⚙️ Settings</div>
+            </div>
+            <div class="mock-content">
+              <div class="mock-page-title">Nueva base de datos · PostgreSQL 16</div>
+              <div class="mock-page-sub">Se creará como un recurso separado con red interna.</div>
+              <div class="mock-form">
+                <div class="mock-row">
+                  <div class="mock-field">
+                    <div class="mock-label">Name</div>
+                    <div class="mock-input filled">sportcard-db</div>
+                  </div>
+                  <div class="mock-field">
+                    <div class="mock-label">Version</div>
+                    <div class="mock-input filled">16</div>
+                  </div>
+                </div>
+                <div class="mock-row">
+                  <div class="mock-field">
+                    <div class="mock-label">Database Name</div>
+                    <div class="mock-input filled">sportcard</div>
+                  </div>
+                  <div class="mock-field">
+                    <div class="mock-label">User</div>
+                    <div class="mock-input filled">sportcard</div>
+                  </div>
+                </div>
+                <div class="mock-field">
+                  <div class="mock-label">Password</div>
+                  <div class="mock-input" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="color:var(--text3)">••••••••••••••••</span>
+                    <span style="font-size:10px; color:var(--accent); cursor:default;">Generate</span>
+                  </div>
+                </div>
+                <div style="display:flex; gap:8px;">
+                  <div class="mock-btn primary">💾 Save</div>
+                  <div class="mock-btn ghost">▶ Start</div>
+                </div>
+              </div>
+              <div class="info-block tip" style="margin-top:12px;">
+                ✓ Una vez iniciada, copia la <strong>Internal Database URL</strong> — la usarás como <code>DATABASE_URL</code> en el backend.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="resource-grid">
+          <div class="resource-card">
+            <div class="resource-icon" style="background:rgba(255,210,52,0.1)">🐘</div>
+            <div>
+              <div class="resource-name">sportcard-db</div>
+              <div class="resource-sub">PostgreSQL 16 · sportcard@localhost:5432/sportcard</div>
+            </div>
+            <div class="resource-status">
+              <div class="status-dot green"></div>
+              <span style="color:var(--accent)">Running</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 9 -->
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num purple">9</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">Coolify — Servicio Backend (NestJS) <span class="badge badge-purple">Coolify UI</span></div>
+        <p>Ve a <strong>Resources → New Resource → Application</strong></p>
+
+        <div class="coolify-mock">
+          <div class="mock-topbar">
+            <div class="dots">
+              <div class="dot" style="background:#ff5f57"></div>
+              <div class="dot" style="background:#febc2e"></div>
+              <div class="dot" style="background:#28c840"></div>
+            </div>
+            <div class="url-bar">http://TU_VPS_IP:8000/resources/sportcard-backend</div>
+          </div>
+          <div class="mock-layout">
+            <div class="mock-sidebar">
+              <div class="mock-sidebar-section">sportcard-backend</div>
+              <div class="mock-sidebar-item active">⚙️ Configuration</div>
+              <div class="mock-sidebar-item">🌐 Domains</div>
+              <div class="mock-sidebar-item">🔧 Environment</div>
+              <div class="mock-sidebar-item">📋 Logs</div>
+              <div class="mock-sidebar-item">🚀 Deployments</div>
+            </div>
+            <div class="mock-content">
+              <div class="mock-page-title">sportcard-backend · Configuration</div>
+              <div class="mock-form" style="gap:10px;">
+                <div class="mock-row">
+                  <div class="mock-field">
+                    <div class="mock-label">Build Pack</div>
+                    <div class="mock-input filled">Dockerfile</div>
+                  </div>
+                  <div class="mock-field">
+                    <div class="mock-label">Port</div>
+                    <div class="mock-input filled">3000</div>
+                  </div>
+                </div>
+                <div class="mock-row">
+                  <div class="mock-field">
+                    <div class="mock-label">Base Directory</div>
+                    <div class="mock-input filled">/backend</div>
+                  </div>
+                  <div class="mock-field">
+                    <div class="mock-label">Dockerfile Location</div>
+                    <div class="mock-input filled">/backend/Dockerfile</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:16px;">
+                <div class="mock-label" style="margin-bottom:8px;">Domain</div>
+                <div class="mock-input filled" style="margin-bottom:12px;">api.tudominio.com</div>
+              </div>
+
+              <div style="margin-top:4px;">
+                <div class="mock-label" style="margin-bottom:8px;">Environment Variables</div>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                  <div class="env-row">
+                    <div class="env-key">DATABASE_URL</div>
+                    <div class="env-sep">=</div>
+                    <div class="env-val">postgresql://sportcard:PASSWORD@sportcard-db:5432/sportcard</div>
+                  </div>
+                  <div class="env-row">
+                    <div class="env-key">FRONTEND_URL</div>
+                    <div class="env-sep">=</div>
+                    <div class="env-val">https://app.tudominio.com</div>
+                  </div>
+                  <div class="env-row">
+                    <div class="env-key">PORT</div>
+                    <div class="env-sep">=</div>
+                    <div class="env-val">3000</div>
+                  </div>
+                  <div class="env-row">
+                    <div class="env-key">NODE_ENV</div>
+                    <div class="env-sep">=</div>
+                    <div class="env-val">production</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:16px; display:flex; gap:8px;">
+                <div class="mock-btn primary">🚀 Deploy</div>
+                <div class="mock-btn ghost">💾 Save</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 10 -->
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num purple">10</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">Coolify — Servicio Frontend (Angular) <span class="badge badge-purple">Coolify UI</span></div>
+        <p>Mismo proceso que el backend, pero apuntando a <code>/frontend</code></p>
+
+        <div class="coolify-mock">
+          <div class="mock-topbar">
+            <div class="dots">
+              <div class="dot" style="background:#ff5f57"></div>
+              <div class="dot" style="background:#febc2e"></div>
+              <div class="dot" style="background:#28c840"></div>
+            </div>
+            <div class="url-bar">http://TU_VPS_IP:8000/resources/sportcard-frontend</div>
+          </div>
+          <div class="mock-layout">
+            <div class="mock-sidebar">
+              <div class="mock-sidebar-section">sportcard-frontend</div>
+              <div class="mock-sidebar-item active">⚙️ Configuration</div>
+              <div class="mock-sidebar-item">🌐 Domains</div>
+              <div class="mock-sidebar-item">🔧 Environment</div>
+              <div class="mock-sidebar-item">📋 Logs</div>
+            </div>
+            <div class="mock-content">
+              <div class="mock-page-title">sportcard-frontend · Configuration</div>
+              <div class="mock-form" style="gap:10px;">
+                <div class="mock-row">
+                  <div class="mock-field">
+                    <div class="mock-label">Build Pack</div>
+                    <div class="mock-input filled">Dockerfile</div>
+                  </div>
+                  <div class="mock-field">
+                    <div class="mock-label">Port</div>
+                    <div class="mock-input filled">80</div>
+                  </div>
+                </div>
+                <div class="mock-row">
+                  <div class="mock-field">
+                    <div class="mock-label">Base Directory</div>
+                    <div class="mock-input filled">/frontend</div>
+                  </div>
+                  <div class="mock-field">
+                    <div class="mock-label">Dockerfile Location</div>
+                    <div class="mock-input filled">/frontend/Dockerfile</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:16px;">
+                <div class="mock-label" style="margin-bottom:8px;">Domain</div>
+                <div class="mock-input filled" style="margin-bottom:12px;">app.tudominio.com</div>
+              </div>
+
+              <div style="margin-top:4px;">
+                <div class="mock-label" style="margin-bottom:8px;">Environment Variables</div>
+                <div class="env-row">
+                  <div class="env-key">API_URL</div>
+                  <div class="env-sep">=</div>
+                  <div class="env-val">https://api.tudominio.com</div>
+                </div>
+              </div>
+
+              <div style="margin-top:16px; display:flex; gap:8px;">
+                <div class="mock-btn primary">🚀 Deploy</div>
+                <div class="mock-btn ghost">💾 Save</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 11 -->
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num yellow">11</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">DNS <span class="badge badge-orange">Tu proveedor de dominio</span></div>
+        <p>Crea dos registros A apuntando a la IP de tu VPS.</p>
+
+        <div style="background:var(--bg3); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px;">
+          <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text3); margin-bottom:12px;">Registros DNS</div>
+          <div class="dns-row">
+            <div class="dns-cell type">A</div>
+            <div class="dns-cell name">api</div>
+            <div class="dns-cell value">TU_VPS_IP</div>
+            <div style="font-size:11px; color:var(--text3);">300 TTL</div>
+          </div>
+          <div class="dns-row">
+            <div class="dns-cell type">A</div>
+            <div class="dns-cell name">app</div>
+            <div class="dns-cell value">TU_VPS_IP</div>
+            <div style="font-size:11px; color:var(--text3);">300 TTL</div>
+          </div>
+        </div>
+
+        <div class="info-block note">💡 Coolify + Traefik detectan el host automáticamente y emiten el certificado SSL de Let's Encrypt. Solo necesitas que el DNS apunte al VPS.</div>
+        <div class="info-block warn">⏳ La propagación DNS puede tardar hasta 24h. Puedes verificar con <code>dig api.tudominio.com</code> o <code>nslookup api.tudominio.com</code></div>
+      </div>
+    </div>
+
+    <!-- STEP 12 -->
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num green">12</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">Verificación <span class="badge badge-green">Todo listo</span></div>
+
+        <div class="verify-box">
+          <h4>✓ Checklist de verificación</h4>
+          <div class="verify-row">
+            <div class="verify-check">✓</div>
+            <div>
+              <div class="verify-url">curl https://api.tudominio.com/api/health</div>
+              <div class="verify-expected">→ {"status":"ok"}</div>
+            </div>
+          </div>
+          <div class="verify-row">
+            <div class="verify-check">✓</div>
+            <div>
+              <div class="verify-url">curl https://api.tudominio.com/api</div>
+              <div class="verify-expected">→ {"status":"ok","service":"Sport Card API","db":"configured",...}</div>
+            </div>
+          </div>
+          <div class="verify-row">
+            <div class="verify-check">✓</div>
+            <div>
+              <div class="verify-url">https://app.tudominio.com</div>
+              <div class="verify-expected">→ Hello World con API en verde ✅</div>
+            </div>
+          </div>
+          <div class="verify-row">
+            <div class="verify-check">✓</div>
+            <div>
+              <div class="verify-url">https://api.tudominio.com</div>
+              <div class="verify-expected">→ Certificado SSL válido (candado verde en navegador)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="resource-grid">
+          <div class="resource-card">
+            <div class="resource-icon" style="background:rgba(0,232,122,0.1)">🦅</div>
+            <div>
+              <div class="resource-name">sportcard-backend</div>
+              <div class="resource-sub">api.tudominio.com · NestJS 3000</div>
+            </div>
+            <div class="resource-status"><div class="status-dot green"></div><span style="color:var(--accent)">Running</span></div>
+          </div>
+          <div class="resource-card">
+            <div class="resource-icon" style="background:rgba(79,141,255,0.1)">🅰️</div>
+            <div>
+              <div class="resource-name">sportcard-frontend</div>
+              <div class="resource-sub">app.tudominio.com · nginx 80</div>
+            </div>
+            <div class="resource-status"><div class="status-dot green"></div><span style="color:var(--accent)">Running</span></div>
+          </div>
+          <div class="resource-card">
+            <div class="resource-icon" style="background:rgba(255,210,52,0.1)">🐘</div>
+            <div>
+              <div class="resource-name">sportcard-db</div>
+              <div class="resource-sub">PostgreSQL 16 · red interna</div>
+            </div>
+            <div class="resource-status"><div class="status-dot green"></div><span style="color:var(--accent)">Running</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 13 -->
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num blue">13</div>
+        <div class="step-line" style="display:none"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">CI/CD automático <span class="badge badge-blue">GitHub → Coolify</span></div>
+        <p>Activa el deploy automático para que cada <code>git push</code> a <code>main</code> dispare un nuevo deploy.</p>
+
+        <div class="flow">
+          <div class="flow-node">git push</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">GitHub Webhook</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">Coolify Build</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node" style="border-color:var(--accent); color:var(--accent)">Zero-downtime deploy</div>
+        </div>
+
+        <p style="margin-top:12px;">En cada servicio de Coolify:</p>
+        <ol style="font-size:13px; color:var(--text2); padding-left:20px; display:flex; flex-direction:column; gap:6px; margin-bottom:14px;">
+          <li>Ve a <strong style="color:var(--text)">Settings → Deployments</strong></li>
+          <li>Activa <strong style="color:var(--text)">Auto Deploy on Push → ON</strong></li>
+          <li>Copia el <strong style="color:var(--text)">Webhook URL</strong> generado</li>
+          <li>En GitHub → Settings → Webhooks → Add → pega la URL</li>
+        </ol>
+
+        <div class="info-block tip">✓ Con esto tu flujo es: editas código → <code>git push</code> → en 2-3 minutos está en producción automáticamente.</div>
+      </div>
+    </div>
+
+  </div><!-- end steps -->
+
+  <!-- FOOTER -->
+  <div class="divider"></div>
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="logo" style="width:36px; height:36px; font-size:14px;">SC</div>
+      <div>
+        <div style="font-size:14px; font-weight:800;">Sport Card</div>
+        <div style="font-size:11px; color:var(--text3);">Coolify Setup Guide · Abril 2026</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:6px;">
+      <span class="badge badge-green">NestJS</span>
+      <span class="badge badge-blue">Angular 20+</span>
+      <span class="badge badge-orange">PostgreSQL</span>
+      <span class="badge badge-purple">Coolify</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
