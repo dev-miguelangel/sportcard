@@ -34,7 +34,9 @@ export class AuthService {
     private readonly router: Router,
   ) {}
 
-  readonly devAuthEnabled = environment.devAuthEnabled ?? false;
+  readonly devAuthEnabled =
+    (window as Window & { __DEV_AUTH_ENABLED__?: string }).__DEV_AUTH_ENABLED__ === 'true' ||
+    environment.devAuthEnabled;
 
   /** Redirige el navegador al endpoint de Google OAuth en el backend */
   loginWithGoogle(): void {
