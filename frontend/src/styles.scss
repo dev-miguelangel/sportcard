@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Safe area para iPhone (notch / home indicator) */
+:root {
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-left: env(safe-area-inset-left);
+  --safe-right: env(safe-area-inset-right);
+}
+
+/* Evita el bounce scroll en iOS */
+html {
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  height: 100%;
+  overscroll-behavior: none;
+}
+
 /* Material Symbols — tamaño y ajuste global */
 .material-symbols-outlined {
   font-variation-settings:
@@ -38,4 +57,9 @@
 ::-webkit-scrollbar-thumb {
   background-color: #3f3f46;
   border-radius: 3px;
+}
+
+/* Evita zoom en inputs en iOS (mínimo 16px) */
+input, select, textarea {
+  font-size: 16px;
 }
