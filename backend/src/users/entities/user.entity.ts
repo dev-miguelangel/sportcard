@@ -11,6 +11,9 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ unique: true, length: 6 })
+  stringId: string;
+
   @Column({ unique: true })
   googleId: string;
 

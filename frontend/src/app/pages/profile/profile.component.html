@@ -1,0 +1,152 @@
+<div class="min-h-screen bg-neutral-950 flex flex-col">
+
+  <!-- Header -->
+  <header class="border-b border-neutral-800 bg-neutral-900/80 backdrop-blur-sm sticky top-0 z-10"
+          style="padding-top: env(safe-area-inset-top)">
+    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
+      <button
+        (click)="navigateTo('/dashboard')"
+        class="p-2 rounded-lg hover:bg-neutral-800 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -ml-1"
+        aria-label="Volver al inicio"
+      >
+        <span class="material-symbols-outlined text-neutral-400" style="font-size:20px">arrow_back</span>
+      </button>
+
+      <h1 class="font-bold text-base">Perfil</h1>
+
+      <div class="ml-auto">
+        <button
+          (click)="auth.logout()"
+          class="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-red-400 px-3 py-1.5 rounded-lg hover:bg-neutral-800 transition-colors min-h-[44px]"
+        >
+          <span class="material-symbols-outlined" style="font-size:16px">logout</span>
+          Salir
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:pb-8">
+
+    @if (auth.currentUser(); as user) {
+
+      <!-- Avatar + identity -->
+      <div class="flex flex-col items-center text-center mb-8 pt-4">
+
+        <!-- Avatar -->
+        <div class="relative mb-4">
+          @if (user.avatar) {
+            <img
+              [src]="user.avatar"
+              [alt]="user.name"
+              class="w-24 h-24 rounded-3xl object-cover ring-2 ring-neutral-800"
+            />
+          } @else {
+            <div class="w-24 h-24 rounded-3xl bg-gradient-to-br from-brand to-emerald-600 flex items-center justify-center ring-2 ring-neutral-800">
+              <span class="text-3xl font-black text-neutral-950">{{ initials() }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Name -->
+        <h2 class="text-2xl font-black tracking-tight mb-1">{{ user.name }}</h2>
+        <p class="text-sm text-neutral-400 mb-4">{{ user.email }}</p>
+
+        <!-- Sport Card ID badge -->
+        <div class="flex items-center gap-2 bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-2.5">
+          <span class="material-symbols-outlined text-brand" style="font-size:16px">badge</span>
+          <div class="flex flex-col items-start">
+            <span class="text-[10px] text-neutral-500 uppercase tracking-wider leading-none mb-0.5">ID Sport Card</span>
+            <span class="font-mono font-black text-white tracking-widest text-lg leading-none">{{ user.stringId }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info cards -->
+      <div class="flex flex-col gap-3 mb-6">
+
+        <!-- Member since -->
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 flex items-center gap-3">
+          <span class="material-symbols-outlined text-neutral-500" style="font-size:20px">calendar_month</span>
+          <div class="flex flex-col">
+            <span class="text-xs text-neutral-500">Miembro desde</span>
+            <span class="text-sm font-semibold text-neutral-200">{{ memberSince() }}</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Stats -->
+      <p class="text-xs text-neutral-500 uppercase tracking-wider mb-3 font-semibold">Estadísticas</p>
+      <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-center">
+          <p class="text-2xl font-black text-brand mb-1">0</p>
+          <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Eventos</p>
+        </div>
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-center">
+          <p class="text-2xl font-black text-orange-400 mb-1">0 🔥</p>
+          <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Racha</p>
+        </div>
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-center">
+          <p class="text-2xl font-black text-blue-400 mb-1">0</p>
+          <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Victorias</p>
+        </div>
+      </div>
+
+      <!-- Danger zone -->
+      <div class="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
+        <button
+          (click)="auth.logout()"
+          class="w-full flex items-center gap-3 px-4 py-4 hover:bg-neutral-800 transition-colors text-left min-h-[56px]"
+        >
+          <span class="material-symbols-outlined text-red-400" style="font-size:20px">logout</span>
+          <span class="text-sm font-medium text-red-400">Cerrar sesión</span>
+          <span class="material-symbols-outlined text-neutral-600 ml-auto" style="font-size:16px">chevron_right</span>
+        </button>
+      </div>
+
+    }
+
+  </main>
+
+  <!-- Bottom navigation (mobile) -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-neutral-900/95 backdrop-blur-sm border-t border-neutral-800 sm:hidden z-20"
+       style="padding-bottom: env(safe-area-inset-bottom)">
+    <div class="flex items-center justify-around h-16">
+
+      <button
+        (click)="navigateTo('/dashboard')"
+        class="flex flex-col items-center gap-1 px-3 py-2 min-w-[60px] min-h-[44px] justify-center">
+        <span class="material-symbols-outlined text-neutral-500" style="font-size:22px">home</span>
+        <span class="text-[10px] text-neutral-500">Inicio</span>
+      </button>
+
+      <button class="flex flex-col items-center gap-1 px-3 py-2 min-w-[60px] min-h-[44px] justify-center">
+        <span class="material-symbols-outlined text-neutral-500" style="font-size:22px">event</span>
+        <span class="text-[10px] text-neutral-500">Eventos</span>
+      </button>
+
+      <!-- Botón central de acción -->
+      <button class="flex flex-col items-center justify-center -mt-5 min-w-[60px]">
+        <div class="w-14 h-14 bg-brand rounded-2xl flex items-center justify-center shadow-lg shadow-brand/30">
+          <span class="material-symbols-outlined text-neutral-950" style="font-size:28px">add</span>
+        </div>
+      </button>
+
+      <button class="flex flex-col items-center gap-1 px-3 py-2 min-w-[60px] min-h-[44px] justify-center">
+        <span class="material-symbols-outlined text-neutral-500" style="font-size:22px">history</span>
+        <span class="text-[10px] text-neutral-500">Historial</span>
+      </button>
+
+      <button
+        (click)="navigateTo('/profile')"
+        class="flex flex-col items-center gap-1 px-3 py-2 min-w-[60px] min-h-[44px] justify-center">
+        <span class="material-symbols-outlined filled text-brand" style="font-size:22px">person</span>
+        <span class="text-[10px] text-brand font-semibold">Perfil</span>
+      </button>
+
+    </div>
+  </nav>
+
+</div>

@@ -11,8 +11,11 @@ interface DevCredentials {
 
 export interface AuthUser {
   id: string;
+  stringId: string;
   email: string;
   name: string;
+  avatar: string | null;
+  createdAt: string;
 }
 
 const TOKEN_KEY = 'sc_token';
