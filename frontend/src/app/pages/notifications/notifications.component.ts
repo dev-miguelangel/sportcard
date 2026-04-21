@@ -1,16 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
 import { PwaService } from '../../core/services/pwa.service';
+import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
 
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [],
+  imports: [BottomNavComponent],
   templateUrl: './notifications.component.html',
 })
 export class NotificationsComponent {
-  readonly auth = inject(AuthService);
   readonly pwa = inject(PwaService);
   private readonly router = inject(Router);
 

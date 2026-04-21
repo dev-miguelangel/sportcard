@@ -1,20 +1,14 @@
 import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
-import { PwaService } from '../../core/services/pwa.service';
+import { HeaderComponent } from '../../shared/header/header.component';
+import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [],
+  imports: [HeaderComponent, BottomNavComponent],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent {
   readonly auth = inject(AuthService);
-  readonly pwa = inject(PwaService);
-  private readonly router = inject(Router);
-
-  navigateTo(path: string): void {
-    this.router.navigate([path]);
-  }
 }

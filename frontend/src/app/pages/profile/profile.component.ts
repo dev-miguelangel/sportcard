@@ -1,7 +1,8 @@
 import { Component, inject, computed, signal, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
-import { PwaService } from '../../core/services/pwa.service';
+import { HeaderComponent } from '../../shared/header/header.component';
+import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
 import { qrSvgDataUrl } from '../../core/utils/qr';
 
 const GENDER_LABELS: Record<string, string> = {
@@ -14,12 +15,11 @@ const GENDER_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [],
+  imports: [HeaderComponent, BottomNavComponent],
   templateUrl: './profile.component.html',
 })
 export class ProfileComponent {
   readonly auth = inject(AuthService);
-  readonly pwa = inject(PwaService);
   private readonly router = inject(Router);
 
   readonly qrDataUrl = signal<string>('');

@@ -1,0 +1,40 @@
+<nav class="fixed bottom-0 left-0 right-0 bg-neutral-900/95 backdrop-blur-sm border-t border-neutral-800 z-20"
+     style="padding-bottom: env(safe-area-inset-bottom)">
+  <div class="max-w-lg mx-auto flex items-center justify-around h-16">
+
+    <button
+      (click)="navigateTo('/dashboard')"
+      class="flex flex-col items-center gap-1 px-3 py-2 min-w-[60px] min-h-[44px] justify-center">
+      <span [class]="'material-symbols-outlined ' + (isActive('home') ? 'filled text-brand' : 'text-neutral-500')"
+            style="font-size:22px">home</span>
+      <span [class]="'text-[10px] ' + (isActive('home') ? 'text-brand font-semibold' : 'text-neutral-500')">Inicio</span>
+    </button>
+
+    <button class="flex flex-col items-center gap-1 px-3 py-2 min-w-[60px] min-h-[44px] justify-center">
+      <span [class]="'material-symbols-outlined ' + (isActive('events') ? 'filled text-brand' : 'text-neutral-500')"
+            style="font-size:22px">event</span>
+      <span [class]="'text-[10px] ' + (isActive('events') ? 'text-brand font-semibold' : 'text-neutral-500')">Eventos</span>
+    </button>
+
+    <button class="flex flex-col items-center justify-center -mt-5 min-w-[60px]">
+      <div class="w-14 h-14 bg-brand rounded-2xl flex items-center justify-center shadow-lg shadow-brand/30">
+        <span class="material-symbols-outlined text-neutral-950" style="font-size:28px">add</span>
+      </div>
+    </button>
+
+    <button class="flex flex-col items-center gap-1 px-3 py-2 min-w-[60px] min-h-[44px] justify-center">
+      <span [class]="'material-symbols-outlined ' + (isActive('history') ? 'filled text-brand' : 'text-neutral-500')"
+            style="font-size:22px">history</span>
+      <span [class]="'text-[10px] ' + (isActive('history') ? 'text-brand font-semibold' : 'text-neutral-500')">Historial</span>
+    </button>
+
+    <button
+      (click)="navigateTo('/profile')"
+      class="flex flex-col items-center gap-1 px-3 py-2 min-w-[60px] min-h-[44px] justify-center">
+      <span [class]="'material-symbols-outlined ' + (isActive('profile') ? 'filled text-brand' : 'text-neutral-500')"
+            style="font-size:22px">person</span>
+      <span [class]="'text-[10px] ' + (isActive('profile') ? 'text-brand font-semibold' : 'text-neutral-500')">Perfil</span>
+    </button>
+
+  </div>
+</nav>
