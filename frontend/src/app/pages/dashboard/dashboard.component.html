@@ -2,7 +2,6 @@
 
   <app-header />
 
-  <!-- Content -->
   <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom))]">
 
     @if (auth.currentUser(); as user) {
@@ -16,7 +15,7 @@
     <div class="grid grid-cols-3 gap-3 mb-6">
       <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
         <p class="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">Eventos</p>
-        <p class="text-2xl font-black text-brand">0</p>
+        <p class="text-2xl font-black text-brand">{{ eventsThisMonth() }}</p>
         <p class="text-[10px] text-neutral-600 mt-1">este mes</p>
       </div>
       <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
@@ -31,18 +30,121 @@
       </div>
     </div>
 
-    <!-- Empty state -->
-    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-10 text-center">
-      <span class="material-symbols-outlined text-neutral-600 mb-4 block" style="font-size:48px">sports</span>
-      <h2 class="font-bold text-neutral-300 mb-2">¡Todo listo para empezar!</h2>
-      <p class="text-sm text-neutral-500 mb-6 max-w-xs mx-auto">
-        Crea tu primer evento deportivo o únete a uno existente.
-      </p>
-      <button (click)="goToCreateEvent()"
-              class="bg-brand text-neutral-950 font-bold px-5 py-3 rounded-xl hover:brightness-110 transition-all flex items-center gap-2 mx-auto min-h-[44px]">
-        <span class="material-symbols-outlined" style="font-size:18px">add</span>
-        Crear evento
-      </button>
+    <!-- Próximos eventos -->
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-brand" style="font-size:18px">event_upcoming</span>
+          <h2 class="text-sm font-black tracking-tight">Próximos eventos</h2>
+        </div>
+        <button (click)="goToEvents()"
+                class="text-[0.72rem] font-bold text-brand flex items-center gap-1 min-h-[36px]">
+          Ver todos
+          <span class="material-symbols-outlined" style="font-size:14px">chevron_right</span>
+        </button>
+      </div>
+
+      <!-- Loading skeleton -->
+      @if (loadingEvents()) {
+        <div class="divide-y divide-neutral-800">
+          @for (i of [1, 2, 3]; track i) {
+            <div class="flex items-center gap-3 px-4 py-3 animate-pulse">
+              <div class="w-10 h-10 rounded-xl bg-neutral-800 flex-shrink-0"></div>
+              <div class="flex-1 flex flex-col gap-1.5">
+                <div class="h-3.5 bg-neutral-800 rounded-md w-2/3"></div>
+                <div class="h-2.5 bg-neutral-800 rounded-md w-1/2"></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Events list -->
+      @if (!loadingEvents()) {
+
+        @if (upcomingEvents().length === 0) {
+          <!-- Empty state inside card -->
+          <div class="px-4 py-8 flex flex-col items-center text-center">
+            <span class="material-symbols-outlined text-neutral-700 mb-3" style="font-size:36px">calendar_month</span>
+            <p class="text-sm font-semibold text-neutral-400 mb-1">Sin eventos próximos</p>
+            <p class="text-xs text-neutral-600 mb-5">Crea uno o únete a un evento existente.</p>
+            <div class="flex gap-3">
+              <button (click)="goToCreateEvent()"
+                      class="flex items-center gap-1.5 bg-brand text-neutral-950 text-xs font-black px-4 py-2.5 rounded-xl min-h-[40px]">
+                <span class="material-symbols-outlined" style="font-size:16px">add</span>
+                Crear evento
+              </button>
+              <button (click)="goToEvents()"
+                      class="flex items-center gap-1.5 bg-neutral-800 text-neutral-300 text-xs font-bold px-4 py-2.5 rounded-xl border border-neutral-700 min-h-[40px]">
+                <span class="material-symbols-outlined" style="font-size:16px">search</span>
+                Explorar
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (upcomingEvents().length > 0) {
+          <div class="divide-y divide-neutral-800">
+            @for (event of upcomingEvents(); track event.id) {
+              <div class="flex items-center gap-3 px-4 py-3">
+
+                <!-- Sport icon -->
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-xl"
+                     [style.background]="getBannerGradient(event.sport)">
+                  {{ getSportEmoji(event.sport) }}
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-bold truncate">{{ event.title }}</p>
+                  <div class="flex items-center gap-3 mt-0.5">
+                    <span class="flex items-center gap-1 text-[0.65rem]"
+                          [class]="isToday(event.startDatetime) ? 'text-brand font-semibold' : 'text-neutral-500'">
+                      <span class="material-symbols-outlined" style="font-size:11px">schedule</span>
+                      {{ formatDate(event.startDatetime) }}
+                    </span>
+                    <span class="flex items-center gap-1 text-[0.65rem] text-neutral-500 truncate">
+                      <span class="material-symbols-outlined" style="font-size:11px">location_on</span>
+                      <span class="truncate">{{ event.locationName }}</span>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Today badge -->
+                @if (isToday(event.startDatetime)) {
+                  <span class="text-[0.55rem] font-black tracking-wider uppercase px-2 py-1 rounded-full
+                               bg-brand/15 text-brand border border-brand/30 flex-shrink-0">
+                    HOY
+                  </span>
+                }
+
+              </div>
+            }
+          </div>
+
+          <!-- Footer actions -->
+          <div class="flex gap-2 px-4 py-3 border-t border-neutral-800">
+            <button (click)="goToCreateEvent()"
+                    class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 hover:bg-neutral-700
+                           text-neutral-300 text-xs font-bold px-4 py-2.5 rounded-xl border border-neutral-700
+                           transition-colors min-h-[40px]">
+              <span class="material-symbols-outlined" style="font-size:16px">add</span>
+              Crear evento
+            </button>
+            <button (click)="goToEvents()"
+                    class="flex-1 flex items-center justify-center gap-1.5 bg-brand/10 hover:bg-brand/15
+                           text-brand text-xs font-bold px-4 py-2.5 rounded-xl border border-brand/25
+                           transition-colors min-h-[40px]">
+              <span class="material-symbols-outlined" style="font-size:16px">search</span>
+              Explorar eventos
+            </button>
+          </div>
+        }
+
+      }
+
     </div>
 
   </main>
