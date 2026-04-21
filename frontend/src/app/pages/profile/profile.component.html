@@ -1,23 +1,33 @@
 <div class="min-h-screen bg-neutral-950 flex flex-col">
 
-  <!-- Header -->
+  <!-- Header (idéntico al dashboard) -->
   <header class="border-b border-neutral-800 bg-neutral-900/80 backdrop-blur-sm sticky top-0 z-10"
           style="padding-top: env(safe-area-inset-top)">
     <div class="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
-      <button
-        (click)="navigateTo('/dashboard')"
-        class="p-2 rounded-lg hover:bg-neutral-800 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -ml-1"
-        aria-label="Volver al inicio"
-      >
-        <span class="material-symbols-outlined text-neutral-400" style="font-size:20px">arrow_back</span>
-      </button>
+      <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center flex-shrink-0">
+        <svg viewBox="0 -960 960 960" class="w-5 h-5" fill="#0a0a0f">
+          <path d="M440-200q-100 0-170-70t-70-170q0-11 1-22t3-22q-5 2-12 3t-12 1q-42 0-71-29t-29-71q0-42 27.5-71t69.5-29q33 0 59.5 18.5T274-614q33-30 75.5-48t90.5-18h440v160H680v80q0 100-70 170t-170 70ZM208.5-551.5Q220-563 220-580t-11.5-28.5Q197-620 180-620t-28.5 11.5Q140-597 140-580t11.5 28.5Q163-540 180-540t28.5-11.5ZM539-341q41-41 41-99t-41-99q-41-41-99-41t-99 41q-41 41-41 99t41 99q41 41 99 41t99-41Zm-42.5-42.5Q520-407 520-440t-23.5-56.5Q473-520 440-520t-56.5 23.5Q360-473 360-440t23.5 56.5Q407-360 440-360t56.5-23.5ZM440-440Z"/>
+        </svg>
+      </div>
+      <span class="font-bold text-sm hidden sm:block">Sport Card</span>
 
-      <h1 class="font-bold text-base">Perfil</h1>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="relative p-2 rounded-lg hover:bg-neutral-800 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center">
+          <span class="material-symbols-outlined text-neutral-400" style="font-size:20px">notifications</span>
+        </button>
 
-      <div class="ml-auto">
+        @if (auth.currentUser(); as user) {
+          <div class="flex items-center gap-2 rounded-lg px-2 py-1">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand to-emerald-600 flex items-center justify-center text-xs font-black text-neutral-950 flex-shrink-0">
+              {{ user.name.charAt(0).toUpperCase() }}
+            </div>
+            <span class="text-sm font-medium text-neutral-300 hidden sm:block">{{ user.name }}</span>
+          </div>
+        }
+
         <button
           (click)="auth.logout()"
-          class="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-red-400 px-3 py-1.5 rounded-lg hover:bg-neutral-800 transition-colors min-h-[44px]"
+          class="hidden sm:flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-neutral-800 transition-colors min-h-[44px]"
         >
           <span class="material-symbols-outlined" style="font-size:16px">logout</span>
           Salir
@@ -26,91 +36,247 @@
     </div>
   </header>
 
-  <!-- Content -->
-  <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:pb-8">
+  <!-- Contenido -->
+  <main class="flex-1 max-w-lg mx-auto w-full px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:pb-8">
 
     @if (auth.currentUser(); as user) {
 
-      <!-- Avatar + identity -->
-      <div class="flex flex-col items-center text-center mb-8 pt-4">
+      <!-- ── Tarjeta de identidad ──────────────────────────── -->
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden mb-6">
 
-        <!-- Avatar -->
-        <div class="relative mb-4">
+        <div class="p-6 flex flex-col items-center text-center gap-4">
+
+          <!-- Avatar -->
           @if (user.avatar) {
-            <img
-              [src]="user.avatar"
-              [alt]="user.name"
-              class="w-24 h-24 rounded-3xl object-cover ring-2 ring-neutral-800"
-            />
+            <img [src]="user.avatar" [alt]="user.name"
+                 class="w-16 h-16 rounded-2xl object-cover ring-2 ring-neutral-700" />
           } @else {
-            <div class="w-24 h-24 rounded-3xl bg-gradient-to-br from-brand to-emerald-600 flex items-center justify-center ring-2 ring-neutral-800">
-              <span class="text-3xl font-black text-neutral-950">{{ initials() }}</span>
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand to-emerald-600 flex items-center justify-center ring-2 ring-neutral-700">
+              <span class="text-xl font-black text-neutral-950">{{ initials() }}</span>
             </div>
           }
-        </div>
 
-        <!-- Name -->
-        <h2 class="text-2xl font-black tracking-tight mb-1">{{ user.name }}</h2>
-        <p class="text-sm text-neutral-400 mb-4">{{ user.email }}</p>
+          <!-- Nombre y email -->
+          <div>
+            <h1 class="text-xl font-black tracking-tight">{{ user.name }}</h1>
+            <p class="text-sm text-neutral-400 mt-0.5">{{ user.email }}</p>
+          </div>
 
-        <!-- Sport Card ID badge -->
-        <div class="flex items-center gap-2 bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-2.5">
-          <span class="material-symbols-outlined text-brand" style="font-size:16px">badge</span>
-          <div class="flex flex-col items-start">
-            <span class="text-[10px] text-neutral-500 uppercase tracking-wider leading-none mb-0.5">ID Sport Card</span>
+          <!-- QR Code -->
+          <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3">
+            @if (qrDataUrl()) {
+              <img [src]="qrDataUrl()" alt="QR Sport Card" class="w-40 h-40 rounded-lg" />
+            } @else {
+              <div class="w-40 h-40 rounded-lg bg-neutral-900 flex items-center justify-center">
+                <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:28px">progress_activity</span>
+              </div>
+            }
+            <p class="text-[10px] text-neutral-600 text-center mt-2 uppercase tracking-widest">Sport Card ID</p>
+          </div>
+
+          <!-- ID badge -->
+          <div class="flex items-center gap-2 bg-neutral-800/60 rounded-xl px-4 py-2.5 border border-neutral-700">
+            <span class="material-symbols-outlined text-brand" style="font-size:16px">badge</span>
             <span class="font-mono font-black text-white tracking-widest text-lg leading-none">{{ user.stringId }}</span>
           </div>
+
+          <!-- Editar perfil -->
+          <button
+            (click)="navigateTo('/onboarding')"
+            class="flex items-center gap-2 text-sm text-neutral-400 hover:text-white border border-neutral-700 hover:border-neutral-500 rounded-xl px-4 py-2.5 transition-colors min-h-[44px] w-full justify-center"
+          >
+            <span class="material-symbols-outlined" style="font-size:16px">edit</span>
+            Editar perfil
+          </button>
+
         </div>
       </div>
 
-      <!-- Info cards -->
-      <div class="flex flex-col gap-3 mb-6">
+      <!-- ── Datos personales ──────────────────────────────── -->
+      @if (user.phone || user.birthDate || user.gender || user.city || user.sports.length) {
+        <section class="mb-4">
+          <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-2 px-1">Datos personales</p>
+          <div class="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden divide-y divide-neutral-800">
 
-        <!-- Member since -->
-        <div class="bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 flex items-center gap-3">
-          <span class="material-symbols-outlined text-neutral-500" style="font-size:20px">calendar_month</span>
-          <div class="flex flex-col">
-            <span class="text-xs text-neutral-500">Miembro desde</span>
-            <span class="text-sm font-semibold text-neutral-200">{{ memberSince() }}</span>
+            @if (user.phone) {
+              <div class="flex items-center gap-3 px-4 py-3">
+                <span class="material-symbols-outlined text-neutral-500 flex-shrink-0" style="font-size:18px">phone</span>
+                <div>
+                  <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Teléfono</p>
+                  <p class="text-sm font-medium text-neutral-200">{{ user.phone }}</p>
+                </div>
+              </div>
+            }
+
+            @if (birthDateFormatted()) {
+              <div class="flex items-center gap-3 px-4 py-3">
+                <span class="material-symbols-outlined text-neutral-500 flex-shrink-0" style="font-size:18px">cake</span>
+                <div>
+                  <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Fecha de nacimiento</p>
+                  <p class="text-sm font-medium text-neutral-200">{{ birthDateFormatted() }}</p>
+                </div>
+              </div>
+            }
+
+            @if (genderLabel()) {
+              <div class="flex items-center gap-3 px-4 py-3">
+                <span class="material-symbols-outlined text-neutral-500 flex-shrink-0" style="font-size:18px">person</span>
+                <div>
+                  <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Género</p>
+                  <p class="text-sm font-medium text-neutral-200">{{ genderLabel() }}</p>
+                </div>
+              </div>
+            }
+
+            @if (user.city) {
+              <div class="flex items-center gap-3 px-4 py-3">
+                <span class="material-symbols-outlined text-neutral-500 flex-shrink-0" style="font-size:18px">location_on</span>
+                <div>
+                  <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Ciudad</p>
+                  <p class="text-sm font-medium text-neutral-200">{{ user.city }}</p>
+                </div>
+              </div>
+            }
+
+            @if (user.sports.length) {
+              <div class="flex items-start gap-3 px-4 py-3">
+                <span class="material-symbols-outlined text-neutral-500 flex-shrink-0 mt-0.5" style="font-size:18px">sports</span>
+                <div>
+                  <p class="text-[10px] text-neutral-500 uppercase tracking-wider mb-2">Deportes</p>
+                  <div class="flex flex-wrap gap-1.5">
+                    @for (sport of user.sports; track sport) {
+                      <span class="bg-brand/10 text-brand border border-brand/30 rounded-full px-2.5 py-0.5 text-xs font-medium">
+                        {{ sport }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+
           </div>
-        </div>
+        </section>
+      }
 
-      </div>
+      <!-- ── Datos de salud ────────────────────────────────── -->
+      @if (user.bloodType || user.allergies || user.medicalConditions || user.medications) {
+        <section class="mb-4">
+          <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-2 px-1">Datos de salud</p>
+          <div class="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden divide-y divide-neutral-800">
 
-      <!-- Stats -->
-      <p class="text-xs text-neutral-500 uppercase tracking-wider mb-3 font-semibold">Estadísticas</p>
-      <div class="grid grid-cols-3 gap-3 mb-6">
-        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-center">
-          <p class="text-2xl font-black text-brand mb-1">0</p>
-          <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Eventos</p>
-        </div>
-        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-center">
-          <p class="text-2xl font-black text-orange-400 mb-1">0 🔥</p>
-          <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Racha</p>
-        </div>
-        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-center">
-          <p class="text-2xl font-black text-blue-400 mb-1">0</p>
-          <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Victorias</p>
-        </div>
-      </div>
+            @if (user.bloodType) {
+              <div class="flex items-center gap-3 px-4 py-3">
+                <span class="material-symbols-outlined text-red-400 flex-shrink-0" style="font-size:18px">blood_pressure</span>
+                <div>
+                  <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Tipo de sangre</p>
+                  <p class="text-sm font-bold text-red-400">{{ user.bloodType }}</p>
+                </div>
+              </div>
+            }
 
-      <!-- Danger zone -->
-      <div class="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
-        <button
-          (click)="auth.logout()"
-          class="w-full flex items-center gap-3 px-4 py-4 hover:bg-neutral-800 transition-colors text-left min-h-[56px]"
-        >
-          <span class="material-symbols-outlined text-red-400" style="font-size:20px">logout</span>
-          <span class="text-sm font-medium text-red-400">Cerrar sesión</span>
-          <span class="material-symbols-outlined text-neutral-600 ml-auto" style="font-size:16px">chevron_right</span>
-        </button>
-      </div>
+            @if (user.allergies) {
+              <div class="flex items-start gap-3 px-4 py-3">
+                <span class="material-symbols-outlined text-yellow-500 flex-shrink-0 mt-0.5" style="font-size:18px">warning</span>
+                <div>
+                  <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Alergias</p>
+                  <p class="text-sm text-neutral-200">{{ user.allergies }}</p>
+                </div>
+              </div>
+            }
+
+            @if (user.medicalConditions) {
+              <div class="flex items-start gap-3 px-4 py-3">
+                <span class="material-symbols-outlined text-neutral-500 flex-shrink-0 mt-0.5" style="font-size:18px">medical_information</span>
+                <div>
+                  <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Condiciones médicas</p>
+                  <p class="text-sm text-neutral-200">{{ user.medicalConditions }}</p>
+                </div>
+              </div>
+            }
+
+            @if (user.medications) {
+              <div class="flex items-start gap-3 px-4 py-3">
+                <span class="material-symbols-outlined text-neutral-500 flex-shrink-0 mt-0.5" style="font-size:18px">medication</span>
+                <div>
+                  <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Medicamentos</p>
+                  <p class="text-sm text-neutral-200">{{ user.medications }}</p>
+                </div>
+              </div>
+            }
+
+          </div>
+        </section>
+      }
+
+      <!-- ── Contacto de emergencia ────────────────────────── -->
+      @if (user.emergencyName || user.emergencyPhone) {
+        <section class="mb-4">
+          <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-2 px-1">Contacto de emergencia</p>
+          <div class="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden divide-y divide-neutral-800">
+
+            @if (user.emergencyName) {
+              <div class="flex items-center gap-3 px-4 py-3">
+                <span class="material-symbols-outlined text-neutral-500 flex-shrink-0" style="font-size:18px">person_alert</span>
+                <div>
+                  <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Nombre</p>
+                  <p class="text-sm font-medium text-neutral-200">{{ user.emergencyName }}</p>
+                </div>
+              </div>
+            }
+
+            @if (user.emergencyPhone) {
+              <div class="flex items-center gap-3 px-4 py-3">
+                <span class="material-symbols-outlined text-neutral-500 flex-shrink-0" style="font-size:18px">phone_in_talk</span>
+                <div>
+                  <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Teléfono</p>
+                  <p class="text-sm font-medium text-neutral-200">{{ user.emergencyPhone }}</p>
+                </div>
+              </div>
+            }
+
+            @if (user.emergencyRelation) {
+              <div class="flex items-center gap-3 px-4 py-3">
+                <span class="material-symbols-outlined text-neutral-500 flex-shrink-0" style="font-size:18px">group</span>
+                <div>
+                  <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Relación</p>
+                  <p class="text-sm font-medium text-neutral-200">{{ user.emergencyRelation }}</p>
+                </div>
+              </div>
+            }
+
+          </div>
+        </section>
+      }
+
+      <!-- ── Cuenta ─────────────────────────────────────────── -->
+      <section class="mb-4">
+        <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-2 px-1">Cuenta</p>
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden divide-y divide-neutral-800">
+
+          <div class="flex items-center gap-3 px-4 py-3">
+            <span class="material-symbols-outlined text-neutral-500 flex-shrink-0" style="font-size:18px">calendar_month</span>
+            <div>
+              <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Miembro desde</p>
+              <p class="text-sm font-medium text-neutral-200">{{ memberSince() }}</p>
+            </div>
+          </div>
+
+          <button
+            (click)="auth.logout()"
+            class="w-full flex items-center gap-3 px-4 py-4 hover:bg-neutral-800 transition-colors text-left min-h-[56px]"
+          >
+            <span class="material-symbols-outlined text-red-400 flex-shrink-0" style="font-size:18px">logout</span>
+            <span class="text-sm font-medium text-red-400">Cerrar sesión</span>
+            <span class="material-symbols-outlined text-neutral-600 ml-auto" style="font-size:16px">chevron_right</span>
+          </button>
+
+        </div>
+      </section>
 
     }
-
   </main>
 
-  <!-- Bottom navigation (mobile) -->
+  <!-- Bottom nav (mobile) -->
   <nav class="fixed bottom-0 left-0 right-0 bg-neutral-900/95 backdrop-blur-sm border-t border-neutral-800 sm:hidden z-20"
        style="padding-bottom: env(safe-area-inset-bottom)">
     <div class="flex items-center justify-around h-16">
@@ -127,7 +293,6 @@
         <span class="text-[10px] text-neutral-500">Eventos</span>
       </button>
 
-      <!-- Botón central de acción -->
       <button class="flex flex-col items-center justify-center -mt-5 min-w-[60px]">
         <div class="w-14 h-14 bg-brand rounded-2xl flex items-center justify-center shadow-lg shadow-brand/30">
           <span class="material-symbols-outlined text-neutral-950" style="font-size:28px">add</span>
@@ -140,7 +305,6 @@
       </button>
 
       <button
-        (click)="navigateTo('/profile')"
         class="flex flex-col items-center gap-1 px-3 py-2 min-w-[60px] min-h-[44px] justify-center">
         <span class="material-symbols-outlined filled text-brand" style="font-size:22px">person</span>
         <span class="text-[10px] text-brand font-semibold">Perfil</span>

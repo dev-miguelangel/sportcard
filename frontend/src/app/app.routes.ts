@@ -28,6 +28,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'onboarding',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/onboarding/onboarding.component').then(
+        (m) => m.OnboardingComponent,
+      ),
+  },
+  {
     path: 'profile',
     canActivate: [authGuard],
     loadComponent: () =>

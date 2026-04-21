@@ -15,6 +15,22 @@ export interface AuthUser {
   email: string;
   name: string;
   avatar: string | null;
+  onboardingStep: number;
+  // Step 1
+  phone: string | null;
+  birthDate: string | null;
+  gender: string | null;
+  city: string | null;
+  sports: string[];
+  // Step 2
+  bloodType: string | null;
+  allergies: string | null;
+  medicalConditions: string | null;
+  medications: string | null;
+  // Step 3
+  emergencyName: string | null;
+  emergencyPhone: string | null;
+  emergencyRelation: string | null;
   createdAt: string;
 }
 
@@ -76,10 +92,16 @@ export class AuthService {
     this.http.get<AuthUser>(`${environment.apiUrl}/auth/me`).subscribe({
       next: (user) => {
         this.saveUser(user);
-        this.router.navigate(['/dashboard']);
+        const destination = user.onboardingStep >= 4 ? '/dashboard' : '/onboarding';
+        this.router.navigate([destination]);
       },
       error: () => this.logout(),
     });
+  }
+
+  /** Actualiza el usuario en memoria y localStorage (usado por onboarding) */
+  updateUser(user: AuthUser): void {
+    this.saveUser(user);
   }
 
   logout(): void {
