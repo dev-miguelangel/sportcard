@@ -52,6 +52,22 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'events',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/events/list/event-list.component').then(
+        (m) => m.EventListComponent,
+      ),
+  },
+  {
+    path: 'events/create',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/events/create/event-create.component').then(
+        (m) => m.EventCreateComponent,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'login',
   },

@@ -38,7 +38,8 @@
       <p class="text-sm text-neutral-500 mb-6 max-w-xs mx-auto">
         Crea tu primer evento deportivo o únete a uno existente.
       </p>
-      <button class="bg-brand text-neutral-950 font-bold px-5 py-3 rounded-xl hover:bg-brand-dark transition-colors flex items-center gap-2 mx-auto min-h-[44px]">
+      <button (click)="goToCreateEvent()"
+              class="bg-brand text-neutral-950 font-bold px-5 py-3 rounded-xl hover:brightness-110 transition-all flex items-center gap-2 mx-auto min-h-[44px]">
         <span class="material-symbols-outlined" style="font-size:18px">add</span>
         Crear evento
       </button>

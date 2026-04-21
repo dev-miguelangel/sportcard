@@ -5,7 +5,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { EventsModule } from './events/events.module';
 import { User } from './users/entities/user.entity';
+import { Event } from './events/entities/event.entity';
 
 @Module({
   imports: [
@@ -23,7 +25,7 @@ import { User } from './users/entities/user.entity';
         username: config.get('DATABASE_USER', 'sportcard'),
         password: config.get('DATABASE_PASSWORD', 'sportcard_dev'),
         database: config.get('DATABASE_NAME', 'sportcard'),
-        entities: [User],
+        entities: [User, Event],
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
         synchronize: false,
         migrationsRun: true,
@@ -32,6 +34,7 @@ import { User } from './users/entities/user.entity';
     }),
     AuthModule,
     UsersModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
