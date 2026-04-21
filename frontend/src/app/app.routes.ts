@@ -68,6 +68,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'events/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/events/detail/event-detail.component').then(
+        (m) => m.EventDetailComponent,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'login',
   },

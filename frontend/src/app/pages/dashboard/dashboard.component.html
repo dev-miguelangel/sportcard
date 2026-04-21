@@ -4,13 +4,6 @@
 
   <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom))]">
 
-    @if (auth.currentUser(); as user) {
-      <div class="mb-6">
-        <p class="text-sm text-neutral-500 mb-0.5">Bienvenido de vuelta</p>
-        <h1 class="text-2xl font-black tracking-tight">Hola, {{ user.name }} 👋</h1>
-      </div>
-    }
-
     <!-- Stats -->
     <div class="grid grid-cols-3 gap-3 mb-6">
       <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
@@ -88,7 +81,8 @@
         @if (upcomingEvents().length > 0) {
           <div class="divide-y divide-neutral-800">
             @for (event of upcomingEvents(); track event.id) {
-              <div class="flex items-center gap-3 px-4 py-3">
+              <button (click)="goToEvent(event.id)"
+                      class="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-neutral-800/40 transition-colors">
 
                 <!-- Sport icon -->
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-xl"
@@ -112,15 +106,18 @@
                   </div>
                 </div>
 
-                <!-- Today badge -->
-                @if (isToday(event.startDatetime)) {
-                  <span class="text-[0.55rem] font-black tracking-wider uppercase px-2 py-1 rounded-full
-                               bg-brand/15 text-brand border border-brand/30 flex-shrink-0">
-                    HOY
-                  </span>
-                }
+                <!-- Today badge / chevron -->
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                  @if (isToday(event.startDatetime)) {
+                    <span class="text-[0.55rem] font-black tracking-wider uppercase px-2 py-1 rounded-full
+                                 bg-brand/15 text-brand border border-brand/30">
+                      HOY
+                    </span>
+                  }
+                  <span class="material-symbols-outlined text-neutral-700" style="font-size:16px">chevron_right</span>
+                </div>
 
-              </div>
+              </button>
             }
           </div>
 

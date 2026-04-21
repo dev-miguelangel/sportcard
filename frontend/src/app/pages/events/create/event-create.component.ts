@@ -51,15 +51,16 @@ export class EventCreateComponent {
   readonly locationName  = signal('');
 
   // ── Optional fields ──────────────────────────────────────
-  readonly description    = signal('');
+  readonly description     = signal('');
   readonly maxParticipants = signal<number | null>(null);
   readonly isPublic        = signal(true);
 
   // ── UI state ─────────────────────────────────────────────
-  readonly showSportPanel  = signal(false);
-  readonly showOptional    = signal(false);
-  readonly loading         = signal(false);
-  readonly error           = signal<string | null>(null);
+  readonly showSportPanel = signal(false);
+  readonly showTypePanel  = signal(false);
+  readonly showOptional   = signal(false);
+  readonly loading        = signal(false);
+  readonly error          = signal<string | null>(null);
 
   // ── Derived ──────────────────────────────────────────────
   readonly sportEmoji = computed(() => {
@@ -86,28 +87,36 @@ export class EventCreateComponent {
 
   readonly requiredCompleted = computed(() =>
     [
-      !!this.selectedSport() && !!this.selectedType(),
+      !!this.selectedSport(),
+      !!this.selectedType(),
       this.title().trim().length > 0,
       !!this.startDate() && !!this.startTime(),
       this.locationName().trim().length > 0,
     ].filter(Boolean).length,
   );
 
-  readonly canPublish = computed(() => this.requiredCompleted() === 4);
+  readonly canPublish = computed(() => this.requiredCompleted() === 5);
 
   // ── Handlers ─────────────────────────────────────────────
   selectSport(name: string): void {
     this.selectedSport.set(name);
-    this.selectedType.set(null);
+    this.showSportPanel.set(false);
+    this.showTypePanel.set(true);
   }
 
   selectType(value: string): void {
     this.selectedType.set(value);
-    this.showSportPanel.set(false);
+    this.showTypePanel.set(false);
   }
 
   toggleSportPanel(): void {
     this.showSportPanel.set(!this.showSportPanel());
+    if (this.showSportPanel()) this.showTypePanel.set(false);
+  }
+
+  toggleTypePanel(): void {
+    this.showTypePanel.set(!this.showTypePanel());
+    if (this.showTypePanel()) this.showSportPanel.set(false);
   }
 
   toggleOptional(): void {

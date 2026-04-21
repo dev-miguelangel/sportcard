@@ -76,6 +76,10 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['/events']);
   }
 
+  goToEvent(id: string): void {
+    this.router.navigate(['/events', id]);
+  }
+
   getSportEmoji(sport: string): string {
     return SPORT_EMOJIS[sport] ?? '🏅';
   }

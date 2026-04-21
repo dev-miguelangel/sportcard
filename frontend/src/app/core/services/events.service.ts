@@ -15,6 +15,8 @@ export interface CreateEventPayload {
   requiresApproval?: boolean;
 }
 
+export type ParticipantStatus = 'approved' | 'pending' | 'waiting' | 'rejected';
+
 export interface EventResponse {
   id: string;
   sport: string;
@@ -31,6 +33,18 @@ export interface EventResponse {
   status: string;
   organizerId: string;
   createdAt: string;
+  participantCount: number;
+  myStatus: ParticipantStatus | null;
+}
+
+export interface JoinResult {
+  id: string;
+  eventId: string;
+  userId: string;
+  status: ParticipantStatus;
+  message: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -47,5 +61,17 @@ export class EventsService {
 
   findMine(): Observable<EventResponse[]> {
     return this.http.get<EventResponse[]>(`${environment.apiUrl}/events/mine`);
+  }
+
+  findOne(id: string): Observable<EventResponse> {
+    return this.http.get<EventResponse>(`${environment.apiUrl}/events/${id}`);
+  }
+
+  join(eventId: string, message?: string): Observable<JoinResult> {
+    return this.http.post<JoinResult>(`${environment.apiUrl}/events/${eventId}/join`, { message });
+  }
+
+  leave(eventId: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/events/${eventId}/join`);
   }
 }

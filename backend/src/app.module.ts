@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { EventsModule } from './events/events.module';
 import { User } from './users/entities/user.entity';
 import { Event } from './events/entities/event.entity';
+import { EventParticipant } from './events/entities/event-participant.entity';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { Event } from './events/entities/event.entity';
         username: config.get('DATABASE_USER', 'sportcard'),
         password: config.get('DATABASE_PASSWORD', 'sportcard_dev'),
         database: config.get('DATABASE_NAME', 'sportcard'),
-        entities: [User, Event],
+        entities: [User, Event, EventParticipant],
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
         synchronize: false,
         migrationsRun: true,

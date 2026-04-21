@@ -34,16 +34,18 @@ export class EventsController {
   @Get('mine')
   findMine(@Req() req: Request) {
     const { id } = req.user as JwtUser;
-    return this.eventsService.findByOrganizer(id);
+    return this.eventsService.findMine(id);
   }
 
   @Get()
-  findAll() {
-    return this.eventsService.findPublic();
+  findAll(@Req() req: Request) {
+    const { id } = req.user as JwtUser;
+    return this.eventsService.findPublic(id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.eventsService.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: Request) {
+    const { id: userId } = req.user as JwtUser;
+    return this.eventsService.findOne(id, userId);
   }
 }

@@ -10,7 +10,7 @@
       </button>
       <h1 class="font-black tracking-tight flex-1 text-[0.95rem]">Crear evento</h1>
       <span class="text-[0.7rem] font-bold text-neutral-500">
-        {{ requiredCompleted() }}/4 requeridos
+        {{ requiredCompleted() }}/5 requeridos
       </span>
     </div>
   </header>
@@ -74,44 +74,39 @@
     <!-- ── Progress bar ───────────────────────────────────── -->
     <div class="h-1 bg-neutral-800 rounded-full overflow-hidden -mt-1">
       <div class="h-full bg-brand rounded-full transition-all duration-300"
-           [style.width]="(requiredCompleted() / 4 * 100) + '%'"></div>
+           [style.width]="(requiredCompleted() / 5 * 100) + '%'"></div>
     </div>
 
     <!-- ────────────────────────────────────────────────────
          CAMPOS REQUERIDOS
     ──────────────────────────────────────────────────────── -->
 
-    <!-- ── 1. Deporte y tipo ──────────────────────────────── -->
+    <!-- ── 1. Deporte ─────────────────────────────────────── -->
     <div class="flex flex-col gap-2">
 
-      <!-- Field trigger row -->
       <button (click)="toggleSportPanel()"
               class="w-full flex items-center gap-3 bg-neutral-900 border rounded-xl px-4 py-3 min-h-[52px] text-left transition-colors"
-              [class]="selectedSport() && selectedType()
+              [class]="selectedSport()
                 ? 'border-brand/40 bg-[#0d1f15]'
                 : showSportPanel()
                   ? 'border-brand'
                   : 'border-neutral-800'">
-        <span class="w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0"
-              [class]="selectedSport() && selectedType() ? 'bg-brand/15' : 'bg-neutral-800'">
-          <span class="material-symbols-outlined"
-                style="font-size:18px"
-                [class]="selectedSport() && selectedType() ? 'text-brand' : 'text-neutral-500'">
-            sports
-          </span>
+        <span class="w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0 text-lg"
+              [class]="selectedSport() ? 'bg-brand/15' : 'bg-neutral-800'">
+          @if (selectedSport()) {
+            {{ sportEmoji() }}
+          } @else {
+            <span class="material-symbols-outlined text-neutral-500" style="font-size:18px">sports</span>
+          }
         </span>
         <div class="flex-1 min-w-0">
           <p class="text-[0.62rem] uppercase tracking-wider font-bold mb-0.5"
-             [class]="selectedSport() && selectedType() ? 'text-brand' : 'text-neutral-500'">
-            @if (selectedSport() && selectedType()) { ✓ } Deporte y tipo
+             [class]="selectedSport() ? 'text-brand' : 'text-neutral-500'">
+            @if (selectedSport()) { ✓ } Deporte
           </p>
           <p class="text-[0.82rem] font-semibold truncate"
-             [class]="selectedSport() && selectedType() ? 'text-white' : 'text-neutral-500'">
-            @if (selectedSport() && selectedType()) {
-              {{ selectedSport() }} · {{ selectedTypeLabel() }}
-            } @else {
-              Selecciona deporte y tipo
-            }
+             [class]="selectedSport() ? 'text-white' : 'text-neutral-500'">
+            {{ selectedSport() || 'Selecciona un deporte' }}
           </p>
         </div>
         <span class="material-symbols-outlined text-neutral-600 flex-shrink-0 transition-transform"
@@ -121,54 +116,82 @@
         </span>
       </button>
 
-      <!-- Inline panel -->
       @if (showSportPanel()) {
-        <div class="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
-
-          <!-- Sport grid -->
-          <div class="p-3 border-b border-neutral-800">
-            <p class="text-[0.6rem] font-bold uppercase tracking-widest text-neutral-500 mb-2 px-1">Deporte</p>
-            <div class="grid grid-cols-3 gap-1.5">
-              @for (sport of sports; track sport.name) {
-                <button (click)="selectSport(sport.name)"
-                        class="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl text-center transition-colors min-h-[44px]"
-                        [class]="selectedSport() === sport.name
-                          ? 'bg-brand/15 border border-brand/40 text-brand'
-                          : 'bg-neutral-800/60 border border-transparent text-neutral-300 hover:bg-neutral-800'">
-                  <span class="text-base">{{ sport.emoji }}</span>
-                  <span class="text-[0.6rem] font-semibold leading-tight">{{ sport.name }}</span>
-                </button>
-              }
-            </div>
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-3">
+          <div class="grid grid-cols-3 gap-1.5">
+            @for (sport of sports; track sport.name) {
+              <button (click)="selectSport(sport.name)"
+                      class="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl text-center transition-colors min-h-[60px]"
+                      [class]="selectedSport() === sport.name
+                        ? 'bg-brand/15 border border-brand/40 text-brand'
+                        : 'bg-neutral-800/60 border border-transparent text-neutral-300 hover:bg-neutral-800'">
+                <span class="text-xl">{{ sport.emoji }}</span>
+                <span class="text-[0.6rem] font-semibold leading-tight">{{ sport.name }}</span>
+              </button>
+            }
           </div>
-
-          <!-- Type grid -->
-          <div class="p-3"
-               [class]="selectedSport() ? '' : 'opacity-40 pointer-events-none'">
-            <p class="text-[0.6rem] font-bold uppercase tracking-widest text-neutral-500 mb-2 px-1">Tipo de evento</p>
-            <div class="grid grid-cols-2 gap-1.5">
-              @for (type of eventTypes; track type.value) {
-                <button (click)="selectType(type.value)"
-                        class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-left transition-colors min-h-[44px]"
-                        [class]="selectedType() === type.value
-                          ? 'bg-brand/15 border border-brand/40 text-brand'
-                          : 'bg-neutral-800/60 border border-transparent text-neutral-300 hover:bg-neutral-800'">
-                  <span class="material-symbols-outlined flex-shrink-0"
-                        style="font-size:18px"
-                        [class]="selectedType() === type.value ? 'text-brand' : 'text-neutral-500'">
-                    {{ type.icon }}
-                  </span>
-                  <span class="text-[0.72rem] font-semibold leading-tight">{{ type.label }}</span>
-                </button>
-              }
-            </div>
-          </div>
-
         </div>
       }
     </div>
 
-    <!-- ── 2. Nombre ───────────────────────────────────────── -->
+    <!-- ── 2. Tipo de evento ──────────────────────────────── -->
+    <div class="flex flex-col gap-2">
+
+      <button (click)="toggleTypePanel()"
+              class="w-full flex items-center gap-3 bg-neutral-900 border rounded-xl px-4 py-3 min-h-[52px] text-left transition-colors"
+              [class]="selectedType()
+                ? 'border-brand/40 bg-[#0d1f15]'
+                : showTypePanel()
+                  ? 'border-brand'
+                  : 'border-neutral-800'">
+        <span class="w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0"
+              [class]="selectedType() ? 'bg-brand/15' : 'bg-neutral-800'">
+          <span class="material-symbols-outlined"
+                style="font-size:18px"
+                [class]="selectedType() ? 'text-brand' : 'text-neutral-500'">
+            category
+          </span>
+        </span>
+        <div class="flex-1 min-w-0">
+          <p class="text-[0.62rem] uppercase tracking-wider font-bold mb-0.5"
+             [class]="selectedType() ? 'text-brand' : 'text-neutral-500'">
+            @if (selectedType()) { ✓ } Tipo de evento
+          </p>
+          <p class="text-[0.82rem] font-semibold truncate"
+             [class]="selectedType() ? 'text-white' : 'text-neutral-500'">
+            {{ selectedTypeLabel() || 'Selecciona el tipo' }}
+          </p>
+        </div>
+        <span class="material-symbols-outlined text-neutral-600 flex-shrink-0 transition-transform"
+              style="font-size:20px"
+              [class]="showTypePanel() ? 'rotate-180' : ''">
+          expand_more
+        </span>
+      </button>
+
+      @if (showTypePanel()) {
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-3">
+          <div class="grid grid-cols-2 gap-1.5">
+            @for (type of eventTypes; track type.value) {
+              <button (click)="selectType(type.value)"
+                      class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-left transition-colors min-h-[52px]"
+                      [class]="selectedType() === type.value
+                        ? 'bg-brand/15 border border-brand/40 text-brand'
+                        : 'bg-neutral-800/60 border border-transparent text-neutral-300 hover:bg-neutral-800'">
+                <span class="material-symbols-outlined flex-shrink-0"
+                      style="font-size:20px"
+                      [class]="selectedType() === type.value ? 'text-brand' : 'text-neutral-500'">
+                  {{ type.icon }}
+                </span>
+                <span class="text-[0.75rem] font-semibold leading-tight">{{ type.label }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- ── 3. Nombre ───────────────────────────────────────── -->
     <div class="flex flex-col gap-1.5">
       <label class="text-[0.62rem] font-bold uppercase tracking-wider px-0.5"
              [class]="title().trim() ? 'text-brand' : 'text-neutral-500'">
@@ -197,7 +220,7 @@
       </div>
     </div>
 
-    <!-- ── 3. Fecha y hora ─────────────────────────────────── -->
+    <!-- ── 4. Fecha y hora ─────────────────────────────────── -->
     <div class="flex flex-col gap-1.5">
       <label class="text-[0.62rem] font-bold uppercase tracking-wider px-0.5"
              [class]="startDate() && startTime() ? 'text-brand' : 'text-neutral-500'">
@@ -235,7 +258,7 @@
       </div>
     </div>
 
-    <!-- ── 4. Ubicación ───────────────────────────────────── -->
+    <!-- ── 5. Ubicación ───────────────────────────────────── -->
     <div class="flex flex-col gap-1.5">
       <label class="text-[0.62rem] font-bold uppercase tracking-wider px-0.5"
              [class]="locationName().trim() ? 'text-brand' : 'text-neutral-500'">
@@ -354,7 +377,7 @@
         Publicando...
       } @else {
         <span class="material-symbols-outlined" style="font-size:20px;color:inherit">rocket_launch</span>
-        @if (canPublish()) { Publicar evento } @else { Completa los 4 campos requeridos }
+        @if (canPublish()) { Publicar evento } @else { Completa los 5 campos requeridos }
       }
     </button>
 
