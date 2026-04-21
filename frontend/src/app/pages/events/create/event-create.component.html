@@ -18,70 +18,86 @@
   <!-- ── Scrollable content ──────────────────────────────── -->
   <main class="flex-1 max-w-lg mx-auto w-full px-4 py-4 pb-8 flex flex-col gap-4">
 
-    <!-- ── Live preview card ──────────────────────────────── -->
-    <div class="rounded-2xl overflow-hidden border"
-         [class]="canPublish()
-           ? 'border-brand/30 bg-gradient-to-br from-neutral-900 to-[#0d1f15]'
-           : 'border-neutral-800 bg-neutral-900'">
-
-      <!-- Banner -->
-      <div class="h-20 flex items-center justify-center relative"
-           [class]="canPublish()
-             ? 'bg-gradient-to-br from-[#003d20] to-[#006b35]'
-             : 'bg-neutral-800/60'">
-        <span class="text-4xl" [class]="canPublish() ? '' : 'opacity-40'">
-          {{ sportEmoji() }}
-        </span>
-        <span class="absolute top-2 right-3 text-[0.6rem] font-black tracking-widest uppercase px-2 py-0.5 rounded-full"
-              [class]="canPublish()
-                ? 'bg-brand/20 text-brand border border-brand/30'
-                : 'bg-neutral-700/60 text-neutral-500 border border-neutral-700'">
-          BORRADOR
-        </span>
-      </div>
-
-      <!-- Body -->
-      <div class="px-4 py-3">
-        <p class="font-black text-[0.95rem] tracking-tight mb-1.5"
-           [class]="title().trim() ? 'text-white' : 'text-neutral-600'">
-          {{ title().trim() || 'Sin título' }}
+    <!-- ── Vista previa ───────────────────────────────────── -->
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center justify-between px-0.5">
+        <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-600 flex items-center gap-1.5">
+          <span class="material-symbols-outlined" style="font-size:13px">preview</span>
+          Vista previa
         </p>
-        <div class="flex flex-wrap gap-x-3 gap-y-1">
-          <span class="flex items-center gap-1 text-[0.65rem]"
-                [class]="selectedSport() ? 'text-neutral-400' : 'text-neutral-700'">
-            <span class="material-symbols-outlined" style="font-size:12px">sports</span>
-            {{ selectedSport() || 'Deporte' }}
-          </span>
-          <span class="flex items-center gap-1 text-[0.65rem]"
-                [class]="selectedTypeLabel() ? 'text-neutral-400' : 'text-neutral-700'">
-            <span class="material-symbols-outlined" style="font-size:12px">category</span>
-            {{ selectedTypeLabel() || 'Tipo' }}
-          </span>
-          <span class="flex items-center gap-1 text-[0.65rem]"
-                [class]="previewDate() ? 'text-neutral-400' : 'text-neutral-700'">
-            <span class="material-symbols-outlined" style="font-size:12px">calendar_today</span>
-            {{ previewDate() || 'Fecha por definir' }}
-          </span>
-          <span class="flex items-center gap-1 text-[0.65rem]"
-                [class]="locationName().trim() ? 'text-neutral-400' : 'text-neutral-700'">
-            <span class="material-symbols-outlined" style="font-size:12px">location_on</span>
-            {{ locationName().trim() || 'Lugar por definir' }}
-          </span>
+        <span class="text-[0.62rem] font-bold text-neutral-600">{{ requiredCompleted() }}/5</span>
+      </div>
+      <div class="h-1 bg-neutral-800 rounded-full overflow-hidden">
+        <div class="h-full bg-brand rounded-full transition-all duration-300"
+             [style.width]="(requiredCompleted() / 5 * 100) + '%'"></div>
+      </div>
+      <div class="rounded-2xl overflow-hidden border border-neutral-800 opacity-80 pointer-events-none select-none">
+        <div class="h-16 flex items-center justify-center"
+             [class]="canPublish() ? 'bg-gradient-to-br from-[#003d20] to-[#006b35]' : 'bg-neutral-800/60'">
+          <span class="text-3xl" [class]="canPublish() ? '' : 'opacity-40'">{{ sportEmoji() }}</span>
+        </div>
+        <div class="px-4 py-3 bg-neutral-900">
+          <p class="font-black text-[0.88rem] tracking-tight mb-1.5"
+             [class]="title().trim() ? 'text-white' : 'text-neutral-600'">
+            {{ title().trim() || 'Sin título' }}
+          </p>
+          <div class="flex flex-wrap gap-x-3 gap-y-1">
+            <span class="flex items-center gap-1 text-[0.63rem]"
+                  [class]="selectedSport() ? 'text-neutral-400' : 'text-neutral-700'">
+              <span class="material-symbols-outlined" style="font-size:11px">sports</span>
+              {{ selectedSport() || 'Deporte' }}
+            </span>
+            <span class="flex items-center gap-1 text-[0.63rem]"
+                  [class]="selectedTypeLabel() ? 'text-neutral-400' : 'text-neutral-700'">
+              <span class="material-symbols-outlined" style="font-size:11px">category</span>
+              {{ selectedTypeLabel() || 'Tipo' }}
+            </span>
+            <span class="flex items-center gap-1 text-[0.63rem]"
+                  [class]="previewDate() ? 'text-neutral-400' : 'text-neutral-700'">
+              <span class="material-symbols-outlined" style="font-size:11px">calendar_today</span>
+              {{ previewDate() || 'Fecha por definir' }}
+            </span>
+            <span class="flex items-center gap-1 text-[0.63rem]"
+                  [class]="locationName().trim() ? 'text-neutral-400' : 'text-neutral-700'">
+              <span class="material-symbols-outlined" style="font-size:11px">location_on</span>
+              {{ locationName().trim() || 'Lugar por definir' }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- ── Progress bar ───────────────────────────────────── -->
-    <div class="h-1 bg-neutral-800 rounded-full overflow-hidden -mt-1">
-      <div class="h-full bg-brand rounded-full transition-all duration-300"
-           [style.width]="(requiredCompleted() / 5 * 100) + '%'"></div>
+    <!-- ── 1. Nombre ───────────────────────────────────────── -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[0.62rem] font-bold uppercase tracking-wider px-0.5"
+             [class]="title().trim() ? 'text-brand' : 'text-neutral-500'">
+        @if (title().trim()) { ✓ } Nombre del evento
+      </label>
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+              style="font-size:18px"
+              [class]="title().trim() ? 'text-brand' : 'text-neutral-600'">
+          title
+        </span>
+        <input #titleInput
+               type="text"
+               placeholder="Ej: Picadito del sábado..."
+               maxlength="80"
+               [value]="title()"
+               (input)="title.set($any($event.target).value)"
+               class="w-full bg-neutral-900 border rounded-xl pl-10 pr-12 py-3 text-[0.85rem] font-medium placeholder:text-neutral-600 focus:outline-none transition-colors min-h-[52px]"
+               [class]="title().trim()
+                 ? 'border-brand/40 bg-[#0d1f15]'
+                 : 'border-neutral-800 focus:border-neutral-600'" />
+        @if (title().trim()) {
+          <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[0.6rem] text-neutral-600 font-mono">
+            {{ title().length }}/80
+          </span>
+        }
+      </div>
     </div>
 
-    <!-- ────────────────────────────────────────────────────
-         CAMPOS REQUERIDOS
-    ──────────────────────────────────────────────────────── -->
-
-    <!-- ── 1. Deporte ─────────────────────────────────────── -->
+    <!-- ── 2. Deporte ─────────────────────────────────────── -->
     <div class="flex flex-col gap-2">
 
       <button (click)="toggleSportPanel()"
@@ -134,7 +150,7 @@
       }
     </div>
 
-    <!-- ── 2. Tipo de evento ──────────────────────────────── -->
+    <!-- ── 3. Tipo de evento ──────────────────────────────── -->
     <div class="flex flex-col gap-2">
 
       <button (click)="toggleTypePanel()"
@@ -191,42 +207,13 @@
       }
     </div>
 
-    <!-- ── 3. Nombre ───────────────────────────────────────── -->
-    <div class="flex flex-col gap-1.5">
-      <label class="text-[0.62rem] font-bold uppercase tracking-wider px-0.5"
-             [class]="title().trim() ? 'text-brand' : 'text-neutral-500'">
-        @if (title().trim()) { ✓ } Nombre del evento
-      </label>
-      <div class="relative">
-        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-              style="font-size:18px"
-              [class]="title().trim() ? 'text-brand' : 'text-neutral-600'">
-          title
-        </span>
-        <input type="text"
-               placeholder="Ej: Picadito del sábado..."
-               maxlength="80"
-               [value]="title()"
-               (input)="title.set($any($event.target).value)"
-               class="w-full bg-neutral-900 border rounded-xl pl-10 pr-12 py-3 text-[0.85rem] font-medium placeholder:text-neutral-600 focus:outline-none transition-colors min-h-[52px]"
-               [class]="title().trim()
-                 ? 'border-brand/40 bg-[#0d1f15]'
-                 : 'border-neutral-800 focus:border-neutral-600'" />
-        @if (title().trim()) {
-          <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[0.6rem] text-neutral-600 font-mono">
-            {{ title().length }}/80
-          </span>
-        }
-      </div>
-    </div>
-
     <!-- ── 4. Fecha y hora ─────────────────────────────────── -->
     <div class="flex flex-col gap-1.5">
       <label class="text-[0.62rem] font-bold uppercase tracking-wider px-0.5"
              [class]="startDate() && startTime() ? 'text-brand' : 'text-neutral-500'">
         @if (startDate() && startTime()) { ✓ } Fecha y hora de inicio
       </label>
-      <div class="grid grid-cols-[1fr_auto] gap-2">
+      <div class="flex flex-col gap-2">
         <div class="relative">
           <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
                 style="font-size:18px"
@@ -356,6 +343,7 @@
         </div>
       }
     </div>
+
 
     <!-- ── Error ──────────────────────────────────────────── -->
     @if (error()) {

@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { EventsService } from '../../../core/services/events.service';
 
@@ -35,9 +35,11 @@ export const EVENT_TYPES: { value: string; label: string; icon: string }[] = [
   imports: [],
   templateUrl: './event-create.component.html',
 })
-export class EventCreateComponent {
+export class EventCreateComponent implements AfterViewInit {
   private readonly router = inject(Router);
   private readonly eventsService = inject(EventsService);
+
+  @ViewChild('titleInput') titleInput!: ElementRef<HTMLInputElement>;
 
   readonly sports = SPORTS_WITH_EMOJI;
   readonly eventTypes = EVENT_TYPES;
@@ -96,6 +98,10 @@ export class EventCreateComponent {
   );
 
   readonly canPublish = computed(() => this.requiredCompleted() === 5);
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.titleInput?.nativeElement.focus(), 100);
+  }
 
   // ── Handlers ─────────────────────────────────────────────
   selectSport(name: string): void {
