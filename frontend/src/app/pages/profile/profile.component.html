@@ -9,11 +9,16 @@
           <path d="M440-200q-100 0-170-70t-70-170q0-11 1-22t3-22q-5 2-12 3t-12 1q-42 0-71-29t-29-71q0-42 27.5-71t69.5-29q33 0 59.5 18.5T274-614q33-30 75.5-48t90.5-18h440v160H680v80q0 100-70 170t-170 70ZM208.5-551.5Q220-563 220-580t-11.5-28.5Q197-620 180-620t-28.5 11.5Q140-597 140-580t11.5 28.5Q163-540 180-540t28.5-11.5ZM539-341q41-41 41-99t-41-99q-41-41-99-41t-99 41q-41 41-41 99t41 99q41 41 99 41t99-41Zm-42.5-42.5Q520-407 520-440t-23.5-56.5Q473-520 440-520t-56.5 23.5Q360-473 360-440t23.5 56.5Q407-360 440-360t56.5-23.5ZM440-440Z"/>
         </svg>
       </div>
-      <span class="font-bold text-sm hidden sm:block">Sport Card</span>
+      <span class="font-bold text-sm">Sport Card</span>
 
       <div class="ml-auto flex items-center gap-2">
-        <button class="relative p-2 rounded-lg hover:bg-neutral-800 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center">
+        <button
+          (click)="navigateTo('/notifications')"
+          class="relative p-2 rounded-lg hover:bg-neutral-800 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center">
           <span class="material-symbols-outlined text-neutral-400" style="font-size:20px">notifications</span>
+          @if (pwa.hasInstallNotification()) {
+            <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500"></span>
+          }
         </button>
 
         @if (auth.currentUser(); as user) {
@@ -21,23 +26,15 @@
             <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand to-emerald-600 flex items-center justify-center text-xs font-black text-neutral-950 flex-shrink-0">
               {{ user.name.charAt(0).toUpperCase() }}
             </div>
-            <span class="text-sm font-medium text-neutral-300 hidden sm:block">{{ user.name }}</span>
+            <span class="text-sm font-medium text-neutral-300">{{ user.name }}</span>
           </div>
         }
-
-        <button
-          (click)="auth.logout()"
-          class="hidden sm:flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-neutral-800 transition-colors min-h-[44px]"
-        >
-          <span class="material-symbols-outlined" style="font-size:16px">logout</span>
-          Salir
-        </button>
       </div>
     </div>
   </header>
 
   <!-- Contenido -->
-  <main class="flex-1 max-w-lg mx-auto w-full px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:pb-8">
+  <main class="flex-1 max-w-lg mx-auto w-full px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom))]">
 
     @if (auth.currentUser(); as user) {
 
@@ -276,10 +273,10 @@
     }
   </main>
 
-  <!-- Bottom nav (mobile) -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-neutral-900/95 backdrop-blur-sm border-t border-neutral-800 sm:hidden z-20"
+  <!-- Bottom nav -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-neutral-900/95 backdrop-blur-sm border-t border-neutral-800 z-20"
        style="padding-bottom: env(safe-area-inset-bottom)">
-    <div class="flex items-center justify-around h-16">
+    <div class="max-w-lg mx-auto flex items-center justify-around h-16">
 
       <button
         (click)="navigateTo('/dashboard')"

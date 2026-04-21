@@ -35,6 +35,8 @@ export class PwaService {
 
   readonly updateAvailable = this._updateAvailable.asReadonly();
 
+  readonly hasInstallNotification = computed(() => this.canInstall() || this.showOpenInApp());
+
   constructor(private readonly swUpdate: SwUpdate) {
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
