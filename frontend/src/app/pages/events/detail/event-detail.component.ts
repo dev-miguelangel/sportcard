@@ -67,6 +67,8 @@ export class EventDetailComponent implements OnInit {
   readonly inviteLoading = signal(false);
   readonly inviteResult  = signal<{ success: boolean; message: string } | null>(null);
 
+  readonly linkCopied = signal(false);
+
   readonly closeNotes   = signal('');
   readonly closeResults = signal('');
   readonly closeLoading = signal(false);
@@ -179,6 +181,16 @@ export class EventDetailComponent implements OnInit {
         this.inviteResult.set({ success: false, message: err?.error?.message ?? 'No se pudo enviar la invitación.' });
         this.inviteLoading.set(false);
       },
+    });
+  }
+
+  copyShareLink(): void {
+    const ev = this.event();
+    if (!ev?.shareToken) return;
+    const url = `${window.location.origin}/e/${ev.shareToken}`;
+    navigator.clipboard.writeText(url).then(() => {
+      this.linkCopied.set(true);
+      setTimeout(() => this.linkCopied.set(false), 2500);
     });
   }
 

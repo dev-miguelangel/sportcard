@@ -443,6 +443,29 @@
               </div>
             </div>
 
+            <!-- Share link -->
+            <div>
+              <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-2">Link de invitación</p>
+              <button (click)="copyShareLink()"
+                      class="w-full flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-xl px-4 min-h-[52px] text-left transition-colors hover:border-neutral-600">
+                <span class="material-symbols-outlined flex-shrink-0"
+                      style="font-size:20px"
+                      [class]="linkCopied() ? 'text-brand' : 'text-neutral-500'">
+                  {{ linkCopied() ? 'check_circle' : 'link' }}
+                </span>
+                <span class="flex-1 text-[0.8rem] font-mono truncate text-neutral-500">
+                  {{ '/e/' + event()!.shareToken }}
+                </span>
+                <span class="text-[0.7rem] font-bold flex-shrink-0"
+                      [class]="linkCopied() ? 'text-brand' : 'text-neutral-500'">
+                  {{ linkCopied() ? 'Copiado' : 'Copiar' }}
+                </span>
+              </button>
+              <p class="text-[0.65rem] text-neutral-700 mt-2">
+                Cualquiera con este link puede ver el evento y unirse.
+              </p>
+            </div>
+
             <!-- Invite section -->
             <div>
               <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-2">Invitar personas</p>
