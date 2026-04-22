@@ -23,9 +23,6 @@ export class ParticipantsService {
   async join(eventId: string, userId: string, dto: JoinEventDto): Promise<EventParticipant> {
     const event = await this.eventsRepository.findOne({ where: { id: eventId } });
     if (!event) throw new NotFoundException('Evento no encontrado');
-    if (event.organizerId === userId) {
-      throw new BadRequestException('El organizador no puede inscribirse en su propio evento');
-    }
     if (event.status !== EventStatus.OPEN) {
       throw new BadRequestException('El evento no está disponible para inscripciones');
     }
@@ -37,17 +34,19 @@ export class ParticipantsService {
       throw new BadRequestException('Ya tienes una inscripción en este evento');
     }
 
-    const approvedCount = await this.participantsRepository.count({
-      where: { eventId, status: ParticipantStatus.APPROVED },
-    });
-
     let status: ParticipantStatus;
-    if (event.requiresApproval) {
-      status = ParticipantStatus.PENDING;
-    } else if (event.maxParticipants !== null && approvedCount >= event.maxParticipants) {
-      status = ParticipantStatus.WAITING;
-    } else {
+    if (event.organizerId === userId) {
       status = ParticipantStatus.APPROVED;
+    } else if (event.requiresApproval) {
+      status = ParticipantStatus.PENDING;
+    } else {
+      const approvedCount = await this.participantsRepository.count({
+        where: { eventId, status: ParticipantStatus.APPROVED },
+      });
+      status =
+        event.maxParticipants !== null && approvedCount >= event.maxParticipants
+          ? ParticipantStatus.WAITING
+          : ParticipantStatus.APPROVED;
     }
 
     const participant = this.participantsRepository.create({

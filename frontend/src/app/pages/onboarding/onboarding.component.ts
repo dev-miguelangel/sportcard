@@ -11,7 +11,7 @@ export const SPORTS = [
   'Voleibol', 'Pádel', 'Rugby', 'Crossfit', 'Yoga',
 ];
 
-export const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+export const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'sin información'];
 
 export const GENDER_OPTIONS = [
   { value: 'male', label: 'Masculino' },

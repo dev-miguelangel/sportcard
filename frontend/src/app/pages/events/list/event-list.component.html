@@ -221,12 +221,7 @@
                   {{ getTypeLabel(event.type) }}
                 </span>
 
-                @if (isOrganizer(event)) {
-                  <span class="text-[0.72rem] font-semibold text-neutral-500 flex items-center gap-1">
-                    <span class="material-symbols-outlined" style="font-size:14px">edit</span>
-                    Organizado por ti
-                  </span>
-                } @else if (event.myStatus === 'approved') {
+                @if (event.myStatus === 'approved') {
                   <span class="flex items-center gap-1.5 text-[0.72rem] font-bold text-brand">
                     <span class="material-symbols-outlined" style="font-size:15px">check_circle</span>
                     Inscrito
@@ -256,7 +251,7 @@
               </div>
 
               <!-- Manage my inscription -->
-              @if (!isOrganizer(event) && event.myStatus !== null && event.myStatus !== 'rejected') {
+              @if (event.myStatus !== null && event.myStatus !== 'rejected') {
                 <button (click)="openSheet(event)"
                         class="text-[0.7rem] text-neutral-500 hover:text-neutral-300 transition-colors text-left">
                   Gestionar inscripción →

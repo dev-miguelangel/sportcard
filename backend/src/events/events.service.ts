@@ -30,8 +30,15 @@ export class EventsService {
   }
 
   async findPublic(userId?: string): Promise<EventWithStats[]> {
+    const where = userId
+      ? [
+          { isPublic: true, status: EventStatus.OPEN },
+          { organizerId: userId, status: EventStatus.OPEN },
+        ]
+      : { isPublic: true, status: EventStatus.OPEN };
+
     const events = await this.eventsRepository.find({
-      where: { isPublic: true, status: EventStatus.OPEN },
+      where,
       order: { startDatetime: 'ASC' },
     });
     return this.enrichWithStats(events, userId);

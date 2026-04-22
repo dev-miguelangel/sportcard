@@ -1,7 +1,7 @@
 import { IsOptional, IsString, IsDateString, IsArray, IsIn } from 'class-validator';
 
 const GENDERS = ['male', 'female', 'other', 'prefer_not_to_say'] as const;
-const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
+const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'sin información'] as const;
 
 export class UpdateOnboardingDto {
   // Step 1

@@ -157,9 +157,7 @@
         }
 
         <!-- ── Participation section ─────────────────────── -->
-        @if (!isOrganizer()) {
-
-          <div class="border-t border-neutral-800 pt-4 flex flex-col gap-3">
+        <div class="border-t border-neutral-800 pt-4 flex flex-col gap-3">
 
             <!-- No inscrito -->
             @if (event()!.myStatus === null) {
@@ -317,8 +315,7 @@
               </div>
             }
 
-          </div>
-        }
+        </div>
 
         <!-- Organizer badge -->
         @if (isOrganizer()) {
