@@ -1,0 +1,12 @@
+import { Controller, Get, Param } from '@nestjs/common';
+import { TournamentsService } from './tournaments.service';
+
+@Controller('tournaments')
+export class TournamentPublicController {
+  constructor(private readonly tournamentsSvc: TournamentsService) {}
+
+  @Get('t/:shareToken')
+  findByToken(@Param('shareToken') shareToken: string) {
+    return this.tournamentsSvc.findByToken(shareToken);
+  }
+}
