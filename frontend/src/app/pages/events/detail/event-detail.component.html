@@ -317,9 +317,10 @@
 
         </div>
 
-        <!-- Organizer badge -->
+        <!-- Organizer badge + invite section -->
         @if (isOrganizer()) {
-          <div class="border-t border-neutral-800 pt-4">
+          <div class="border-t border-neutral-800 pt-4 flex flex-col gap-4">
+
             <div class="flex items-center gap-3 bg-brand/10 border border-brand/25 rounded-xl p-4">
               <span class="material-symbols-outlined text-brand flex-shrink-0" style="font-size:24px">manage_accounts</span>
               <div>
@@ -327,6 +328,47 @@
                 <p class="text-xs text-neutral-500 mt-0.5">Creaste este evento.</p>
               </div>
             </div>
+
+            <!-- Invite section -->
+            <div>
+              <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-2">Invitar personas</p>
+              <div class="flex gap-2">
+                <input type="text"
+                       placeholder="ID de usuario o correo..."
+                       [value]="inviteQuery()"
+                       (input)="setInviteQuery($any($event.target).value)"
+                       (keydown.enter)="sendInvite()"
+                       class="flex-1 bg-neutral-900 border border-neutral-800 rounded-xl px-3 text-sm
+                              text-neutral-200 placeholder:text-neutral-600 focus:outline-none
+                              focus:border-neutral-600 transition-colors min-h-[44px]" />
+                <button (click)="sendInvite()"
+                        [disabled]="!inviteQuery().trim() || inviteLoading()"
+                        class="flex items-center gap-1.5 bg-brand text-neutral-950 font-black px-4
+                               rounded-xl min-h-[44px] text-sm transition-opacity disabled:opacity-40 flex-shrink-0">
+                  @if (inviteLoading()) {
+                    <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+                  } @else {
+                    <span class="material-symbols-outlined" style="font-size:18px">send</span>
+                  }
+                  Invitar
+                </button>
+              </div>
+
+              @if (inviteResult()) {
+                <p class="text-xs mt-2 flex items-center gap-1.5"
+                   [class]="inviteResult()!.success ? 'text-brand' : 'text-red-400'">
+                  <span class="material-symbols-outlined" style="font-size:14px">
+                    {{ inviteResult()!.success ? 'check_circle' : 'error' }}
+                  </span>
+                  {{ inviteResult()!.message }}
+                </p>
+              }
+
+              <p class="text-[0.65rem] text-neutral-700 mt-2">
+                Ingresa el ID de 6 caracteres del usuario o su correo registrado.
+              </p>
+            </div>
+
           </div>
         }
 

@@ -83,6 +83,13 @@ export const routes: Routes = [
       import('./pages/admin/admin.component').then((m) => m.AdminComponent),
   },
   {
+    path: 'e/:token',
+    loadComponent: () =>
+      import('./pages/events/invite/event-invite.component').then(
+        (m) => m.EventInviteComponent,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'login',
   },

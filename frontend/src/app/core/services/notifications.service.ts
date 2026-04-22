@@ -9,7 +9,7 @@ export interface AppNotification {
   eventId: string | null;
   title: string;
   body: string;
-  type: 'broadcast' | 'event' | 'system';
+  type: 'broadcast' | 'event' | 'system' | 'invitation';
   readAt: string | null;
   createdAt: string;
 }

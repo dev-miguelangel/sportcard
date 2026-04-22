@@ -63,6 +63,10 @@ export class EventDetailComponent implements OnInit {
   readonly joinMessage = signal('');
   readonly showMessageField = signal(false);
 
+  readonly inviteQuery   = signal('');
+  readonly inviteLoading = signal(false);
+  readonly inviteResult  = signal<{ success: boolean; message: string } | null>(null);
+
   readonly hasSpots = computed(() => {
     const ev = this.event();
     if (!ev || ev.maxParticipants === null) return true;
@@ -143,6 +147,32 @@ export class EventDetailComponent implements OnInit {
   isOrganizer(): boolean {
     const ev = this.event();
     return !!ev && this.auth.currentUser()?.id === ev.organizerId;
+  }
+
+  setInviteQuery(value: string): void {
+    this.inviteQuery.set(value);
+    this.inviteResult.set(null);
+  }
+
+  sendInvite(): void {
+    const ev = this.event();
+    const identifier = this.inviteQuery().trim();
+    if (!ev || !identifier || this.inviteLoading()) return;
+
+    this.inviteLoading.set(true);
+    this.inviteResult.set(null);
+
+    this.eventsSvc.inviteUser(ev.id, identifier).subscribe({
+      next: res => {
+        this.inviteResult.set({ success: true, message: `Invitación enviada a ${res.userName}` });
+        this.inviteQuery.set('');
+        this.inviteLoading.set(false);
+      },
+      error: err => {
+        this.inviteResult.set({ success: false, message: err?.error?.message ?? 'No se pudo enviar la invitación.' });
+        this.inviteLoading.set(false);
+      },
+    });
   }
 
   getBannerGradient(sport: string): string {

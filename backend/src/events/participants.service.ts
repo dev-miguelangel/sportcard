@@ -10,6 +10,8 @@ import { Event, EventStatus } from './entities/event.entity';
 import { EventParticipant, ParticipantStatus } from './entities/event-participant.entity';
 import { JoinEventDto } from './dto/join-event.dto';
 import { UpdateParticipantStatusDto } from './dto/update-participant-status.dto';
+import { UsersService } from '../users/users.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ParticipantsService {
@@ -18,6 +20,8 @@ export class ParticipantsService {
     private readonly eventsRepository: Repository<Event>,
     @InjectRepository(EventParticipant)
     private readonly participantsRepository: Repository<EventParticipant>,
+    private readonly usersService: UsersService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async join(eventId: string, userId: string, dto: JoinEventDto): Promise<EventParticipant> {
@@ -97,5 +101,37 @@ export class ParticipantsService {
 
     participant.status = dto.status;
     return this.participantsRepository.save(participant);
+  }
+
+  async inviteUser(
+    eventId: string,
+    organizerId: string,
+    identifier: string,
+  ): Promise<{ success: true; userName: string }> {
+    const event = await this.eventsRepository.findOne({ where: { id: eventId } });
+    if (!event) throw new NotFoundException('Evento no encontrado');
+    if (event.organizerId !== organizerId) {
+      throw new ForbiddenException('Solo el organizador puede enviar invitaciones');
+    }
+
+    const isStringId = /^[1-9A-Z]{6}$/i.test(identifier);
+    const user = isStringId
+      ? await this.usersService.findByStringId(identifier.toUpperCase())
+      : await this.usersService.findByEmail(identifier);
+
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    if (user.id === organizerId) {
+      throw new BadRequestException('No puedes invitarte a ti mismo');
+    }
+
+    const existing = await this.participantsRepository.findOne({
+      where: { eventId, userId: user.id },
+    });
+    if (existing) {
+      throw new BadRequestException('El usuario ya tiene una inscripción en este evento');
+    }
+
+    await this.notificationsService.createInvitation(user.id, eventId, event.title);
+    return { success: true, userName: user.name };
   }
 }

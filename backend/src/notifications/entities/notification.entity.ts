@@ -11,9 +11,10 @@ import { User } from '../../users/entities/user.entity';
 import { Event } from '../../events/entities/event.entity';
 
 export enum NotificationType {
-  BROADCAST = 'broadcast',
-  EVENT     = 'event',
-  SYSTEM    = 'system',
+  BROADCAST  = 'broadcast',
+  EVENT      = 'event',
+  SYSTEM     = 'system',
+  INVITATION = 'invitation',
 }
 
 @Entity('notifications')

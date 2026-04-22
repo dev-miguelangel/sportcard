@@ -94,6 +94,12 @@ export class AuthService {
     this.http.get<AuthUser>(`${environment.apiUrl}/auth/me`).subscribe({
       next: (user) => {
         this.saveUser(user);
+        const returnUrl = localStorage.getItem('sc_return_url');
+        if (returnUrl) {
+          localStorage.removeItem('sc_return_url');
+          this.router.navigateByUrl(returnUrl);
+          return;
+        }
         const destination = user.onboardingStep >= 4 ? '/dashboard' : '/onboarding';
         this.router.navigate([destination]);
       },

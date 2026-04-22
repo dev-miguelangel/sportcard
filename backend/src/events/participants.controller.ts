@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ParticipantsService } from './participants.service';
 import { JoinEventDto } from './dto/join-event.dto';
 import { UpdateParticipantStatusDto } from './dto/update-participant-status.dto';
+import { InviteUserDto } from './dto/invite-user.dto';
 
 interface JwtUser {
   id: string;
@@ -45,6 +46,13 @@ export class ParticipantsController {
   getParticipants(@Param('id') eventId: string, @Req() req: Request) {
     const { id } = req.user as JwtUser;
     return this.participantsService.getParticipants(eventId, id);
+  }
+
+  @Post(':id/invite')
+  @HttpCode(200)
+  invite(@Param('id') eventId: string, @Body() dto: InviteUserDto, @Req() req: Request) {
+    const { id } = req.user as JwtUser;
+    return this.participantsService.inviteUser(eventId, id, dto.identifier);
   }
 
   @Patch(':id/participants/:participantId')

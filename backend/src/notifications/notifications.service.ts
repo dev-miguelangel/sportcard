@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Or, Repository } from 'typeorm';
-import { Notification } from './entities/notification.entity';
+import { Notification, NotificationType } from './entities/notification.entity';
 
 @Injectable()
 export class NotificationsService {
@@ -16,6 +16,17 @@ export class NotificationsService {
       order: { createdAt: 'DESC' },
       take: 50,
     });
+  }
+
+  async createInvitation(userId: string, eventId: string, eventTitle: string): Promise<Notification> {
+    const n = this.repo.create({
+      userId,
+      eventId,
+      type: NotificationType.INVITATION,
+      title: 'Tienes una invitación',
+      body: `Te han invitado al evento "${eventTitle}"`,
+    });
+    return this.repo.save(n);
   }
 
   async markRead(id: string, userId: string): Promise<Notification> {

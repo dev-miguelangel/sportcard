@@ -47,6 +47,16 @@ export interface JoinResult {
   updatedAt: string;
 }
 
+export interface EventPublicPreview {
+  id: string;
+  title: string;
+  sport: string;
+  type: string;
+  startDatetime: string;
+  locationName: string;
+  isPublic: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class EventsService {
   private readonly http = inject(HttpClient);
@@ -73,5 +83,16 @@ export class EventsService {
 
   leave(eventId: string): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/events/${eventId}/join`);
+  }
+
+  findByToken(shareToken: string): Observable<EventPublicPreview> {
+    return this.http.get<EventPublicPreview>(`${environment.apiUrl}/events/token/${shareToken}`);
+  }
+
+  inviteUser(eventId: string, identifier: string): Observable<{ success: boolean; userName: string }> {
+    return this.http.post<{ success: boolean; userName: string }>(
+      `${environment.apiUrl}/events/${eventId}/invite`,
+      { identifier },
+    );
   }
 }

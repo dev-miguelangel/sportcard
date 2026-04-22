@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { PwaService } from '../../core/services/pwa.service';
 import { NotificationsService, AppNotification } from '../../core/services/notifications.service';
+import { EventsService } from '../../core/services/events.service';
 import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
 
 @Component({
@@ -12,8 +13,11 @@ import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component
 })
 export class NotificationsComponent implements OnInit {
   readonly pwa = inject(PwaService);
-  private readonly router = inject(Router);
-  private readonly notifSvc = inject(NotificationsService);
+  private readonly router    = inject(Router);
+  private readonly notifSvc  = inject(NotificationsService);
+  private readonly eventsSvc = inject(EventsService);
+
+  readonly inviteLoading = signal<string | null>(null);
 
   readonly notifications = signal<AppNotification[]>([]);
   readonly loading = signal(false);
@@ -62,16 +66,47 @@ export class NotificationsComponent implements OnInit {
     return date.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
   }
 
+  acceptInvite(notif: AppNotification): void {
+    if (!notif.eventId || this.inviteLoading()) return;
+    this.inviteLoading.set(notif.id);
+    this.eventsSvc.join(notif.eventId).subscribe({
+      next: () => {
+        this.notifSvc.markRead(notif.id).subscribe({
+          next: updated => this.notifications.update(list =>
+            list.map(n => n.id === updated.id ? updated : n)),
+        });
+        this.inviteLoading.set(null);
+      },
+      error: () => this.inviteLoading.set(null),
+    });
+  }
+
+  declineInvite(notif: AppNotification): void {
+    if (this.inviteLoading()) return;
+    this.inviteLoading.set(notif.id);
+    this.notifSvc.markRead(notif.id).subscribe({
+      next: updated => {
+        this.notifications.update(list => list.map(n => n.id === updated.id ? updated : n));
+        this.inviteLoading.set(null);
+      },
+      error: () => this.inviteLoading.set(null),
+    });
+  }
+
   typeLabel(type: string): string {
-    return type === 'broadcast' ? 'General' : type === 'event' ? 'Evento' : 'Sistema';
+    const map: Record<string, string> = {
+      broadcast: 'General', event: 'Evento', system: 'Sistema', invitation: 'Invitación',
+    };
+    return map[type] ?? type;
   }
 
   typeColor(type: string): string {
-    return type === 'broadcast'
-      ? 'text-brand bg-brand/10 border-brand/30'
-      : type === 'event'
-      ? 'text-blue-400 bg-blue-400/10 border-blue-400/30'
-      : 'text-neutral-400 bg-neutral-800 border-neutral-700';
+    const map: Record<string, string> = {
+      broadcast:  'text-brand bg-brand/10 border-brand/30',
+      event:      'text-blue-400 bg-blue-400/10 border-blue-400/30',
+      invitation: 'text-purple-400 bg-purple-400/10 border-purple-400/30',
+    };
+    return map[type] ?? 'text-neutral-400 bg-neutral-800 border-neutral-700';
   }
 
   unreadCount(): number {

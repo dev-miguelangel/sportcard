@@ -90,31 +90,58 @@
     } @else {
       <div class="flex flex-col gap-2">
         @for (notif of notifications(); track notif.id) {
-          <button
-            (click)="markRead(notif)"
-            class="w-full text-left bg-neutral-900 border rounded-xl p-4 transition-colors hover:bg-neutral-800"
-            [class]="notif.readAt ? 'border-neutral-800' : 'border-brand'"
-          >
-            <div class="flex items-start gap-3">
-              <!-- Dot no leído -->
-              <div class="mt-1.5 flex-shrink-0 w-2 h-2 rounded-full"
-                   [class.bg-brand]="!notif.readAt"
-                   [class.bg-transparent]="notif.readAt">
-              </div>
+          <div class="bg-neutral-900 border rounded-xl overflow-hidden transition-colors"
+               [class]="notif.readAt ? 'border-neutral-800' : (notif.type === 'invitation' ? 'border-purple-500/40' : 'border-brand')">
 
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="text-[10px] font-bold uppercase tracking-wider border rounded px-1.5 py-0.5 leading-none"
-                        [class]="typeColor(notif.type)">
-                    {{ typeLabel(notif.type) }}
-                  </span>
-                  <span class="text-[11px] text-neutral-500 ml-auto flex-shrink-0">{{ formatDatetime(notif.createdAt) }}</span>
+            <!-- Cuerpo de la notificación -->
+            <button (click)="markRead(notif)"
+                    class="w-full text-left p-4 hover:bg-neutral-800 transition-colors">
+              <div class="flex items-start gap-3">
+                <div class="mt-1.5 flex-shrink-0 w-2 h-2 rounded-full"
+                     [class.bg-brand]="!notif.readAt && notif.type !== 'invitation'"
+                     [class.bg-purple-400]="!notif.readAt && notif.type === 'invitation'"
+                     [class.bg-transparent]="notif.readAt">
                 </div>
-                <p class="text-sm font-semibold text-white leading-snug">{{ notif.title }}</p>
-                <p class="text-xs text-neutral-400 mt-0.5 leading-relaxed">{{ notif.body }}</p>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-[10px] font-bold uppercase tracking-wider border rounded px-1.5 py-0.5 leading-none"
+                          [class]="typeColor(notif.type)">
+                      {{ typeLabel(notif.type) }}
+                    </span>
+                    <span class="text-[11px] text-neutral-500 ml-auto flex-shrink-0">{{ formatDatetime(notif.createdAt) }}</span>
+                  </div>
+                  <p class="text-sm font-semibold text-white leading-snug">{{ notif.title }}</p>
+                  <p class="text-xs text-neutral-400 mt-0.5 leading-relaxed">{{ notif.body }}</p>
+                </div>
               </div>
-            </div>
-          </button>
+            </button>
+
+            <!-- Acciones para invitaciones no respondidas -->
+            @if (notif.type === 'invitation' && !notif.readAt && notif.eventId) {
+              <div class="flex gap-2 px-4 pb-4">
+                <button (click)="acceptInvite(notif)"
+                        [disabled]="inviteLoading() === notif.id"
+                        class="flex-1 flex items-center justify-center gap-1.5 bg-brand text-neutral-950
+                               font-black rounded-xl min-h-[40px] text-sm transition-opacity disabled:opacity-60">
+                  @if (inviteLoading() === notif.id) {
+                    <span class="material-symbols-outlined animate-spin" style="font-size:16px">progress_activity</span>
+                  } @else {
+                    <span class="material-symbols-outlined" style="font-size:16px">check</span>
+                  }
+                  Aceptar
+                </button>
+                <button (click)="declineInvite(notif)"
+                        [disabled]="inviteLoading() === notif.id"
+                        class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 text-red-400
+                               font-bold rounded-xl min-h-[40px] text-sm border border-neutral-700
+                               transition-opacity disabled:opacity-60">
+                  <span class="material-symbols-outlined" style="font-size:16px">close</span>
+                  Rechazar
+                </button>
+              </div>
+            }
+
+          </div>
         }
       </div>
     }

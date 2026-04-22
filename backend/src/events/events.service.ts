@@ -75,6 +75,20 @@ export class EventsService {
     return this.enrichWithStats(allEvents, userId);
   }
 
+  async findByShareToken(shareToken: string): Promise<Pick<Event, 'id' | 'title' | 'sport' | 'type' | 'startDatetime' | 'locationName' | 'isPublic'>> {
+    const event = await this.eventsRepository.findOne({ where: { shareToken } });
+    if (!event) throw new NotFoundException('Evento no encontrado');
+    return {
+      id: event.id,
+      title: event.title,
+      sport: event.sport,
+      type: event.type,
+      startDatetime: event.startDatetime,
+      locationName: event.locationName,
+      isPublic: event.isPublic,
+    };
+  }
+
   async findOne(id: string, userId?: string): Promise<EventWithStats> {
     const event = await this.eventsRepository.findOne({ where: { id } });
     if (!event) throw new NotFoundException('Evento no encontrado');
