@@ -1,0 +1,445 @@
+<div class="min-h-screen bg-neutral-950 flex flex-col">
+
+  <!-- ── Header ─────────────────────────────────────────── -->
+  <header class="sticky top-0 z-10 bg-neutral-950/95 backdrop-blur-sm border-b border-neutral-800"
+          style="padding-top: env(safe-area-inset-top)">
+    <div class="max-w-4xl mx-auto flex items-center gap-3 px-4 h-14">
+      <button (click)="goBack()"
+              class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 flex-shrink-0">
+        <span class="material-symbols-outlined text-neutral-400" style="font-size:20px">arrow_back</span>
+      </button>
+      <div class="flex-1 min-w-0">
+        <h1 class="font-black tracking-tight text-[0.92rem]">Panel de administración</h1>
+      </div>
+      <span class="text-[0.6rem] font-black tracking-widest uppercase px-2 py-1 rounded-full bg-red-500/15 text-red-400 border border-red-500/30">
+        ADMIN
+      </span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="max-w-4xl mx-auto flex border-b border-neutral-800">
+      @for (tab of [
+        {id:'users',         label:'Usuarios',        icon:'group'},
+        {id:'events',        label:'Eventos',          icon:'event'},
+        {id:'stats',         label:'Estadísticas',     icon:'bar_chart'},
+        {id:'notifications', label:'Notificaciones',   icon:'notifications'}
+      ]; track tab.id) {
+        <button (click)="setTab($any(tab.id))"
+                class="flex items-center gap-1.5 px-4 py-2.5 text-[0.72rem] font-bold border-b-2 transition-colors flex-1 justify-center"
+                [class]="activeTab() === tab.id
+                  ? 'border-brand text-brand'
+                  : 'border-transparent text-neutral-500 hover:text-neutral-300'">
+          <span class="material-symbols-outlined" style="font-size:16px">{{ tab.icon }}</span>
+          <span class="hidden sm:inline">{{ tab.label }}</span>
+        </button>
+      }
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-4xl mx-auto w-full px-4 py-5 pb-10">
+
+    <!-- ══════════════════════════════════════════
+         TAB: USUARIOS
+    ══════════════════════════════════════════════ -->
+    @if (activeTab() === 'users') {
+      <div class="flex flex-col gap-4">
+
+        <!-- Search -->
+        <div class="flex items-center gap-2 bg-neutral-900 border border-neutral-800 rounded-xl px-3 min-h-[44px]
+                    focus-within:border-neutral-600 transition-colors">
+          <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">search</span>
+          <input type="search"
+                 placeholder="Buscar por nombre, email o ID..."
+                 [value]="usersSearch()"
+                 (input)="setUsersSearch($any($event.target).value)"
+                 class="flex-1 bg-transparent text-sm placeholder:text-neutral-600 focus:outline-none py-2" />
+        </div>
+
+        <!-- Count -->
+        <p class="text-[0.72rem] text-neutral-500">
+          {{ usersTotal() }} usuario{{ usersTotal() === 1 ? '' : 's' }} en total
+        </p>
+
+        <!-- Loading -->
+        @if (usersLoading()) {
+          <div class="flex flex-col gap-2">
+            @for (i of [1,2,3,4,5]; track i) {
+              <div class="h-16 bg-neutral-900 border border-neutral-800 rounded-xl animate-pulse"></div>
+            }
+          </div>
+        }
+
+        <!-- List -->
+        @if (!usersLoading()) {
+          <div class="flex flex-col gap-2">
+            @for (user of users(); track user.id) {
+              <div class="bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 flex items-center gap-3">
+
+                <!-- Avatar -->
+                <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-black bg-neutral-800 text-neutral-400 overflow-hidden">
+                  @if (user.avatar) {
+                    <img [src]="user.avatar" [alt]="user.name" class="w-full h-full object-cover" />
+                  } @else {
+                    {{ user.name.charAt(0).toUpperCase() }}
+                  }
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <p class="text-sm font-bold truncate">{{ user.name }}</p>
+                    <span class="text-[0.55rem] font-black px-1.5 py-0.5 rounded-full border"
+                          [class]="user.role === 'admin'
+                            ? 'text-red-400 bg-red-400/10 border-red-400/30'
+                            : 'text-neutral-600 bg-neutral-800 border-neutral-700'">
+                      {{ user.role === 'admin' ? 'ADMIN' : 'USER' }}
+                    </span>
+                    <span class="text-[0.55rem] font-black px-1.5 py-0.5 rounded-full border"
+                          [class]="user.status === 'active'
+                            ? 'text-brand bg-brand/10 border-brand/30'
+                            : 'text-red-400 bg-red-400/10 border-red-400/30'">
+                      {{ user.status === 'active' ? 'ACTIVO' : 'BLOQUEADO' }}
+                    </span>
+                  </div>
+                  <p class="text-[0.65rem] text-neutral-500 truncate">{{ user.email }}</p>
+                  <p class="text-[0.6rem] text-neutral-700 mt-0.5">
+                    #{{ user.stringId }} · Desde {{ formatDate(user.createdAt) }}
+                  </p>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-col gap-1.5 flex-shrink-0">
+                  @if (user.status === 'active') {
+                    <button (click)="blockUser(user.id)"
+                            class="text-[0.65rem] font-bold text-red-400 bg-red-400/10 border border-red-400/25 px-2.5 py-1.5 rounded-lg min-h-[32px] hover:bg-red-400/20 transition-colors">
+                      Bloquear
+                    </button>
+                  } @else {
+                    <button (click)="activateUser(user.id)"
+                            class="text-[0.65rem] font-bold text-brand bg-brand/10 border border-brand/25 px-2.5 py-1.5 rounded-lg min-h-[32px] hover:bg-brand/20 transition-colors">
+                      Activar
+                    </button>
+                  }
+                  @if (user.role !== 'admin') {
+                    <button (click)="makeAdmin(user.id)"
+                            class="text-[0.65rem] font-bold text-neutral-400 bg-neutral-800 border border-neutral-700 px-2.5 py-1.5 rounded-lg min-h-[32px] hover:bg-neutral-700 transition-colors">
+                      + Admin
+                    </button>
+                  } @else {
+                    <button (click)="removeAdmin(user.id)"
+                            class="text-[0.65rem] font-bold text-neutral-400 bg-neutral-800 border border-neutral-700 px-2.5 py-1.5 rounded-lg min-h-[32px] hover:bg-neutral-700 transition-colors">
+                      - Admin
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Pagination -->
+          <div class="flex items-center justify-between pt-2">
+            <button (click)="usersPrevPage()" [disabled]="usersPage() <= 1"
+                    class="flex items-center gap-1 text-[0.72rem] font-bold text-neutral-400 disabled:text-neutral-700 disabled:cursor-not-allowed min-h-[36px] px-3">
+              <span class="material-symbols-outlined" style="font-size:16px">chevron_left</span>
+              Anterior
+            </button>
+            <span class="text-[0.72rem] text-neutral-600">Pág. {{ usersPage() }}</span>
+            <button (click)="usersNextPage()" [disabled]="!usersHasNext()"
+                    class="flex items-center gap-1 text-[0.72rem] font-bold text-neutral-400 disabled:text-neutral-700 disabled:cursor-not-allowed min-h-[36px] px-3">
+              Siguiente
+              <span class="material-symbols-outlined" style="font-size:16px">chevron_right</span>
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ══════════════════════════════════════════
+         TAB: EVENTOS
+    ══════════════════════════════════════════════ -->
+    @if (activeTab() === 'events') {
+      <div class="flex flex-col gap-4">
+
+        <p class="text-[0.72rem] text-neutral-500">
+          {{ eventsTotal() }} evento{{ eventsTotal() === 1 ? '' : 's' }} en total
+        </p>
+
+        @if (eventsLoading()) {
+          <div class="flex flex-col gap-2">
+            @for (i of [1,2,3,4,5]; track i) {
+              <div class="h-16 bg-neutral-900 border border-neutral-800 rounded-xl animate-pulse"></div>
+            }
+          </div>
+        }
+
+        @if (!eventsLoading()) {
+          <div class="flex flex-col gap-2">
+            @for (event of events(); track event.id) {
+              <div class="bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 flex items-center gap-3">
+
+                <!-- Sport emoji -->
+                <div class="w-10 h-10 rounded-xl bg-neutral-800 flex items-center justify-center text-xl flex-shrink-0">
+                  {{ getSportEmoji(event.sport) }}
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <p class="text-sm font-bold truncate">{{ event.title }}</p>
+                    <span class="text-[0.55rem] font-black px-1.5 py-0.5 rounded-full border"
+                          [class]="event.status === 'open'
+                            ? 'text-brand bg-brand/10 border-brand/30'
+                            : event.status === 'cancelled'
+                              ? 'text-red-400 bg-red-400/10 border-red-400/30'
+                              : 'text-neutral-500 bg-neutral-800 border-neutral-700'">
+                      {{ event.status | uppercase }}
+                    </span>
+                    @if (!event.isPublic) {
+                      <span class="text-[0.55rem] font-black px-1.5 py-0.5 rounded-full bg-blue-400/10 text-blue-400 border border-blue-400/30">
+                        PRIVADO
+                      </span>
+                    }
+                  </div>
+                  <p class="text-[0.65rem] text-neutral-500">{{ event.sport }} · {{ event.locationName }}</p>
+                  <p class="text-[0.6rem] text-neutral-700 mt-0.5">{{ formatDatetime(event.startDatetime) }}</p>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex-shrink-0">
+                  @if (event.status !== 'cancelled') {
+                    <button (click)="blockEvent(event.id)"
+                            class="text-[0.65rem] font-bold text-red-400 bg-red-400/10 border border-red-400/25 px-2.5 py-1.5 rounded-lg min-h-[32px] hover:bg-red-400/20 transition-colors">
+                      Bloquear
+                    </button>
+                  } @else {
+                    <button (click)="activateEvent(event.id)"
+                            class="text-[0.65rem] font-bold text-brand bg-brand/10 border border-brand/25 px-2.5 py-1.5 rounded-lg min-h-[32px] hover:bg-brand/20 transition-colors">
+                      Activar
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Pagination -->
+          <div class="flex items-center justify-between pt-2">
+            <button (click)="eventsPrevPage()" [disabled]="eventsPage() <= 1"
+                    class="flex items-center gap-1 text-[0.72rem] font-bold text-neutral-400 disabled:text-neutral-700 disabled:cursor-not-allowed min-h-[36px] px-3">
+              <span class="material-symbols-outlined" style="font-size:16px">chevron_left</span>
+              Anterior
+            </button>
+            <span class="text-[0.72rem] text-neutral-600">Pág. {{ eventsPage() }}</span>
+            <button (click)="eventsNextPage()" [disabled]="!eventsHasNext()"
+                    class="flex items-center gap-1 text-[0.72rem] font-bold text-neutral-400 disabled:text-neutral-700 disabled:cursor-not-allowed min-h-[36px] px-3">
+              Siguiente
+              <span class="material-symbols-outlined" style="font-size:16px">chevron_right</span>
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ══════════════════════════════════════════
+         TAB: ESTADÍSTICAS
+    ══════════════════════════════════════════════ -->
+    @if (activeTab() === 'stats') {
+      @if (statsLoading()) {
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          @for (i of [1,2,3,4,5,6]; track i) {
+            <div class="h-24 bg-neutral-900 border border-neutral-800 rounded-xl animate-pulse"></div>
+          }
+        </div>
+      }
+
+      @if (!statsLoading() && stats()) {
+        <div class="flex flex-col gap-6">
+
+          <!-- Metric cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+              <p class="text-[0.62rem] text-neutral-500 uppercase tracking-wider mb-1">Usuarios</p>
+              <p class="text-2xl font-black text-white">{{ stats()!.totalUsers }}</p>
+              <p class="text-[0.62rem] text-neutral-600 mt-0.5">registrados</p>
+            </div>
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+              <p class="text-[0.62rem] text-neutral-500 uppercase tracking-wider mb-1">Activos</p>
+              <p class="text-2xl font-black text-brand">{{ stats()!.activeUsers }}</p>
+              <p class="text-[0.62rem] text-neutral-600 mt-0.5">usuarios</p>
+            </div>
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+              <p class="text-[0.62rem] text-neutral-500 uppercase tracking-wider mb-1">Bloqueados</p>
+              <p class="text-2xl font-black text-red-400">{{ stats()!.blockedUsers }}</p>
+              <p class="text-[0.62rem] text-neutral-600 mt-0.5">usuarios</p>
+            </div>
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+              <p class="text-[0.62rem] text-neutral-500 uppercase tracking-wider mb-1">Nuevos</p>
+              <p class="text-2xl font-black text-blue-400">{{ stats()!.newUsersThisMonth }}</p>
+              <p class="text-[0.62rem] text-neutral-600 mt-0.5">este mes</p>
+            </div>
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+              <p class="text-[0.62rem] text-neutral-500 uppercase tracking-wider mb-1">Eventos</p>
+              <p class="text-2xl font-black text-white">{{ stats()!.totalEvents }}</p>
+              <p class="text-[0.62rem] text-neutral-600 mt-0.5">en total</p>
+            </div>
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+              <p class="text-[0.62rem] text-neutral-500 uppercase tracking-wider mb-1">Abiertos</p>
+              <p class="text-2xl font-black text-brand">{{ stats()!.openEvents }}</p>
+              <p class="text-[0.62rem] text-neutral-600 mt-0.5">eventos</p>
+            </div>
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+              <p class="text-[0.62rem] text-neutral-500 uppercase tracking-wider mb-1">Inscripciones</p>
+              <p class="text-2xl font-black text-purple-400">{{ stats()!.totalParticipations }}</p>
+              <p class="text-[0.62rem] text-neutral-600 mt-0.5">confirmadas</p>
+            </div>
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+              <p class="text-[0.62rem] text-neutral-500 uppercase tracking-wider mb-1">Esta semana</p>
+              <p class="text-2xl font-black text-orange-400">{{ stats()!.eventsThisWeek }}</p>
+              <p class="text-[0.62rem] text-neutral-600 mt-0.5">eventos nuevos</p>
+            </div>
+          </div>
+
+          <!-- Top sports -->
+          @if (stats()!.topSports.length > 0) {
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+              <h3 class="text-sm font-black tracking-tight mb-4">Top deportes</h3>
+              <div class="flex flex-col gap-3">
+                @for (s of stats()!.topSports; track s.sport) {
+                  <div class="flex items-center gap-3">
+                    <span class="text-lg w-7 flex-shrink-0">{{ getSportEmoji(s.sport) }}</span>
+                    <span class="text-sm font-semibold w-24 flex-shrink-0 truncate">{{ s.sport }}</span>
+                    <div class="flex-1 h-2 bg-neutral-800 rounded-full overflow-hidden">
+                      <div class="h-full bg-brand rounded-full transition-all"
+                           [style.width]="(s.count / topSportsMax() * 100) + '%'"></div>
+                    </div>
+                    <span class="text-sm font-black text-brand w-8 text-right flex-shrink-0">{{ s.count }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- ══════════════════════════════════════════
+         TAB: NOTIFICACIONES
+    ══════════════════════════════════════════════ -->
+    @if (activeTab() === 'notifications') {
+      <div class="flex flex-col gap-5">
+
+        <!-- Broadcast form -->
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+          <h3 class="text-sm font-black tracking-tight mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-brand" style="font-size:18px">campaign</span>
+            Notificación masiva
+          </h3>
+          <div class="flex flex-col gap-3">
+            <input type="text"
+                   placeholder="Título..."
+                   maxlength="120"
+                   [value]="broadcastTitle()"
+                   (input)="setBroadcastTitle($any($event.target).value)"
+                   class="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors min-h-[44px]" />
+            <textarea placeholder="Mensaje..."
+                      rows="3"
+                      maxlength="1000"
+                      [value]="broadcastBody()"
+                      (input)="setBroadcastBody($any($event.target).value)"
+                      class="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors resize-none"></textarea>
+            <button (click)="sendBroadcast()"
+                    [disabled]="!broadcastTitle().trim() || !broadcastBody().trim() || notifSending()"
+                    class="flex items-center justify-center gap-2 bg-brand text-neutral-950 font-black rounded-xl min-h-[48px] text-sm transition-opacity disabled:opacity-50">
+              @if (notifSending()) {
+                <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+              } @else {
+                <span class="material-symbols-outlined" style="font-size:18px">send</span>
+              }
+              Enviar a todos los usuarios
+            </button>
+          </div>
+        </div>
+
+        <!-- Event notification form -->
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+          <h3 class="text-sm font-black tracking-tight mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-400" style="font-size:18px">event</span>
+            Notificación por evento
+          </h3>
+          <div class="flex flex-col gap-3">
+            <select [value]="eventNotifEventId()"
+                    (change)="setEventNotifEventId($any($event.target).value)"
+                    class="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neutral-500 transition-colors min-h-[44px] [color-scheme:dark]">
+              <option value="">Selecciona un evento...</option>
+              @for (ev of openEvents(); track ev.id) {
+                <option [value]="ev.id">{{ getSportEmoji(ev.sport) }} {{ ev.title }}</option>
+              }
+            </select>
+            <input type="text"
+                   placeholder="Título..."
+                   maxlength="120"
+                   [value]="eventNotifTitle()"
+                   (input)="setEventNotifTitle($any($event.target).value)"
+                   class="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors min-h-[44px]" />
+            <textarea placeholder="Mensaje..."
+                      rows="3"
+                      maxlength="1000"
+                      [value]="eventNotifBody()"
+                      (input)="setEventNotifBody($any($event.target).value)"
+                      class="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors resize-none"></textarea>
+            <button (click)="sendEventNotification()"
+                    [disabled]="!eventNotifEventId() || !eventNotifTitle().trim() || !eventNotifBody().trim() || notifSending()"
+                    class="flex items-center justify-center gap-2 bg-blue-500 text-white font-black rounded-xl min-h-[48px] text-sm transition-opacity disabled:opacity-50">
+              @if (notifSending()) {
+                <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+              } @else {
+                <span class="material-symbols-outlined" style="font-size:18px">send</span>
+              }
+              Enviar a participantes
+            </button>
+          </div>
+        </div>
+
+        <!-- Feedback -->
+        @if (notifSuccess()) {
+          <div class="flex items-center gap-2 bg-brand/10 border border-brand/30 rounded-xl px-4 py-3 text-sm text-brand">
+            <span class="material-symbols-outlined" style="font-size:18px">check_circle</span>
+            {{ notifSuccess() }}
+          </div>
+        }
+        @if (notifError()) {
+          <div class="flex items-center gap-2 bg-red-950/50 border border-red-800/50 rounded-xl px-4 py-3 text-sm text-red-400">
+            <span class="material-symbols-outlined" style="font-size:18px">error</span>
+            {{ notifError() }}
+          </div>
+        }
+
+        <!-- Recent notifications -->
+        @if (recentNotifications().length > 0) {
+          <div class="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
+            <div class="px-4 py-3 border-b border-neutral-800">
+              <h3 class="text-sm font-black tracking-tight">Últimas enviadas</h3>
+            </div>
+            <div class="divide-y divide-neutral-800">
+              @for (n of recentNotifications(); track n.id) {
+                <div class="px-4 py-3 flex items-start gap-3">
+                  <span class="text-[0.6rem] font-black px-2 py-1 rounded-full border flex-shrink-0 mt-0.5"
+                        [class]="notifTypeColor(n.type)">
+                    {{ notifTypeLabel(n.type) }}
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold truncate">{{ n.title }}</p>
+                    <p class="text-xs text-neutral-500 truncate mt-0.5">{{ n.body }}</p>
+                    <p class="text-[0.6rem] text-neutral-700 mt-1">{{ formatDate(n.createdAt) }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+      </div>
+    }
+
+  </main>
+</div>

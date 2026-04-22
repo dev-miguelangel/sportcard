@@ -6,6 +6,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+export enum UserRole   { USER = 'user', ADMIN = 'admin' }
+export enum UserStatus { ACTIVE = 'active', BLOCKED = 'blocked' }
+
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -28,6 +31,12 @@ export class User {
 
   @Column({ default: 1 })
   onboardingStep: number;
+
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
+  role: UserRole;
+
+  @Column({ type: 'enum', enum: UserStatus, default: UserStatus.ACTIVE })
+  status: UserStatus;
 
   // ── Personal data (step 1) ──────────────────────────
   @Column({ nullable: true })

@@ -32,6 +32,8 @@ export interface AuthUser {
   emergencyPhone: string | null;
   emergencyRelation: string | null;
   createdAt: string;
+  role: 'user' | 'admin';
+  status: 'active' | 'blocked';
 }
 
 const TOKEN_KEY = 'sc_token';

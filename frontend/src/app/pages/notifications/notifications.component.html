@@ -1,6 +1,6 @@
 <div class="min-h-screen bg-neutral-950 flex flex-col">
 
-  <!-- Header propio (back + título) -->
+  <!-- Header -->
   <header class="border-b border-neutral-800 bg-neutral-900/80 backdrop-blur-sm sticky top-0 z-10"
           style="padding-top: env(safe-area-inset-top)">
     <div class="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
@@ -10,17 +10,21 @@
       >
         <span class="material-symbols-outlined text-neutral-400" style="font-size:22px">arrow_back</span>
       </button>
-      <span class="font-bold text-sm">Notificaciones</span>
+      <span class="font-bold text-sm flex-1">Notificaciones</span>
+      @if (unreadCount() > 0) {
+        <span class="text-xs font-bold bg-brand text-neutral-950 rounded-full px-2 py-0.5 leading-none">
+          {{ unreadCount() }}
+        </span>
+      }
     </div>
   </header>
 
   <!-- Contenido -->
   <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom))]">
 
+    <!-- PWA install prompt -->
     @if (!pwa.isStandalone && pwa.canInstall()) {
-
-      <!-- Invitación a instalar -->
-      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden mb-3">
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden mb-4">
         <div class="p-4 flex items-start gap-4">
           <div class="w-12 h-12 bg-brand rounded-2xl flex items-center justify-center flex-shrink-0 mt-0.5">
             <svg viewBox="0 -960 960 960" class="w-6 h-6" fill="#0a0a0f">
@@ -45,11 +49,8 @@
           </div>
         </div>
       </div>
-
     } @else if (!pwa.isStandalone && pwa.showOpenInApp()) {
-
-      <!-- Abrir en la app instalada -->
-      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden mb-3">
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden mb-4">
         <div class="p-4 flex items-start gap-4">
           <div class="w-12 h-12 bg-brand rounded-2xl flex items-center justify-center flex-shrink-0 mt-0.5">
             <span class="material-symbols-outlined text-neutral-950" style="font-size:24px">open_in_new</span>
@@ -57,14 +58,11 @@
           <div class="flex-1 min-w-0">
             <p class="text-sm font-bold text-white mb-0.5">Sport Card instalada</p>
             <p class="text-xs text-neutral-400 leading-relaxed">
-              Tienes la app instalada en tu dispositivo. Ábrela para una mejor experiencia.
+              Tienes la app instalada. Ábrela para una mejor experiencia.
             </p>
             <div class="flex items-center gap-2 mt-3">
-              <a
-                href="/"
-                target="_blank"
-                rel="noopener"
-                class="bg-brand text-neutral-950 text-xs font-bold px-4 py-2 rounded-xl min-h-[36px] hover:bg-emerald-400 transition-colors flex items-center"
+              <a href="/" target="_blank" rel="noopener"
+                 class="bg-brand text-neutral-950 text-xs font-bold px-4 py-2 rounded-xl min-h-[36px] hover:bg-emerald-400 transition-colors flex items-center"
               >Abrir app</a>
               <button
                 (click)="dismiss()"
@@ -74,18 +72,51 @@
           </div>
         </div>
       </div>
+    }
 
-    } @else {
-
-      <!-- Estado vacío -->
-      <div class="flex flex-col items-center justify-center py-20 text-center">
+    <!-- Lista de notificaciones -->
+    @if (loading()) {
+      <div class="flex justify-center py-12">
+        <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:28px">progress_activity</span>
+      </div>
+    } @else if (notifications().length === 0) {
+      <div class="flex flex-col items-center justify-center py-16 text-center">
         <div class="w-16 h-16 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4">
           <span class="material-symbols-outlined text-neutral-600" style="font-size:28px">notifications_none</span>
         </div>
         <p class="text-sm font-semibold text-neutral-400">Sin notificaciones</p>
         <p class="text-xs text-neutral-600 mt-1">Aquí aparecerán tus notificaciones.</p>
       </div>
+    } @else {
+      <div class="flex flex-col gap-2">
+        @for (notif of notifications(); track notif.id) {
+          <button
+            (click)="markRead(notif)"
+            class="w-full text-left bg-neutral-900 border rounded-xl p-4 transition-colors hover:bg-neutral-800"
+            [class]="notif.readAt ? 'border-neutral-800' : 'border-brand'"
+          >
+            <div class="flex items-start gap-3">
+              <!-- Dot no leído -->
+              <div class="mt-1.5 flex-shrink-0 w-2 h-2 rounded-full"
+                   [class.bg-brand]="!notif.readAt"
+                   [class.bg-transparent]="notif.readAt">
+              </div>
 
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-[10px] font-bold uppercase tracking-wider border rounded px-1.5 py-0.5 leading-none"
+                        [class]="typeColor(notif.type)">
+                    {{ typeLabel(notif.type) }}
+                  </span>
+                  <span class="text-[11px] text-neutral-500 ml-auto flex-shrink-0">{{ formatDatetime(notif.createdAt) }}</span>
+                </div>
+                <p class="text-sm font-semibold text-white leading-snug">{{ notif.title }}</p>
+                <p class="text-xs text-neutral-400 mt-0.5 leading-relaxed">{{ notif.body }}</p>
+              </div>
+            </div>
+          </button>
+        }
+      </div>
     }
 
   </main>
