@@ -77,6 +77,12 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'contacts',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/contacts/contacts.component').then((m) => m.ContactsComponent),
+  },
+  {
     path: 'admin',
     canActivate: [authGuard, adminGuard],
     loadComponent: () =>

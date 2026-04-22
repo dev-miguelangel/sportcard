@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { EventsService, EventResponse } from '../../../core/services/events.service';
+import { ContactsService, ContactUser } from '../../../core/services/contacts.service';
 
 const SPORT_GRADIENTS: Record<string, string> = {
   'Fútbol':     'linear-gradient(135deg,#003d20,#006b35)',
@@ -50,10 +51,11 @@ const TYPE_COLORS: Record<string, string> = {
   templateUrl: './event-detail.component.html',
 })
 export class EventDetailComponent implements OnInit {
-  private readonly router     = inject(Router);
-  private readonly route      = inject(ActivatedRoute);
-  private readonly eventsSvc  = inject(EventsService);
-  readonly auth               = inject(AuthService);
+  private readonly router      = inject(Router);
+  private readonly route       = inject(ActivatedRoute);
+  private readonly eventsSvc   = inject(EventsService);
+  private readonly contactsSvc = inject(ContactsService);
+  readonly auth                = inject(AuthService);
 
   readonly event       = signal<EventResponse | null>(null);
   readonly loading     = signal(true);
@@ -68,6 +70,17 @@ export class EventDetailComponent implements OnInit {
   readonly inviteResult  = signal<{ success: boolean; message: string } | null>(null);
 
   readonly linkCopied = signal(false);
+
+  readonly contacts              = signal<ContactUser[]>([]);
+  readonly contactsLoading       = signal(false);
+  readonly selectedContactIds    = signal<Set<string>>(new Set());
+  readonly inviteContactsLoading = signal(false);
+  readonly inviteContactsResult  = signal<{ success: boolean; message: string } | null>(null);
+
+  readonly allContactsSelected = computed(() =>
+    this.contacts().length > 0 &&
+    this.contacts().every(c => this.selectedContactIds().has(c.id)),
+  );
 
   readonly closeNotes   = signal('');
   readonly closeResults = signal('');
@@ -91,8 +104,14 @@ export class EventDetailComponent implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.eventsSvc.findOne(id).subscribe({
-      next: ev => { this.event.set(ev); this.loading.set(false); },
-      error: ()  => { this.error.set('No se pudo cargar el evento.'); this.loading.set(false); },
+      next: ev => {
+        this.event.set(ev);
+        this.loading.set(false);
+        if (this.auth.currentUser()?.id === ev.organizerId) {
+          this.loadContacts();
+        }
+      },
+      error: () => { this.error.set('No se pudo cargar el evento.'); this.loading.set(false); },
     });
   }
 
@@ -192,6 +211,65 @@ export class EventDetailComponent implements OnInit {
       this.linkCopied.set(true);
       setTimeout(() => this.linkCopied.set(false), 2500);
     });
+  }
+
+  private loadContacts(): void {
+    this.contactsLoading.set(true);
+    this.contactsSvc.getContacts().subscribe({
+      next: cs => { this.contacts.set(cs); this.contactsLoading.set(false); },
+      error: ()  => this.contactsLoading.set(false),
+    });
+  }
+
+  toggleContactSelection(id: string): void {
+    const s = new Set(this.selectedContactIds());
+    s.has(id) ? s.delete(id) : s.add(id);
+    this.selectedContactIds.set(s);
+  }
+
+  selectAllContacts(): void {
+    this.selectedContactIds.set(
+      this.allContactsSelected()
+        ? new Set()
+        : new Set(this.contacts().map(c => c.id)),
+    );
+  }
+
+  inviteSelectedContacts(): void {
+    const ev = this.event();
+    const ids = [...this.selectedContactIds()];
+    if (!ev || !ids.length || this.inviteContactsLoading()) return;
+
+    this.inviteContactsLoading.set(true);
+    this.inviteContactsResult.set(null);
+
+    let completed = 0;
+    let successes = 0;
+
+    ids.forEach(contactId => {
+      const contact = this.contacts().find(c => c.id === contactId);
+      if (!contact) { completed++; return; }
+
+      this.eventsSvc.inviteUser(ev.id, contact.stringId).subscribe({
+        next:     () => { successes++; },
+        error:    () => {},
+        complete: () => {
+          completed++;
+          if (completed === ids.length) {
+            this.inviteContactsLoading.set(false);
+            this.inviteContactsResult.set({
+              success: true,
+              message: `${successes} invitación${successes !== 1 ? 'es' : ''} enviada${successes !== 1 ? 's' : ''}`,
+            });
+            this.selectedContactIds.set(new Set());
+          }
+        },
+      });
+    });
+  }
+
+  getContactInitials(name: string): string {
+    return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
   }
 
   isFinished(): boolean {

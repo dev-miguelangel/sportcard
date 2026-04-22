@@ -506,6 +506,102 @@
               </p>
             </div>
 
+            <!-- Invitar desde mis contactos -->
+            @if (contactsLoading() || contacts().length > 0) {
+              <div>
+                <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-2">Desde mis contactos</p>
+
+                @if (contactsLoading()) {
+                  <div class="flex flex-col gap-2">
+                    @for (i of [1, 2]; track i) {
+                      <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2.5 animate-pulse">
+                        <div class="w-8 h-8 rounded-full bg-neutral-800 flex-shrink-0"></div>
+                        <div class="flex-1 h-3 bg-neutral-800 rounded-md"></div>
+                      </div>
+                    }
+                  </div>
+                } @else {
+
+                  <!-- Seleccionar todos -->
+                  <div class="flex items-center justify-between mb-2">
+                    <button (click)="selectAllContacts()"
+                            class="text-[0.65rem] font-bold text-neutral-500 hover:text-neutral-300 transition-colors min-h-[28px]">
+                      {{ allContactsSelected() ? 'Deseleccionar todos' : 'Seleccionar todos' }}
+                    </button>
+                    @if (selectedContactIds().size > 0) {
+                      <span class="text-[0.65rem] text-brand font-bold">
+                        {{ selectedContactIds().size }} seleccionado{{ selectedContactIds().size !== 1 ? 's' : '' }}
+                      </span>
+                    }
+                  </div>
+
+                  <!-- Lista checkeable -->
+                  <div class="flex flex-col gap-1.5">
+                    @for (contact of contacts(); track contact.id) {
+                      <button (click)="toggleContactSelection(contact.id)"
+                              class="flex items-center gap-3 border rounded-xl px-3 py-2.5 text-left transition-colors w-full"
+                              [class]="selectedContactIds().has(contact.id)
+                                ? 'bg-brand/5 border-brand/40'
+                                : 'bg-neutral-900 border-neutral-800'">
+
+                        <!-- Checkbox -->
+                        <div class="w-5 h-5 rounded-md border flex-shrink-0 flex items-center justify-center transition-colors"
+                             [class]="selectedContactIds().has(contact.id)
+                               ? 'bg-brand border-brand'
+                               : 'border-neutral-600'">
+                          @if (selectedContactIds().has(contact.id)) {
+                            <span class="material-symbols-outlined text-neutral-950" style="font-size:13px">check</span>
+                          }
+                        </div>
+
+                        <!-- Avatar -->
+                        @if (contact.avatar) {
+                          <img [src]="contact.avatar" [alt]="contact.name"
+                               class="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                        } @else {
+                          <div class="w-7 h-7 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
+                            <span class="text-[0.6rem] font-black text-brand">{{ getContactInitials(contact.name) }}</span>
+                          </div>
+                        }
+
+                        <!-- Info -->
+                        <span class="text-sm font-semibold truncate flex-1">{{ contact.name }}</span>
+                        <span class="text-[0.65rem] font-mono text-neutral-600 flex-shrink-0">{{ contact.stringId }}</span>
+
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Botón invitar seleccionados -->
+                  @if (selectedContactIds().size > 0) {
+                    <button (click)="inviteSelectedContacts()"
+                            [disabled]="inviteContactsLoading()"
+                            class="w-full flex items-center justify-center gap-2 bg-brand text-neutral-950
+                                   font-black rounded-xl min-h-[44px] text-sm mt-3
+                                   transition-opacity disabled:opacity-60">
+                      @if (inviteContactsLoading()) {
+                        <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+                      } @else {
+                        <span class="material-symbols-outlined" style="font-size:18px">send</span>
+                      }
+                      Invitar {{ selectedContactIds().size }} contacto{{ selectedContactIds().size !== 1 ? 's' : '' }}
+                    </button>
+                  }
+
+                  @if (inviteContactsResult()) {
+                    <p class="text-xs mt-2 flex items-center gap-1.5"
+                       [class]="inviteContactsResult()!.success ? 'text-brand' : 'text-red-400'">
+                      <span class="material-symbols-outlined" style="font-size:14px">
+                        {{ inviteContactsResult()!.success ? 'check_circle' : 'error' }}
+                      </span>
+                      {{ inviteContactsResult()!.message }}
+                    </p>
+                  }
+
+                }
+              </div>
+            }
+
           </div>
         }
 

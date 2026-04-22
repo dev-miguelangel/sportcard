@@ -1,0 +1,194 @@
+<div class="min-h-screen bg-neutral-950 flex flex-col">
+
+  <!-- ── Header ─────────────────────────────────────────── -->
+  <header class="sticky top-0 z-10 bg-neutral-950/95 backdrop-blur-sm border-b border-neutral-800"
+          style="padding-top: env(safe-area-inset-top)">
+    <div class="max-w-lg mx-auto flex items-center gap-3 px-4 h-14">
+      <button (click)="goBack()"
+              class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 flex-shrink-0">
+        <span class="material-symbols-outlined text-neutral-400" style="font-size:20px">arrow_back</span>
+      </button>
+      <h1 class="font-black tracking-tight flex-1">Contactos</h1>
+      @if (myContacts().length > 0) {
+        <span class="text-[0.7rem] font-bold text-neutral-500">{{ myContacts().length }} contacto{{ myContacts().length !== 1 ? 's' : '' }}</span>
+      }
+    </div>
+  </header>
+
+  <!-- ── Content ─────────────────────────────────────────── -->
+  <main class="flex-1 max-w-lg mx-auto w-full px-4 py-4 pb-[calc(5rem+env(safe-area-inset-bottom))] flex flex-col gap-5">
+
+    <!-- ── Buscar personas ────────────────────────────────── -->
+    <div class="flex flex-col gap-3">
+      <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-500 px-0.5">Buscar personas</p>
+
+      <!-- Input -->
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-600"
+              style="font-size:20px">search</span>
+        <input type="search"
+               placeholder="Nombre, correo o ID..."
+               [value]="searchQuery()"
+               (input)="onSearchInput($any($event.target).value)"
+               class="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-10 py-3
+                      text-[0.85rem] placeholder:text-neutral-600 focus:outline-none
+                      focus:border-neutral-600 transition-colors min-h-[52px]" />
+        @if (loadingSearch()) {
+          <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-neutral-600 animate-spin"
+                style="font-size:18px">progress_activity</span>
+        } @else if (searchQuery()) {
+          <button (click)="onSearchInput('')"
+                  class="absolute right-3 top-1/2 -translate-y-1/2">
+            <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">close</span>
+          </button>
+        }
+      </div>
+
+      <!-- Resultados de búsqueda -->
+      @if (searchResults().length > 0) {
+        <div class="flex flex-col gap-2">
+          @for (user of searchResults(); track user.id) {
+            <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3">
+
+              <!-- Avatar -->
+              @if (user.avatar) {
+                <img [src]="user.avatar" [alt]="user.name"
+                     class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+              } @else {
+                <div class="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
+                  <span class="text-sm font-black text-brand">{{ getInitials(user.name) }}</span>
+                </div>
+              }
+
+              <!-- Info -->
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold truncate">{{ user.name }}</p>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="text-[0.65rem] font-mono text-neutral-500">{{ user.stringId }}</span>
+                  @if (user.sports.length > 0) {
+                    <span class="text-neutral-700">·</span>
+                    <span class="text-[0.65rem] text-neutral-500 truncate">{{ user.sports.slice(0, 2).join(', ') }}</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Acción -->
+              @if (user.isContact) {
+                <button (click)="removeContact(user)"
+                        [disabled]="loadingAction() === user.id"
+                        class="flex items-center gap-1.5 bg-neutral-800 text-red-400 border border-neutral-700
+                               text-[0.72rem] font-bold px-3 py-2 rounded-xl min-h-[36px] flex-shrink-0
+                               transition-opacity disabled:opacity-40">
+                  @if (loadingAction() === user.id) {
+                    <span class="material-symbols-outlined animate-spin" style="font-size:15px">progress_activity</span>
+                  } @else {
+                    <span class="material-symbols-outlined" style="font-size:15px">person_remove</span>
+                  }
+                  Quitar
+                </button>
+              } @else {
+                <button (click)="addContact(user)"
+                        [disabled]="loadingAction() === user.id"
+                        class="flex items-center gap-1.5 bg-brand text-neutral-950 text-[0.72rem] font-black
+                               px-3 py-2 rounded-xl min-h-[36px] flex-shrink-0
+                               transition-opacity disabled:opacity-40">
+                  @if (loadingAction() === user.id) {
+                    <span class="material-symbols-outlined animate-spin" style="font-size:15px">progress_activity</span>
+                  } @else {
+                    <span class="material-symbols-outlined" style="font-size:15px">person_add</span>
+                  }
+                  Agregar
+                </button>
+              }
+
+            </div>
+          }
+        </div>
+      }
+
+      @if (searchQuery().trim().length >= 2 && !loadingSearch() && searchResults().length === 0) {
+        <p class="text-sm text-neutral-600 text-center py-4">Sin resultados para "{{ searchQuery() }}"</p>
+      }
+
+      @if (searchQuery().trim().length > 0 && searchQuery().trim().length < 2) {
+        <p class="text-xs text-neutral-600 px-0.5">Escribe al menos 2 caracteres para buscar.</p>
+      }
+    </div>
+
+    <!-- ── Mis contactos ──────────────────────────────────── -->
+    <div class="flex flex-col gap-3">
+      <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-500 px-0.5">Mis contactos</p>
+
+      <!-- Loading skeletons -->
+      @if (loadingList()) {
+        <div class="flex flex-col gap-2">
+          @for (i of [1, 2, 3]; track i) {
+            <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3 animate-pulse">
+              <div class="w-10 h-10 rounded-full bg-neutral-800 flex-shrink-0"></div>
+              <div class="flex-1 flex flex-col gap-1.5">
+                <div class="h-3.5 bg-neutral-800 rounded-md w-1/2"></div>
+                <div class="h-2.5 bg-neutral-800 rounded-md w-1/3"></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Lista de contactos -->
+      @if (!loadingList() && myContacts().length > 0) {
+        <div class="flex flex-col gap-2">
+          @for (contact of myContacts(); track contact.id) {
+            <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3">
+
+              @if (contact.avatar) {
+                <img [src]="contact.avatar" [alt]="contact.name"
+                     class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+              } @else {
+                <div class="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
+                  <span class="text-sm font-black text-brand">{{ getInitials(contact.name) }}</span>
+                </div>
+              }
+
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold truncate">{{ contact.name }}</p>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="text-[0.65rem] font-mono text-neutral-500">{{ contact.stringId }}</span>
+                  @if (contact.sports.length > 0) {
+                    <span class="text-neutral-700">·</span>
+                    <span class="text-[0.65rem] text-neutral-500 truncate">{{ contact.sports.slice(0, 2).join(', ') }}</span>
+                  }
+                </div>
+              </div>
+
+              <button (click)="removeContact(contact)"
+                      [disabled]="loadingAction() === contact.id"
+                      class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-800 border border-neutral-700
+                             text-neutral-500 hover:text-red-400 hover:border-red-400/30 transition-colors
+                             flex-shrink-0 disabled:opacity-40">
+                @if (loadingAction() === contact.id) {
+                  <span class="material-symbols-outlined animate-spin" style="font-size:16px">progress_activity</span>
+                } @else {
+                  <span class="material-symbols-outlined" style="font-size:16px">person_remove</span>
+                }
+              </button>
+
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Empty state -->
+      @if (!loadingList() && myContacts().length === 0) {
+        <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center">
+          <span class="material-symbols-outlined text-neutral-700 mb-3 block" style="font-size:40px">group</span>
+          <p class="text-sm font-semibold text-neutral-400 mb-1">Sin contactos aún</p>
+          <p class="text-xs text-neutral-600">Busca personas por nombre, correo o ID para agregarlas.</p>
+        </div>
+      }
+    </div>
+
+  </main>
+
+  <app-bottom-nav activeTab="contacts" />
+
+</div>
