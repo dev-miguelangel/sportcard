@@ -3,10 +3,14 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
+import { DevAuthController } from './dev-auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
+
+const devControllers =
+  process.env.DEV_AUTH_ENABLED === 'true' ? [DevAuthController] : [];
 
 @Module({
   imports: [
@@ -23,7 +27,7 @@ import { UsersModule } from '../users/users.module';
     }),
     UsersModule,
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, ...devControllers],
   providers: [AuthService, GoogleStrategy, JwtStrategy],
   exports: [AuthService],
 })

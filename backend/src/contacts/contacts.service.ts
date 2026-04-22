@@ -33,7 +33,7 @@ export class ContactsService {
       .createQueryBuilder('u')
       .where('u.id != :me', { me: requestingUserId })
       .andWhere(
-        'u.name ILIKE :q OR u.email ILIKE :q OR u."stringId" ILIKE :q',
+        'u.name ILIKE :q OR u."stringId" ILIKE :q',
         { q: `%${term}%` },
       )
       .take(15)
