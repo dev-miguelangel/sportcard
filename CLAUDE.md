@@ -46,81 +46,121 @@ The CLI always connects with `DATABASE_HOST=localhost` (hardcoded in the `typeor
 
 Migration files live in `backend/src/migrations/`. The `data-source.ts` is the standalone TypeORM config used exclusively by the CLI — it reads `../../.env` relative to the compiled output.
 
+**Adding an enum value**: PostgreSQL requires `ALTER TYPE <enum> ADD VALUE IF NOT EXISTS '...'` — you cannot remove enum values in a down migration, so `down()` is a no-op. See `1776900200000-AddInvitationNotificationType.ts` as the pattern.
+
 ## Architecture
 
 ### Backend — NestJS 10 + TypeORM + PostgreSQL
 
+Modules: `AuthModule`, `UsersModule`, `EventsModule`, `NotificationsModule`, `AdminModule`. All registered in `app.module.ts` with the four TypeORM entities: `User`, `Event`, `EventParticipant`, `Notification`.
+
 ```
 backend/src/
-├── data-source.ts          ← standalone DataSource for TypeORM CLI
-├── app.module.ts           ← TypeORM config (migrationsRun, no synchronize)
-├── migrations/             ← timestamped migration files
-├── auth/
-│   ├── auth.controller.ts  ← /auth/google, /auth/me, /auth/dev-login
-│   ├── auth.service.ts     ← generateToken(), devLogin()
-│   ├── dto/                ← DevLoginDto
-│   ├── guards/             ← GoogleAuthGuard, JwtAuthGuard
-│   └── strategies/         ← google.strategy (calls UsersService.findOrCreate),
-│                              jwt.strategy (validates Bearer token)
-└── users/
-    ├── entities/user.entity.ts   ← User: uuid id, stringId (6-char unique), googleId,
-    │                                email, name, avatar, onboardingStep, timestamps
-    └── users.service.ts          ← findOrCreate (generates unique stringId), findById, findByEmail
-```
-
-`GET /auth/me` fetches the full user from the DB (not just the JWT payload) and strips `googleId` before returning. This is what `AuthService.fetchMe()` calls on the frontend after login.
-
-### stringId generation
-
-Each user gets a unique 6-character ID at registration. Charset: digits `1–9` + Spanish alphabet without Ñ = 35 characters (`123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ`). Generated in `UsersService.generateUniqueStringId()` with a collision-retry loop.
-
-### Frontend — Angular 19, standalone components, signals
-
-```
-frontend/src/app/
-├── app.config.ts       ← provideRouter, provideHttpClient + authInterceptor, ServiceWorker
-├── app.routes.ts       ← lazy-loaded routes, all protected with authGuard except /login and /auth/callback
-├── core/
-│   ├── services/auth.service.ts    ← signals: _token, _user → isLoggedIn, currentUser, token
-│   ├── guards/auth.guard.ts        ← redirects to /login if not authenticated
-│   └── interceptors/auth.interceptor.ts  ← attaches Bearer token to every request
-└── pages/
-    ├── login/          ← Google OAuth button + conditional Dev Auth form
-    ├── auth-callback/  ← reads ?token= from URL, calls auth.handleCallback()
-    ├── dashboard/      ← home screen with stats (placeholders) and bottom nav
-    └── profile/        ← user profile: avatar, stringId badge, memberSince, stats
+├── app.module.ts               ← TypeORM config (migrationsRun: true, synchronize: false)
+├── data-source.ts              ← standalone DataSource for TypeORM CLI only
+├── migrations/                 ← timestamped migration files
+├── auth/                       ← Google OAuth + JWT; guards in auth/guards/
+├── users/                      ← User entity + CRUD; UsersModule exports UsersService
+├── events/
+│   ├── entities/
+│   │   ├── event.entity.ts           ← Event: sport, type, title, locationName,
+│   │   │                                startDatetime, endDatetime, maxParticipants,
+│   │   │                                isPublic, requiresApproval, shareToken (uuid),
+│   │   │                                status (draft|open|closed|cancelled|finished),
+│   │   │                                organizerId
+│   │   └── event-participant.entity.ts ← EventParticipant: eventId, userId,
+│   │                                     status (approved|pending|waiting|rejected), message
+│   ├── events.controller.ts          ← GET/POST /events (all require JwtAuthGuard)
+│   ├── event-public.controller.ts    ← GET /events/token/:shareToken (no auth)
+│   ├── participants.controller.ts    ← join/leave/invite/list/updateStatus
+│   ├── events.service.ts             ← findPublic, findMine, findOne, findByShareToken
+│   │                                    enrichWithStats adds participantCount + myStatus
+│   └── participants.service.ts       ← join (auto-approve organizer), inviteUser
+├── notifications/
+│   └── entities/notification.entity.ts ← type: broadcast|event|system|invitation
+│                                          userId + eventId (both nullable FK)
+└── admin/                      ← platform admin only; AdminGuard checks role=admin
 ```
 
 **Auth flow:**
+```
+Google:    GET /api/auth/google → Google OAuth → /api/auth/google/callback
+           → redirect /auth/callback?token=JWT → frontend handleCallback() → fetchMe()
+Dev login: POST /api/auth/dev-login → { token } → handleCallback() → fetchMe()
+```
+`GET /auth/me` returns the full user from DB minus `googleId`. `fetchMe()` checks `localStorage('sc_return_url')` and redirects there after login if set, otherwise goes to `/dashboard` (or `/onboarding` if `onboardingStep < 4`).
+
+**`findPublic` visibility rule**: returns public+open events OR any open event where `organizerId === userId` (so creators always see their own private events).
+
+**Participant join logic**: organizer → auto-approved; `requiresApproval` → pending; full capacity → waiting; otherwise → approved.
+
+**Invitation flow**: `POST /events/:id/invite` with `{ identifier }` (stringId 6-char or email). Creates a `INVITATION` notification for the target user. In the notifications page, INVITATION type shows Accept/Decline buttons — Accept calls `join`, Decline marks notification read.
+
+**Public event preview**: `GET /events/token/:shareToken` returns only `{ id, title, sport, type, startDatetime, locationName, isPublic }` — no auth required.
+
+### Frontend — Angular 19+, standalone components, signals
 
 ```
-Dev login:  POST /api/auth/dev-login → { token } → handleCallback(token) → fetchMe() → /dashboard
-Google:     GET /api/auth/google → Google → GET /api/auth/google/callback → redirect to
-            /auth/callback?token=JWT → handleCallback(token) → fetchMe() → /dashboard
+frontend/src/app/
+├── app.config.ts           ← provideRouter, provideHttpClient + authInterceptor, ServiceWorker
+├── app.routes.ts           ← all routes lazy-loaded; authGuard on all except /login,
+│                              /auth/callback, /e/:token
+├── core/
+│   ├── services/
+│   │   ├── auth.service.ts         ← signals: _token, _user → isLoggedIn, currentUser
+│   │   ├── events.service.ts       ← findAll, findMine, findOne, findByToken,
+│   │   │                              join, leave, inviteUser
+│   │   └── notifications.service.ts← getMyNotifications, markRead
+│   ├── guards/auth.guard.ts        ← redirects to /login; adminGuard checks role
+│   └── interceptors/auth.interceptor.ts ← attaches Bearer token to all requests
+├── pages/
+│   ├── events/
+│   │   ├── list/      ← public event feed + bottom sheet for join/leave
+│   │   ├── detail/    ← full event view; organizer sees invite section + participant mgmt
+│   │   ├── create/    ← create form
+│   │   └── invite/    ← PUBLIC page (/e/:token); shows partial info + CTA → login or event
+│   ├── notifications/ ← list with Accept/Decline for INVITATION type
+│   ├── admin/         ← tabs: users, events, stats, notifications (role=admin only)
+│   └── onboarding/    ← 4-step wizard; step 4 = complete (onboardingStep >= 4 → dashboard)
+└── shared/
+    ├── bottom-nav/    ← fixed mobile nav, 5 items
+    └── header/
 ```
 
-`AuthService` persists token and user in `localStorage` under keys `sc_token` and `sc_user`. All signals are derived from these.
+**State management**: all reactive state uses Angular signals (`signal()`, `computed()`). No NgRx or BehaviorSubject patterns — keep signals consistent.
+
+**`AuthService` localStorage keys**: `sc_token`, `sc_user`, `sc_return_url` (temporary, cleared after redirect).
 
 ### UI conventions
 
-- **Theme**: dark (`neutral-950` background, `neutral-900` cards, `neutral-800` borders)
-- **Brand color**: `#00e87a` — available as `bg-brand`, `text-brand`, `border-brand` etc.
-- **Icons**: Google Material Symbols loaded via CDN. Use `<span class="material-symbols-outlined">icon_name</span>`. Add `filled` class for filled variant.
-- **Touch targets**: minimum `min-h-[44px]` on all interactive elements.
-- **Safe areas**: use `env(safe-area-inset-*)` for iOS notch/home bar padding.
-- **Bottom nav**: fixed on mobile (`sm:hidden`), 5 items with center FAB raised with `-mt-5`.
-- All **user-facing text must be in Spanish**. Code (variables, functions, types, comments) must be in **English**.
+- **Theme**: dark — `neutral-950` background, `neutral-900` cards, `neutral-800` borders.
+- **Brand color**: `#00e87a` — Tailwind classes `bg-brand`, `text-brand`, `border-brand`.
+- **Icons**: Google Material Symbols via CDN. `<span class="material-symbols-outlined">icon_name</span>`; add class `filled` for filled variant.
+- **Touch targets**: `min-h-[44px]` on all interactive elements.
+- **Safe areas**: `env(safe-area-inset-*)` for iOS notch/home bar padding.
+- **Sport visuals**: each sport has a gradient (`SPORT_GRADIENTS`) and emoji (`SPORT_EMOJIS`) — these maps are duplicated across components (list, detail, invite). Keep them in sync when adding sports.
+- All **user-facing text in Spanish**. Code (variables, functions, types, comments) in **English**.
 
 ### Environments
 
-| File                           | `apiUrl`                        |
-|--------------------------------|---------------------------------|
-| `environment.ts`               | `http://localhost:3000/api`     |
-| `environment.production.ts`    | production URL                  |
-| `environment.staging.ts`       | staging URL                     |
+| File                        | `apiUrl`                    |
+|-----------------------------|-----------------------------|
+| `environment.ts`            | `http://localhost:3000/api` |
+| `environment.production.ts` | production URL              |
+| `environment.staging.ts`    | staging URL                 |
 
 The Angular dev server proxies `/api` to the backend via `proxy.conf.json`.
 
-## Planned modules (not yet implemented)
+### Key data relationships
 
-Refer to `docs/plan-desarrollo.md` for the full roadmap. Next modules to build: `EventsModule`, `TeamsModule`, `InvitationsModule`, `TournamentsModule`, `ResultsModule`, `NotificationsModule`, `StatsModule`. The Angular routes `/events`, `/teams`, `/profile/:id`, `/tournaments/:id`, `/e/:token` (public, no auth) are planned but not yet created.
+- `Event.organizerId` → `User.id` (FK, no cascade)
+- `EventParticipant` has `UNIQUE(eventId, userId)` — one row per user per event
+- `Notification.userId` nullable (null = broadcast to all); `Notification.eventId` nullable
+- `Event.shareToken` is a UUID generated by PostgreSQL default, always unique
+
+### Adding a new backend module
+
+1. Create `src/<name>/<name>.module.ts` with TypeOrmModule.forFeature for its entities
+2. Add the entity class to the `entities` array in `app.module.ts`
+3. Import the module in `app.module.ts`
+4. Generate a migration for the new table(s)

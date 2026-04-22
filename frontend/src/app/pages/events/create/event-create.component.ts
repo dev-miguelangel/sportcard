@@ -50,6 +50,8 @@ export class EventCreateComponent implements AfterViewInit {
   readonly title         = signal('');
   readonly startDate     = signal('');
   readonly startTime     = signal('');
+  readonly endDate       = signal('');
+  readonly endTime       = signal('');
   readonly locationName  = signal('');
 
   // ── Optional fields ──────────────────────────────────────
@@ -93,11 +95,12 @@ export class EventCreateComponent implements AfterViewInit {
       !!this.selectedType(),
       this.title().trim().length > 0,
       !!this.startDate() && !!this.startTime(),
+      !!this.endDate() && !!this.endTime(),
       this.locationName().trim().length > 0,
     ].filter(Boolean).length,
   );
 
-  readonly canPublish = computed(() => this.requiredCompleted() === 5);
+  readonly canPublish = computed(() => this.requiredCompleted() === 6);
 
   ngAfterViewInit(): void {
     setTimeout(() => this.titleInput?.nativeElement.focus(), 100);
@@ -154,6 +157,7 @@ export class EventCreateComponent implements AfterViewInit {
       title: this.title().trim(),
       locationName: this.locationName().trim(),
       startDatetime: `${this.startDate()}T${this.startTime()}:00`,
+      endDatetime: `${this.endDate()}T${this.endTime()}:00`,
       ...(this.description().trim() && { description: this.description().trim() }),
       ...(this.maxParticipants() !== null && { maxParticipants: this.maxParticipants()! }),
       isPublic: this.isPublic(),

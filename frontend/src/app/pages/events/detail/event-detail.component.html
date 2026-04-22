@@ -61,9 +61,16 @@
         }
 
         <!-- HOY badge -->
-        @if (isToday(event()!.startDatetime)) {
+        @if (isToday(event()!.startDatetime) && !isFinished()) {
           <span class="absolute bottom-4 right-4 text-[0.6rem] font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-orange-400/20 text-orange-400 border border-orange-400/30">
             HOY
+          </span>
+        }
+
+        <!-- Finalizado badge -->
+        @if (isFinished()) {
+          <span class="absolute bottom-4 right-4 text-[0.6rem] font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-neutral-400/20 text-neutral-300 border border-neutral-400/30">
+            Finalizado
           </span>
         }
       </div>
@@ -103,6 +110,18 @@
                  [class]="isToday(event()!.startDatetime) ? 'text-brand' : ''">
                 {{ formatDate(event()!.startDatetime) }}
               </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 px-4 py-3.5">
+            <span class="material-symbols-outlined flex-shrink-0"
+                  style="font-size:20px"
+                  [class]="isFinished() ? 'text-neutral-500' : 'text-neutral-500'">
+              event_available
+            </span>
+            <div>
+              <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-0.5">Fin del evento</p>
+              <p class="text-sm font-semibold capitalize">{{ formatDate(event()!.endDatetime) }}</p>
             </div>
           </div>
 
@@ -154,6 +173,101 @@
             <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-2">Descripción</p>
             <p class="text-sm text-neutral-300 leading-relaxed">{{ event()!.description }}</p>
           </div>
+        }
+
+        <!-- ── Closing info (visible to all when finished) ── -->
+        @if (isFinished()) {
+          <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden flex flex-col gap-0">
+
+            @if (event()!.results) {
+              <div class="px-4 py-4 border-b border-neutral-800">
+                <p class="text-[0.65rem] text-neutral-500 uppercase tracking-wider font-bold mb-2 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined" style="font-size:14px">emoji_events</span>
+                  Resultados
+                </p>
+                <p class="text-sm text-neutral-200 leading-relaxed whitespace-pre-line">{{ event()!.results }}</p>
+              </div>
+            }
+
+            @if (event()!.closingNotes) {
+              <div class="px-4 py-4">
+                <p class="text-[0.65rem] text-neutral-500 uppercase tracking-wider font-bold mb-2 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined" style="font-size:14px">book</span>
+                  Notas del organizador
+                </p>
+                <p class="text-sm text-neutral-300 leading-relaxed whitespace-pre-line">{{ event()!.closingNotes }}</p>
+              </div>
+            }
+
+            @if (!event()!.results && !event()!.closingNotes && !isOrganizer()) {
+              <div class="px-4 py-4 flex items-center gap-2 text-neutral-600">
+                <span class="material-symbols-outlined" style="font-size:18px">info</span>
+                <p class="text-sm">El organizador no ha agregado notas de cierre.</p>
+              </div>
+            }
+
+          </div>
+
+          <!-- Organizer closing form -->
+          @if (isOrganizer()) {
+            <div class="flex flex-col gap-3">
+              @if (!showCloseForm()) {
+                <button (click)="openCloseForm()"
+                        class="flex items-center gap-2 text-[0.8rem] font-bold text-neutral-400 hover:text-neutral-200 transition-colors min-h-[36px]">
+                  <span class="material-symbols-outlined" style="font-size:18px">edit_note</span>
+                  {{ event()!.results || event()!.closingNotes ? 'Editar notas de cierre' : 'Agregar notas de cierre' }}
+                </button>
+              } @else {
+                <div class="flex flex-col gap-3">
+                  <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold">Notas de cierre</p>
+
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-[0.62rem] text-neutral-500 px-0.5">Resultados</label>
+                    <textarea placeholder="Ej: Ganamos 3-2, el equipo azul fue el MVP..."
+                              rows="3"
+                              maxlength="2000"
+                              [value]="closeResults()"
+                              (input)="closeResults.set($any($event.target).value)"
+                              class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 text-[0.82rem] placeholder:text-neutral-600 focus:outline-none focus:border-neutral-600 transition-colors resize-none text-neutral-200"></textarea>
+                  </div>
+
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-[0.62rem] text-neutral-500 px-0.5">Bitácora / notas</label>
+                    <textarea placeholder="Reflexiones, incidencias, qué mejorar..."
+                              rows="4"
+                              maxlength="2000"
+                              [value]="closeNotes()"
+                              (input)="closeNotes.set($any($event.target).value)"
+                              class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 text-[0.82rem] placeholder:text-neutral-600 focus:outline-none focus:border-neutral-600 transition-colors resize-none text-neutral-200"></textarea>
+                  </div>
+
+                  @if (closeError()) {
+                    <p class="text-xs text-red-400 flex items-center gap-1.5">
+                      <span class="material-symbols-outlined" style="font-size:14px">error</span>
+                      {{ closeError() }}
+                    </p>
+                  }
+
+                  <div class="flex gap-2">
+                    <button (click)="showCloseForm.set(false)"
+                            class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 text-neutral-300 font-bold rounded-xl min-h-[44px] text-sm border border-neutral-700 transition-opacity">
+                      Cancelar
+                    </button>
+                    <button (click)="submitClose()"
+                            [disabled]="closeLoading()"
+                            class="flex-1 flex items-center justify-center gap-1.5 bg-brand text-neutral-950 font-black rounded-xl min-h-[44px] text-sm transition-opacity disabled:opacity-60">
+                      @if (closeLoading()) {
+                        <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+                      } @else {
+                        <span class="material-symbols-outlined" style="font-size:18px">save</span>
+                      }
+                      Guardar
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
         }
 
         <!-- ── Participation section ─────────────────────── -->

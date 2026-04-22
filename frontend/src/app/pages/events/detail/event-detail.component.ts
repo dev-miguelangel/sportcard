@@ -67,6 +67,13 @@ export class EventDetailComponent implements OnInit {
   readonly inviteLoading = signal(false);
   readonly inviteResult  = signal<{ success: boolean; message: string } | null>(null);
 
+  readonly closeNotes   = signal('');
+  readonly closeResults = signal('');
+  readonly closeLoading = signal(false);
+  readonly closeError   = signal<string | null>(null);
+  readonly closeSuccess = signal(false);
+  readonly showCloseForm = signal(false);
+
   readonly hasSpots = computed(() => {
     const ev = this.event();
     if (!ev || ev.maxParticipants === null) return true;
@@ -171,6 +178,43 @@ export class EventDetailComponent implements OnInit {
       error: err => {
         this.inviteResult.set({ success: false, message: err?.error?.message ?? 'No se pudo enviar la invitación.' });
         this.inviteLoading.set(false);
+      },
+    });
+  }
+
+  isFinished(): boolean {
+    return this.event()?.status === 'finished';
+  }
+
+  openCloseForm(): void {
+    const ev = this.event();
+    if (ev) {
+      this.closeResults.set(ev.results ?? '');
+      this.closeNotes.set(ev.closingNotes ?? '');
+    }
+    this.closeError.set(null);
+    this.showCloseForm.set(true);
+  }
+
+  submitClose(): void {
+    const ev = this.event();
+    if (!ev || this.closeLoading()) return;
+    this.closeLoading.set(true);
+    this.closeError.set(null);
+
+    this.eventsSvc.closeEvent(ev.id, {
+      closingNotes: this.closeNotes().trim() || undefined,
+      results: this.closeResults().trim() || undefined,
+    }).subscribe({
+      next: updated => {
+        this.event.set({ ...ev, ...updated });
+        this.closeSuccess.set(true);
+        this.closeLoading.set(false);
+        this.showCloseForm.set(false);
+      },
+      error: err => {
+        this.closeError.set(err?.error?.message ?? 'No se pudo guardar el cierre.');
+        this.closeLoading.set(false);
       },
     });
   }

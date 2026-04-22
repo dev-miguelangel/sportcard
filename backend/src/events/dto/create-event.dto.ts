@@ -34,8 +34,7 @@ export class CreateEventDto {
   description?: string;
 
   @IsDateString()
-  @IsOptional()
-  endDatetime?: string;
+  endDatetime: string;
 
   @IsInt()
   @Min(2)

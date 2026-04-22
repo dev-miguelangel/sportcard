@@ -9,6 +9,7 @@ export interface CreateEventPayload {
   title: string;
   locationName: string;
   startDatetime: string;
+  endDatetime: string;
   description?: string;
   maxParticipants?: number;
   isPublic?: boolean;
@@ -25,14 +26,16 @@ export interface EventResponse {
   description: string | null;
   locationName: string;
   startDatetime: string;
-  endDatetime: string | null;
+  endDatetime: string;
   maxParticipants: number | null;
   isPublic: boolean;
   requiresApproval: boolean;
   shareToken: string;
-  status: string;
+  status: 'draft' | 'open' | 'closed' | 'cancelled' | 'finished';
   organizerId: string;
   createdAt: string;
+  closingNotes: string | null;
+  results: string | null;
   participantCount: number;
   myStatus: ParticipantStatus | null;
 }
@@ -94,5 +97,9 @@ export class EventsService {
       `${environment.apiUrl}/events/${eventId}/invite`,
       { identifier },
     );
+  }
+
+  closeEvent(id: string, dto: { closingNotes?: string; results?: string }): Observable<EventResponse> {
+    return this.http.patch<EventResponse>(`${environment.apiUrl}/events/${id}/close`, dto);
   }
 }

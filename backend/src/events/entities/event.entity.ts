@@ -52,6 +52,12 @@ export class Event {
   @Column({ name: 'requires_approval', default: false })
   requiresApproval: boolean;
 
+  @Column({ name: 'closing_notes', type: 'text', nullable: true })
+  closingNotes: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  results: string | null;
+
   @Column({
     name: 'share_token',
     type: 'uuid',

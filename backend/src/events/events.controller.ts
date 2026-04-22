@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   Param,
   Req,
@@ -11,6 +12,7 @@ import {
 import { Request } from 'express';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
+import { CloseEventDto } from './dto/close-event.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 interface JwtUser {
@@ -47,5 +49,12 @@ export class EventsController {
   findOne(@Param('id') id: string, @Req() req: Request) {
     const { id: userId } = req.user as JwtUser;
     return this.eventsService.findOne(id, userId);
+  }
+
+  @Patch(':id/close')
+  @HttpCode(200)
+  close(@Param('id') id: string, @Body() dto: CloseEventDto, @Req() req: Request) {
+    const { id: userId } = req.user as JwtUser;
+    return this.eventsService.closeEvent(id, userId, dto);
   }
 }

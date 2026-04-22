@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, LessThan, Repository } from 'typeorm';
 import { Event, EventStatus } from './entities/event.entity';
 import { EventParticipant, ParticipantStatus } from './entities/event-participant.entity';
 import { CreateEventDto } from './dto/create-event.dto';
+import { CloseEventDto } from './dto/close-event.dto';
 
 export interface EventWithStats extends Event {
   participantCount: number;
@@ -19,6 +20,13 @@ export class EventsService {
     private readonly participantsRepository: Repository<EventParticipant>,
   ) {}
 
+  private async autoFinishExpiredEvents(): Promise<void> {
+    await this.eventsRepository.update(
+      { status: EventStatus.OPEN, endDatetime: LessThan(new Date()) },
+      { status: EventStatus.FINISHED },
+    );
+  }
+
   async create(dto: CreateEventDto, organizerId: string): Promise<Event> {
     const event = this.eventsRepository.create({
       ...dto,
@@ -30,6 +38,7 @@ export class EventsService {
   }
 
   async findPublic(userId?: string): Promise<EventWithStats[]> {
+    await this.autoFinishExpiredEvents();
     const where = userId
       ? [
           { isPublic: true, status: EventStatus.OPEN },
@@ -45,6 +54,7 @@ export class EventsService {
   }
 
   async findMine(userId: string): Promise<EventWithStats[]> {
+    await this.autoFinishExpiredEvents();
     const organizedEvents = await this.eventsRepository.find({
       where: { organizerId: userId },
       order: { startDatetime: 'ASC' },
@@ -89,7 +99,18 @@ export class EventsService {
     };
   }
 
+  async closeEvent(id: string, organizerId: string, dto: CloseEventDto): Promise<Event> {
+    const event = await this.eventsRepository.findOne({ where: { id } });
+    if (!event) throw new NotFoundException('Evento no encontrado');
+    if (event.organizerId !== organizerId) throw new ForbiddenException('Solo el organizador puede editar el cierre');
+    event.status = EventStatus.FINISHED;
+    if (dto.closingNotes !== undefined) event.closingNotes = dto.closingNotes || null;
+    if (dto.results !== undefined) event.results = dto.results || null;
+    return this.eventsRepository.save(event);
+  }
+
   async findOne(id: string, userId?: string): Promise<EventWithStats> {
+    await this.autoFinishExpiredEvents();
     const event = await this.eventsRepository.findOne({ where: { id } });
     if (!event) throw new NotFoundException('Evento no encontrado');
     const [enriched] = await this.enrichWithStats([event], userId);

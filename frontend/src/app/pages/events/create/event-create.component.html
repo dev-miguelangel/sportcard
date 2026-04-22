@@ -10,7 +10,7 @@
       </button>
       <h1 class="font-black tracking-tight flex-1 text-[0.95rem]">Crear evento</h1>
       <span class="text-[0.7rem] font-bold text-neutral-500">
-        {{ requiredCompleted() }}/5 requeridos
+        {{ requiredCompleted() }}/6 requeridos
       </span>
     </div>
   </header>
@@ -25,11 +25,11 @@
           <span class="material-symbols-outlined" style="font-size:13px">preview</span>
           Vista previa
         </p>
-        <span class="text-[0.62rem] font-bold text-neutral-600">{{ requiredCompleted() }}/5</span>
+        <span class="text-[0.62rem] font-bold text-neutral-600">{{ requiredCompleted() }}/6</span>
       </div>
       <div class="h-1 bg-neutral-800 rounded-full overflow-hidden">
         <div class="h-full bg-brand rounded-full transition-all duration-300"
-             [style.width]="(requiredCompleted() / 5 * 100) + '%'"></div>
+             [style.width]="(requiredCompleted() / 6 * 100) + '%'"></div>
       </div>
       <div class="rounded-2xl overflow-hidden border border-neutral-800 opacity-80 pointer-events-none select-none">
         <div class="h-16 flex items-center justify-center"
@@ -245,7 +245,45 @@
       </div>
     </div>
 
-    <!-- ── 5. Ubicación ───────────────────────────────────── -->
+    <!-- ── 5. Fecha y hora de fin ───────────────────────── -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[0.62rem] font-bold uppercase tracking-wider px-0.5"
+             [class]="endDate() && endTime() ? 'text-brand' : 'text-neutral-500'">
+        @if (endDate() && endTime()) { ✓ } Fecha y hora de fin
+      </label>
+      <div class="flex flex-col gap-2">
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                style="font-size:18px"
+                [class]="endDate() ? 'text-brand' : 'text-neutral-600'">
+            event_available
+          </span>
+          <input type="date"
+                 [value]="endDate()"
+                 (input)="endDate.set($any($event.target).value)"
+                 class="w-full bg-neutral-900 border rounded-xl pl-10 pr-3 py-3 text-[0.82rem] font-medium text-white focus:outline-none transition-colors min-h-[52px] [color-scheme:dark]"
+                 [class]="endDate()
+                   ? 'border-brand/40 bg-[#0d1f15]'
+                   : 'border-neutral-800 focus:border-neutral-600'" />
+        </div>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                style="font-size:18px"
+                [class]="endTime() ? 'text-brand' : 'text-neutral-600'">
+            schedule
+          </span>
+          <input type="time"
+                 [value]="endTime()"
+                 (input)="endTime.set($any($event.target).value)"
+                 class="w-full bg-neutral-900 border rounded-xl pl-10 pr-3 py-3 text-[0.82rem] font-medium text-white focus:outline-none transition-colors min-h-[52px] [color-scheme:dark]"
+                 [class]="endTime()
+                   ? 'border-brand/40 bg-[#0d1f15]'
+                   : 'border-neutral-800 focus:border-neutral-600'" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 6. Ubicación ───────────────────────────────────── -->
     <div class="flex flex-col gap-1.5">
       <label class="text-[0.62rem] font-bold uppercase tracking-wider px-0.5"
              [class]="locationName().trim() ? 'text-brand' : 'text-neutral-500'">
@@ -365,7 +403,7 @@
         Publicando...
       } @else {
         <span class="material-symbols-outlined" style="font-size:20px;color:inherit">rocket_launch</span>
-        @if (canPublish()) { Publicar evento } @else { Completa los 5 campos requeridos }
+        @if (canPublish()) { Publicar evento } @else { Completa los 6 campos requeridos }
       }
     </button>
 
