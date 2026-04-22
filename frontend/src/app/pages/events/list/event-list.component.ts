@@ -157,6 +157,10 @@ export class EventListComponent implements OnInit {
     this.router.navigate(['/events/create']);
   }
 
+  goToDetail(id: string): void {
+    this.router.navigate(['/events', id]);
+  }
+
   // ── Sheet handlers ────────────────────────────────────────
   openSheet(event: EventResponse): void {
     this.sheetEvent.set(event);

@@ -30,7 +30,9 @@
       <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-brand" style="font-size:18px">event_upcoming</span>
-          <h2 class="text-sm font-black tracking-tight">Próximos eventos</h2>
+          <h2 class="text-sm font-black tracking-tight">
+            {{ hasUpcoming() ? 'Próximos eventos' : 'Mis eventos' }}
+          </h2>
         </div>
         <button (click)="goToEvents()"
                 class="text-[0.72rem] font-bold text-brand flex items-center gap-1 min-h-[36px]">

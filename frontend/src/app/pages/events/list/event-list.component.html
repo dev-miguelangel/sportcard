@@ -250,13 +250,19 @@
                 }
               </div>
 
-              <!-- Manage my inscription -->
-              @if (event.myStatus !== null && event.myStatus !== 'rejected') {
-                <button (click)="openSheet(event)"
+              <!-- Actions row -->
+              <div class="flex items-center justify-between">
+                <button (click)="goToDetail(event.id)"
                         class="text-[0.7rem] text-neutral-500 hover:text-neutral-300 transition-colors text-left">
-                  Gestionar inscripción →
+                  Ver detalles →
                 </button>
-              }
+                @if (event.myStatus !== null && event.myStatus !== 'rejected' && !isOrganizer(event)) {
+                  <button (click)="openSheet(event)"
+                          class="text-[0.7rem] text-neutral-500 hover:text-neutral-300 transition-colors text-left">
+                    Gestionar inscripción →
+                  </button>
+                }
+              </div>
             </div>
           </div>
         }

@@ -44,10 +44,16 @@ export class DashboardComponent implements OnInit {
   readonly myEvents     = signal<EventResponse[]>([]);
   readonly loadingEvents = signal(true);
 
+  readonly hasUpcoming = computed(() =>
+    this.myEvents().some(e => new Date(e.startDatetime) > new Date()),
+  );
+
   readonly upcomingEvents = computed(() => {
     const now = new Date();
-    return this.myEvents()
-      .filter(e => new Date(e.startDatetime) > now)
+    const future = this.myEvents().filter(e => new Date(e.startDatetime) > now);
+    if (future.length > 0) return future.slice(0, 3);
+    return [...this.myEvents()]
+      .sort((a, b) => new Date(b.startDatetime).getTime() - new Date(a.startDatetime).getTime())
       .slice(0, 3);
   });
 
