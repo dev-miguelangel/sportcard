@@ -2,12 +2,20 @@
 
 Plataforma para gestionar eventos deportivos cooperativos.
 
+El monorepo contiene dos aplicaciones Angular independientes:
+
+| App | Puerto | Descripción |
+|---|---|---|
+| `frontend/` | 4200 | App principal — jugadores y participantes |
+| `frontend-torneos/` | 4201 | Portal de gestión — coaches y organizadores |
+
 ## Stack
 
 | Capa | Tecnología |
 |---|---|
 | Backend | NestJS 10 · TypeORM · Passport |
-| Frontend | Angular 19 · Tailwind CSS v3 · Google Material Symbols |
+| Frontend (app principal) | Angular 19 · Tailwind CSS v3 · Google Material Symbols |
+| Frontend (portal torneos) | Angular 19 · Tailwind CSS v3 · Google Material Symbols |
 | Base de datos | PostgreSQL 16 |
 | Auth | Google OAuth 2.0 + JWT |
 | Infraestructura | Docker + Docker Compose |
@@ -44,7 +52,7 @@ Las variables de Google OAuth son opcionales si usas el **Dev Auth** (ver más a
 
 ### 2. Opción A — Docker (recomendado)
 
-Levanta los tres servicios (PostgreSQL, backend, frontend) con un solo comando:
+Levanta los tres servicios principales (PostgreSQL, backend, `frontend`) con un solo comando:
 
 ```bash
 docker compose up --build
@@ -54,10 +62,12 @@ La primera vez descarga las imágenes e instala dependencias (~2-3 min). Las sig
 
 | Servicio | URL |
 |---|---|
-| Frontend | http://localhost:4200 |
+| Frontend (app principal) | http://localhost:4200 |
 | Backend API | http://localhost:3000/api |
 | Health check | http://localhost:3000/api/health |
 | PostgreSQL | `localhost:5432` · base de datos `sportcard` |
+
+> **`frontend-torneos` no está incluido en Docker Compose.** Para usarlo junto a Docker, levanta Docker Compose normalmente y luego sigue las instrucciones del [Portal de Torneos](#portal-de-torneos-frontend-torneos) más abajo.
 
 Para detener:
 ```bash
@@ -82,9 +92,16 @@ npm install
 npm run start:dev
 ```
 
-**Terminal 2 — Frontend:**
+**Terminal 2 — Frontend (app principal):**
 ```bash
 cd frontend
+npm install
+npm start
+```
+
+**Terminal 3 — Portal de torneos (opcional):**
+```bash
+cd frontend-torneos
 npm install
 npm start
 ```
@@ -142,6 +159,75 @@ Solo necesario si quieres probar el flujo real de Google.
 
 ---
 
+## Portal de Torneos (`frontend-torneos/`)
+
+Aplicación Angular 19 independiente orientada a **coaches y organizadores**. Funciona con el mismo backend y base de datos. Se sirve en el puerto **4201**.
+
+### Levantar en local
+
+Instala las dependencias la primera vez:
+
+```bash
+cd frontend-torneos
+npm install
+```
+
+Luego arranca el servidor de desarrollo:
+
+```bash
+npm start
+# → http://localhost:4201
+```
+
+El servidor de desarrollo proxea `/api` al backend en `http://localhost:3000` (configurado en `proxy.conf.json`), por lo que el backend debe estar corriendo previamente, ya sea con Docker Compose o directamente con `npm run start:dev`.
+
+### Flujo típico con Docker Compose
+
+```bash
+# Terminal 1 — backend + frontend principal + PostgreSQL
+docker compose up
+
+# Terminal 2 — portal de torneos
+cd frontend-torneos && npm start
+```
+
+### URLs en local
+
+| Servicio | URL |
+|---|---|
+| App principal (jugadores) | http://localhost:4200 |
+| Portal de torneos (coaches) | http://localhost:4201 |
+| Backend API | http://localhost:3000/api |
+
+### Autenticación
+
+Usa el mismo flujo JWT que la app principal. El Dev Auth está disponible con las mismas credenciales (`dev@sportcard.dev` / `dev1234`).
+
+Después de login, `frontend-torneos` redirige siempre a `/dashboard` (no tiene paso de onboarding).
+
+### Páginas disponibles
+
+| Ruta | Descripción |
+|---|---|
+| `/login` | Login con Google o Dev Auth |
+| `/dashboard` | Resumen: equipos y torneos activos |
+| `/teams` | Lista de equipos (como coach o jugador) |
+| `/teams/new` | Crear equipo |
+| `/teams/:id` | Detalle: nómina de jugadores, buscar y agregar miembros |
+| `/tournaments` | Lista de torneos (organizados o participando) |
+| `/tournaments/new` | Crear torneo (formato, deporte, fechas, aprobación) |
+| `/tournaments/:id` | Detalle con 4 pestañas: Equipos · Fixture · Bracket/Tabla · Resultados |
+| `/tournaments/t/:shareToken` | Vista pública del torneo (sin login) |
+
+### Pestaña Fixture — generación y programación
+
+1. El torneo debe tener al menos **2 equipos aprobados**.
+2. El organizador presiona **Generar fixture** en la pestaña Fixture.
+3. Por cada partido se puede presionar **Programar** para asignar fecha/hora y lugar.
+4. Al registrar resultados en la pestaña Resultados, la tabla de posiciones o el bracket se actualizan automáticamente.
+
+---
+
 ## Variables de entorno
 
 | Variable | Requerida | Descripción |
@@ -174,33 +260,54 @@ _(*) Requerida si la funcionalidad correspondiente está activa._
 sportcard/
 ├── .env                     ← variables de entorno (no comitear)
 ├── .env.example             ← plantilla de variables
-├── docker-compose.yml       ← orquestación local
+├── docker-compose.yml       ← orquestación local (backend + frontend + postgres)
 ├── backend/                 ← NestJS API
 │   ├── src/
 │   │   ├── auth/            ← Google OAuth, JWT, Dev Auth
-│   │   │   ├── dto/         ← DevLoginDto
-│   │   │   ├── guards/      ← GoogleAuthGuard, JwtAuthGuard
-│   │   │   └── strategies/  ← google.strategy, jwt.strategy
 │   │   ├── users/           ← entidad User, UsersService
+│   │   ├── events/          ← eventos deportivos y participantes
+│   │   ├── teams/           ← equipos y nómina de jugadores
+│   │   ├── tournaments/     ← torneos, inscripciones, fixture
+│   │   ├── fixtures/        ← generación de partidos y resultados
+│   │   ├── notifications/   ← notificaciones (broadcast, event, team, match)
+│   │   ├── migrations/      ← migraciones TypeORM con timestamp
 │   │   ├── app.module.ts    ← ConfigModule + TypeORM
 │   │   └── main.ts
 │   └── Dockerfile
-└── frontend/                ← Angular 19
+├── frontend/                ← Angular 19 · app principal (puerto 4200)
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── core/
+│   │   │   │   ├── guards/       ← authGuard, adminGuard
+│   │   │   │   ├── interceptors/ ← authInterceptor (adjunta JWT)
+│   │   │   │   └── services/     ← AuthService, EventsService, NotificationsService
+│   │   │   ├── pages/
+│   │   │   │   ├── events/       ← feed, detalle, crear, vista pública
+│   │   │   │   ├── teams/        ← perfil público de equipo
+│   │   │   │   ├── tournaments/  ← vista pública de torneo
+│   │   │   │   ├── notifications/← bandeja con acciones por tipo
+│   │   │   │   └── onboarding/   ← wizard 4 pasos
+│   │   │   └── shared/           ← bottom-nav, header
+│   │   └── environments/
+│   ├── proxy.conf.json      ← proxea /api → backend en desarrollo
+│   └── Dockerfile
+└── frontend-torneos/        ← Angular 19 · portal coaches/organizadores (puerto 4201)
     ├── src/
     │   ├── app/
     │   │   ├── core/
-    │   │   │   ├── guards/       ← authGuard (protege rutas)
-    │   │   │   ├── interceptors/ ← authInterceptor (adjunta JWT)
-    │   │   │   └── services/     ← AuthService (signals)
-    │   │   └── pages/
-    │   │       ├── login/        ← Google OAuth + Dev Auth form
-    │   │       ├── auth-callback/← procesa ?token= de la URL
-    │   │       └── dashboard/    ← ruta protegida
-    │   ├── environments/         ← environment.ts / environment.production.ts
-    │   └── styles.scss           ← Tailwind base
-    ├── tailwind.config.js
-    ├── proxy.conf.json      ← proxea /api → backend en desarrollo
-    └── Dockerfile
+    │   │   │   ├── guards/       ← authGuard
+    │   │   │   ├── interceptors/ ← authInterceptor
+    │   │   │   └── services/     ← AuthService, TeamsService,
+    │   │   │                        TournamentsService, FixturesService
+    │   │   ├── pages/
+    │   │   │   ├── dashboard/    ← resumen equipos y torneos activos
+    │   │   │   ├── teams/        ← lista · crear · detalle (nómina + buscar jugadores)
+    │   │   │   └── tournaments/  ← lista · crear · detalle (4 tabs) · pública (shareToken)
+    │   │   └── shared/
+    │   │       ├── sidebar/      ← sidebar colapsable 240 px / 64 px
+    │   │       └── layout/       ← layout con overlay móvil
+    │   └── environments/
+    └── proxy.conf.json      ← proxea /api → backend en desarrollo
 ```
 
 ---
