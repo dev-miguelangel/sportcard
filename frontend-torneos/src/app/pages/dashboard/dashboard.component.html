@@ -3,7 +3,7 @@
   <!-- Greeting -->
   <div class="mb-8">
     <h1 class="text-2xl font-black">
-      Hola, {{ auth.currentUser()?.name?.split(' ')[0] ?? 'Coach' }} 👋
+      Hola, {{ auth.currentUser()?.name?.split(' ')?.[0] ?? 'Coach' }} 👋
     </h1>
     <p class="text-neutral-400 text-sm mt-1">Resumen de tu actividad deportiva</p>
   </div>

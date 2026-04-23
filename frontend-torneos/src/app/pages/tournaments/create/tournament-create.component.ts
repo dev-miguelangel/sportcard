@@ -42,7 +42,7 @@ export class TournamentCreateComponent {
   name             = signal('');
   sport            = signal('football');
   format           = signal<TournamentFormat>('league');
-  maxTeams         = signal('');
+  maxTeams         = signal<number | null>(null);
   registrationOpen = signal(true);
   requiresApproval = signal(false);
   startDate        = signal('');
@@ -55,7 +55,7 @@ export class TournamentCreateComponent {
     this.error.set(null);
     this.loading.set(true);
 
-    const maxTeamsNum = this.maxTeams().trim() ? parseInt(this.maxTeams(), 10) : undefined;
+    const maxTeamsNum = this.maxTeams() ?? undefined;
 
     this.tournamentsSvc.create({
       name:             this.name().trim(),

@@ -9,10 +9,9 @@
       <span class="material-symbols-outlined text-neutral-600 mb-3" style="font-size:48px">error_outline</span>
       <p class="text-neutral-400 text-sm">{{ error() }}</p>
     </div>
-  } @else if (tournament(); as t) {
-
+  } @else {
+    @if (tournament(); as t) {
     <div class="w-full max-w-md">
-
       <!-- Brand header -->
       <div class="flex items-center justify-center gap-2 mb-8">
         <span class="material-symbols-outlined text-brand" style="font-size:28px">emoji_events</span>
@@ -21,7 +20,6 @@
 
       <!-- Tournament card -->
       <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
-
         <!-- Hero -->
         <div class="bg-gradient-to-br from-neutral-800 to-neutral-900 px-6 py-8 text-center border-b border-neutral-800">
           <div class="text-5xl mb-3">{{ sportEmoji(t.sport) }}</div>
@@ -57,25 +55,21 @@
         <div class="px-6 pb-6 pt-4">
           @if (t.status === 'open' && t.registrationOpen) {
             <button (click)="joinOrLogin()"
-                    class="w-full flex items-center justify-center gap-2 bg-brand text-neutral-950 font-black
-                           py-3.5 rounded-xl hover:bg-brand/90 transition-colors min-h-[52px]">
+              class="w-full flex items-center justify-center gap-2 bg-brand text-neutral-950 font-black py-3.5 rounded-xl hover:bg-brand/90 transition-colors min-h-[52px]">
               <span class="material-symbols-outlined" style="font-size:20px">how_to_reg</span>
               {{ auth.isLoggedIn() ? 'Ver torneo e inscribir equipo' : 'Iniciar sesión para inscribirse' }}
             </button>
           } @else {
             <button (click)="joinOrLogin()"
-                    class="w-full flex items-center justify-center gap-2 bg-neutral-800 text-white font-bold
-                           py-3.5 rounded-xl hover:bg-neutral-700 transition-colors min-h-[52px]">
+              class="w-full flex items-center justify-center gap-2 bg-neutral-800 text-white font-bold py-3.5 rounded-xl hover:bg-neutral-700 transition-colors min-h-[52px]">
               <span class="material-symbols-outlined" style="font-size:20px">open_in_new</span>
               {{ auth.isLoggedIn() ? 'Ver torneo' : 'Ver en SportCard' }}
             </button>
           }
           <p class="text-center text-xs text-neutral-600 mt-3">Necesitas una cuenta SportCard para participar</p>
         </div>
-
       </div>
-
     </div>
+    }
   }
-
 </div>

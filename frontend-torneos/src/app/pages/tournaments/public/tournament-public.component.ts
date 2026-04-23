@@ -4,17 +4,17 @@ import { TournamentsService, TournamentPublicDto } from '../../../core/services/
 import { AuthService } from '../../../core/services/auth.service';
 
 const SPORT_EMOJIS: Record<string, string> = {
-  football:'⚽', basketball:'🏀', tennis:'🎾', volleyball:'🏐',
-  baseball:'⚾', rugby:'🏉', hockey:'🏒', swimming:'🏊',
-  athletics:'🏃', cycling:'🚴', boxing:'🥊', martial_arts:'🥋', other:'🏅',
+  football: '⚽', basketball: '🏀', tennis: '🎾', volleyball: '🏐',
+  baseball: '⚾', rugby: '🏉', hockey: '🏒', swimming: '🏊',
+  athletics: '🏃', cycling: '🚴', boxing: '🥊', martial_arts: '🥋', other: '🏅',
 };
 
 const FORMAT_LABELS: Record<string, string> = {
-  cup:'Copa', league:'Liga', groups_playoffs:'Grupos + Playoff', points:'Puntos',
+  cup: 'Copa', league: 'Liga', groups_playoffs: 'Grupos + Playoff', points: 'Puntos',
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  draft:'Borrador', open:'Abierto', in_progress:'En curso', finished:'Finalizado',
+  draft: 'Borrador', open: 'Abierto', in_progress: 'En curso', finished: 'Finalizado',
 };
 
 @Component({
@@ -24,14 +24,14 @@ const STATUS_LABELS: Record<string, string> = {
   templateUrl: './tournament-public.component.html',
 })
 export class TournamentPublicComponent implements OnInit {
-  private readonly route          = inject(ActivatedRoute);
-  private readonly router         = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly tournamentsSvc = inject(TournamentsService);
-  readonly auth                   = inject(AuthService);
+  readonly auth = inject(AuthService);
 
   readonly tournament = signal<TournamentPublicDto | null>(null);
-  readonly loading    = signal(true);
-  readonly error      = signal<string | null>(null);
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
 
   ngOnInit(): void {
     const token = this.route.snapshot.paramMap.get('shareToken')!;
@@ -54,8 +54,8 @@ export class TournamentPublicComponent implements OnInit {
   }
 
   sportEmoji(sport: string): string { return SPORT_EMOJIS[sport] ?? '🏅'; }
-  formatLabel(f: string): string    { return FORMAT_LABELS[f] ?? f; }
-  statusLabel(s: string): string    { return STATUS_LABELS[s] ?? s; }
+  formatLabel(f: string): string { return FORMAT_LABELS[f] ?? f; }
+  statusLabel(s: string): string { return STATUS_LABELS[s] ?? s; }
 
   formatStartDate(dateStr: string): string {
     return new Date(dateStr).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' });
