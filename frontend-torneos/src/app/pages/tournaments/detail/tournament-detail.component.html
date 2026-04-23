@@ -1,0 +1,581 @@
+<div class="p-6 max-w-6xl mx-auto">
+
+  <!-- Header -->
+  <div class="flex items-start gap-3 mb-6">
+    <button (click)="goBack()"
+            class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 transition-colors flex-shrink-0 mt-0.5">
+      <span class="material-symbols-outlined text-neutral-400" style="font-size:20px">arrow_back</span>
+    </button>
+
+    @if (loading()) {
+      <div class="flex justify-center py-20 flex-1">
+        <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:32px">progress_activity</span>
+      </div>
+    } @else if (error()) {
+      <div class="flex flex-col items-center py-20 text-center flex-1">
+        <p class="text-neutral-400 text-sm">{{ error() }}</p>
+      </div>
+    } @else {
+      @if (tournament(); as t) {
+
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-3 flex-wrap">
+          <h1 class="text-xl font-black truncate">{{ t.name }}</h1>
+          <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded flex-shrink-0"
+                [class]="t.status === 'in_progress' ? 'text-brand bg-brand/10 border border-brand/20'
+                       : t.status === 'open'        ? 'text-blue-400 bg-blue-400/10 border border-blue-400/20'
+                       : t.status === 'finished'    ? 'text-neutral-400 bg-neutral-800 border border-neutral-700'
+                       :                              'text-neutral-500 bg-neutral-800 border border-neutral-700'">
+            {{ statusLabel(t.status) }}
+          </span>
+        </div>
+        <p class="text-sm text-neutral-400 mt-0.5">{{ sportEmoji(t.sport) }} {{ t.sport }} · {{ formatLabel(t.format) }}</p>
+      </div>
+
+      @if (t.isOrganizer) {
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <!-- Copy share link -->
+          <button (click)="copyShareLink()"
+                  class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 transition-colors text-xs font-semibold min-h-[36px]">
+            <span class="material-symbols-outlined text-neutral-400" style="font-size:16px">{{ linkCopied() ? 'check' : 'share' }}</span>
+            {{ linkCopied() ? 'Copiado' : 'Compartir' }}
+          </button>
+          <!-- Advance status -->
+          @if (nextStatus(t.status)) {
+            <button (click)="advanceStatus()" [disabled]="statusLoading()"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-brand text-neutral-950 font-black text-xs hover:bg-brand/90 transition-colors disabled:opacity-50 min-h-[36px]">
+              @if (statusLoading()) {
+                <span class="w-4 h-4 border-2 border-neutral-700 border-t-neutral-950 rounded-full animate-spin"></span>
+              } @else {
+                <span class="material-symbols-outlined" style="font-size:14px">play_arrow</span>
+              }
+              {{ nextStatusLabel(t.status) }}
+            </button>
+          }
+        </div>
+      }
+      }
+
+    }
+  </div>
+
+  @if (!loading() && !error() && tournament(); as t) {
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 text-center">
+        <p class="text-2xl font-black text-white">{{ t.approvedTeamCount }}</p>
+        <p class="text-xs text-neutral-500 mt-0.5">Equipos</p>
+      </div>
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 text-center">
+        <p class="text-2xl font-black text-white">{{ t.pendingTeams.length }}</p>
+        <p class="text-xs text-neutral-500 mt-0.5">Pendientes</p>
+      </div>
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 text-center">
+        <p class="text-2xl font-black text-white">{{ t.maxTeams ?? '∞' }}</p>
+        <p class="text-xs text-neutral-500 mt-0.5">Cupo máximo</p>
+      </div>
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 text-center">
+        <p class="text-sm font-black" [class]="t.registrationOpen ? 'text-brand' : 'text-neutral-400'">
+          {{ t.registrationOpen ? 'Abierta' : 'Cerrada' }}
+        </p>
+        <p class="text-xs text-neutral-500 mt-0.5">Inscripción</p>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex bg-neutral-900 border border-neutral-800 rounded-xl p-1 mb-6 gap-1">
+      @for (tab of [
+        { id: 'teams',   label: 'Equipos' },
+        { id: 'fixture', label: 'Fixture' },
+        { id: 'bracket', label: bracketTabLabel() },
+        { id: 'results', label: 'Resultados' }
+      ]; track tab.id) {
+        <button (click)="setTab($any(tab.id))"
+                [class]="activeTab() === tab.id ? 'bg-neutral-800 text-white' : 'text-neutral-500 hover:text-neutral-300'"
+                class="flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition-colors min-h-[36px]">
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    <!-- ── TAB: EQUIPOS ───────────────────────────────────────────── -->
+    @if (activeTab() === 'teams') {
+
+      <!-- Register own team (non-organizer, registration open) -->
+      @if (!t.isOrganizer && t.registrationOpen && myTeams().length > 0) {
+        <div class="bg-neutral-900 border border-brand/20 rounded-2xl p-5 mb-6">
+          <h3 class="font-bold text-sm mb-3">Inscribir mi equipo</h3>
+          <div class="flex items-center gap-3">
+            <select [ngModel]="registerTeamId()" (ngModelChange)="registerTeamId.set($event)"
+                    class="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-white
+                           focus:outline-none focus:border-brand transition-colors">
+              @for (tm of myTeams(); track tm.id) {
+                <option [value]="tm.id"
+                        [disabled]="registeredTeamIds().has(tm.id)">
+                  {{ tm.name }}{{ registeredTeamIds().has(tm.id) ? ' (ya inscrito)' : '' }}
+                </option>
+              }
+            </select>
+            <button (click)="registerTeam()" [disabled]="registerLoading() || registeredTeamIds().has(registerTeamId())"
+                    class="flex items-center gap-1.5 bg-brand text-neutral-950 font-black px-4 py-2.5 rounded-xl
+                           hover:bg-brand/90 transition-colors disabled:opacity-50 text-sm min-h-[44px]">
+              @if (registerLoading()) {
+                <span class="w-4 h-4 border-2 border-neutral-700 border-t-neutral-950 rounded-full animate-spin"></span>
+              } @else {
+                Inscribir
+              }
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Pending teams (organizer) -->
+      @if (t.isOrganizer && t.pendingTeams.length > 0) {
+        <div class="mb-5">
+          <p class="text-xs font-bold uppercase tracking-wider text-yellow-500 mb-3">Pendientes de aprobación</p>
+          <div class="bg-neutral-900 border border-neutral-800 rounded-2xl divide-y divide-neutral-800 overflow-hidden">
+            @for (team of t.pendingTeams; track team.registrationId) {
+              <div class="flex items-center gap-3 px-5 py-3.5">
+                @if (team.logoUrl) {
+                  <img [src]="team.logoUrl" alt="Logo" class="w-10 h-10 rounded-xl object-cover border border-neutral-700 flex-shrink-0">
+                } @else {
+                  <div class="w-10 h-10 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center flex-shrink-0 text-xl">
+                    {{ sportEmoji(team.sport) }}
+                  </div>
+                }
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-white truncate">{{ team.name }}</p>
+                  <p class="text-xs text-neutral-500">{{ team.memberCount }} jugadores · Coach: {{ team.coach.name }}</p>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                  <button (click)="rejectTeam(team)" [disabled]="!!regLoading()"
+                          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-500/10 hover:text-red-400 text-neutral-600 transition-colors disabled:opacity-40">
+                    @if (regLoading() === team.registrationId) {
+                      <span class="w-4 h-4 border-2 border-neutral-600 border-t-transparent rounded-full animate-spin"></span>
+                    } @else {
+                      <span class="material-symbols-outlined" style="font-size:18px">close</span>
+                    }
+                  </button>
+                  <button (click)="approveTeam(team)" [disabled]="!!regLoading()"
+                          class="flex items-center gap-1 bg-brand text-neutral-950 text-xs font-black px-3 py-1.5 rounded-lg disabled:opacity-50">
+                    @if (regLoading() === team.registrationId) {
+                      <span class="w-3 h-3 border-2 border-neutral-700 border-t-neutral-950 rounded-full animate-spin"></span>
+                    } @else {
+                      Aprobar
+                    }
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Approved teams -->
+      @if (t.approvedTeams.length > 0) {
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-3">
+            Equipos inscritos · {{ t.approvedTeams.length }}
+          </p>
+          <div class="bg-neutral-900 border border-neutral-800 rounded-2xl divide-y divide-neutral-800 overflow-hidden">
+            @for (team of t.approvedTeams; track team.registrationId) {
+              <div class="flex items-center gap-3 px-5 py-3.5">
+                @if (team.logoUrl) {
+                  <img [src]="team.logoUrl" alt="Logo" class="w-10 h-10 rounded-xl object-cover border border-neutral-700 flex-shrink-0">
+                } @else {
+                  <div class="w-10 h-10 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center flex-shrink-0 text-xl">
+                    {{ sportEmoji(team.sport) }}
+                  </div>
+                }
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-white truncate">{{ team.name }}</p>
+                  <p class="text-xs text-neutral-500">{{ team.memberCount }} jugadores · Coach: {{ team.coach.name }}</p>
+                </div>
+                @if (team.groupName) {
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-neutral-400 bg-neutral-800 border border-neutral-700 rounded px-1.5 py-0.5 flex-shrink-0">
+                    {{ team.groupName }}
+                  </span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (t.approvedTeams.length === 0 && t.pendingTeams.length === 0) {
+        <div class="flex flex-col items-center py-16 text-center">
+          <span class="material-symbols-outlined text-neutral-700 mb-3" style="font-size:36px">groups</span>
+          <p class="text-sm font-semibold text-neutral-400">Sin equipos inscritos</p>
+          @if (t.registrationOpen) {
+            <p class="text-xs text-neutral-600 mt-1">Comparte el enlace para recibir inscripciones</p>
+          }
+        </div>
+      }
+    }
+
+    <!-- ── TAB: FIXTURE ───────────────────────────────────────────── -->
+    @if (activeTab() === 'fixture') {
+
+      @if (fixtureLoading()) {
+        <div class="flex justify-center py-20">
+          <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:32px">progress_activity</span>
+        </div>
+      } @else if (matchesLoaded() && matches().length === 0) {
+
+        <!-- Generate fixture -->
+        <div class="flex flex-col items-center py-16 text-center">
+          <span class="material-symbols-outlined text-neutral-700 mb-3" style="font-size:36px">calendar_today</span>
+          <p class="text-sm font-semibold text-neutral-400">Sin fixture generado</p>
+          @if (t.isOrganizer) {
+            <p class="text-xs text-neutral-600 mt-1 mb-5">Necesitas al menos 2 equipos inscritos y aprobados</p>
+            <button (click)="generateFixture()" [disabled]="generateLoading() || t.approvedTeamCount < 2"
+                    class="flex items-center gap-2 bg-brand text-neutral-950 font-black px-6 py-3 rounded-xl
+                           hover:bg-brand/90 transition-colors disabled:opacity-50">
+              @if (generateLoading()) {
+                <span class="w-5 h-5 border-2 border-neutral-700 border-t-neutral-950 rounded-full animate-spin"></span>
+                Generando...
+              } @else {
+                <span class="material-symbols-outlined" style="font-size:20px">auto_fix_high</span>
+                Generar fixture
+              }
+            </button>
+          }
+        </div>
+
+      } @else {
+
+        <div class="flex flex-col gap-6">
+          @for (roundGroup of matchesByRound(); track roundGroup.round) {
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-3">{{ roundGroup.round }}</p>
+              <div class="bg-neutral-900 border border-neutral-800 rounded-2xl divide-y divide-neutral-800 overflow-hidden">
+                @for (match of roundGroup.matches; track match.id) {
+                  <div class="p-4">
+
+                    <!-- Match teams row -->
+                    <div class="flex items-center gap-3">
+                      <!-- Home -->
+                      <div class="flex-1 flex items-center gap-2 min-w-0">
+                        <div class="w-8 h-8 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-sm flex-shrink-0">
+                          {{ match.homeTeam ? initials(match.homeTeam.name) : '?' }}
+                        </div>
+                        <p class="text-sm font-semibold text-white truncate">{{ match.homeTeam?.name ?? 'TBD' }}</p>
+                      </div>
+
+                      <!-- Score / VS -->
+                      <div class="flex items-center gap-1.5 flex-shrink-0">
+                        @if (match.status === 'played') {
+                          <span class="text-lg font-black text-white">{{ match.homeScore }}</span>
+                          <span class="text-neutral-600 text-sm font-bold">-</span>
+                          <span class="text-lg font-black text-white">{{ match.awayScore }}</span>
+                        } @else {
+                          <span class="text-xs font-bold text-neutral-600 px-2">VS</span>
+                        }
+                      </div>
+
+                      <!-- Away -->
+                      <div class="flex-1 flex items-center justify-end gap-2 min-w-0">
+                        <p class="text-sm font-semibold text-white truncate text-right">{{ match.awayTeam?.name ?? 'TBD' }}</p>
+                        <div class="w-8 h-8 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-sm flex-shrink-0">
+                          {{ match.awayTeam ? initials(match.awayTeam.name) : '?' }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Meta row -->
+                    <div class="flex items-center justify-between mt-2.5">
+                      <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                              [class]="match.status === 'played'    ? 'text-brand bg-brand/10'
+                                     : match.status === 'scheduled' ? 'text-blue-400 bg-blue-400/10'
+                                     : match.status === 'cancelled' ? 'text-red-400 bg-red-400/10'
+                                     :                                'text-neutral-500 bg-neutral-800'">
+                          {{ match.status === 'played' ? 'Jugado'
+                           : match.status === 'scheduled' ? 'Programado'
+                           : match.status === 'cancelled' ? 'Cancelado'
+                           : 'Pendiente' }}
+                        </span>
+                        @if (match.playedAt) {
+                          <span class="text-xs text-neutral-500">{{ formatMatchDate(match.playedAt) }}</span>
+                        }
+                      </div>
+
+                      <!-- Organizer: schedule button -->
+                      @if (t.isOrganizer && match.status !== 'played' && match.status !== 'cancelled') {
+                        @if (openScheduleFor() !== match.id) {
+                          <button (click)="openSchedule(match)"
+                                  class="text-xs text-brand font-semibold hover:text-brand/80 transition-colors">
+                            Programar
+                          </button>
+                        } @else {
+                          <button (click)="cancelSchedule()"
+                                  class="text-xs text-neutral-500 font-semibold hover:text-neutral-400 transition-colors">
+                            Cancelar
+                          </button>
+                        }
+                      }
+                    </div>
+
+                    <!-- Inline schedule form -->
+                    @if (openScheduleFor() === match.id) {
+                      <div class="mt-3 pt-3 border-t border-neutral-800 flex flex-col sm:flex-row gap-2">
+                        <input type="datetime-local"
+                               [ngModel]="scheduleDate()" (ngModelChange)="scheduleDate.set($event)"
+                               class="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2 text-sm text-white
+                                      focus:outline-none focus:border-brand transition-colors" />
+                        <input type="text" placeholder="Lugar"
+                               [ngModel]="scheduleLocation()" (ngModelChange)="scheduleLocation.set($event)"
+                               class="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2 text-sm text-white
+                                      placeholder-neutral-600 focus:outline-none focus:border-brand transition-colors" />
+                        <button (click)="saveSchedule(match.id)"
+                                [disabled]="savingSchedule() || !scheduleDate() || !scheduleLocation().trim()"
+                                class="flex items-center justify-center gap-1.5 bg-brand text-neutral-950 font-black px-4 py-2 rounded-xl
+                                       hover:bg-brand/90 transition-colors disabled:opacity-50 text-sm min-h-[40px]">
+                          @if (savingSchedule()) {
+                            <span class="w-4 h-4 border-2 border-neutral-700 border-t-neutral-950 rounded-full animate-spin"></span>
+                          } @else {
+                            Guardar
+                          }
+                        </button>
+                      </div>
+                    }
+
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+      }
+    }
+
+    <!-- ── TAB: BRACKET / TABLA ───────────────────────────────────── -->
+    @if (activeTab() === 'bracket') {
+
+      @if (tableLoading()) {
+        <div class="flex justify-center py-20">
+          <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:32px">progress_activity</span>
+        </div>
+      } @else if (showBracket()) {
+
+        @if (bracket().length === 0) {
+          <div class="flex flex-col items-center py-16 text-center">
+            <span class="material-symbols-outlined text-neutral-700 mb-3" style="font-size:36px">account_tree</span>
+            <p class="text-sm font-semibold text-neutral-400">Sin bracket generado</p>
+            <p class="text-xs text-neutral-600 mt-1">Genera el fixture primero</p>
+          </div>
+        } @else {
+          <div class="flex flex-col gap-6">
+            @for (round of bracket(); track round.name) {
+              <div>
+                <p class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-3">{{ round.name }}</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  @for (match of round.matches; track match.id) {
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-3">
+                      <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <div class="w-7 h-7 rounded-lg bg-neutral-800 flex items-center justify-center text-xs font-black flex-shrink-0">
+                            {{ match.homeTeam ? initials(match.homeTeam.name) : '?' }}
+                          </div>
+                          <p class="text-xs font-semibold text-white truncate">{{ match.homeTeam?.name ?? 'TBD' }}</p>
+                        </div>
+                        @if (match.status === 'played') {
+                          <span class="text-sm font-black text-white flex-shrink-0 mx-2">{{ match.homeScore }}</span>
+                        }
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <div class="w-7 h-7 rounded-lg bg-neutral-800 flex items-center justify-center text-xs font-black flex-shrink-0">
+                            {{ match.awayTeam ? initials(match.awayTeam.name) : '?' }}
+                          </div>
+                          <p class="text-xs font-semibold text-white truncate">{{ match.awayTeam?.name ?? 'TBD' }}</p>
+                        </div>
+                        @if (match.status === 'played') {
+                          <span class="text-sm font-black text-white flex-shrink-0 mx-2">{{ match.awayScore }}</span>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+      } @else {
+
+        @if (standings().length === 0) {
+          <div class="flex flex-col items-center py-16 text-center">
+            <span class="material-symbols-outlined text-neutral-700 mb-3" style="font-size:36px">leaderboard</span>
+            <p class="text-sm font-semibold text-neutral-400">Sin partidos jugados aún</p>
+            <p class="text-xs text-neutral-600 mt-1">La tabla se actualizará al registrar resultados</p>
+          </div>
+        } @else {
+          <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="border-b border-neutral-800 text-neutral-500 uppercase tracking-wider">
+                    <th class="text-left px-4 py-3 font-bold w-6">#</th>
+                    <th class="text-left px-4 py-3 font-bold">Equipo</th>
+                    <th class="text-center px-2 py-3 font-bold">J</th>
+                    <th class="text-center px-2 py-3 font-bold">G</th>
+                    <th class="text-center px-2 py-3 font-bold">E</th>
+                    <th class="text-center px-2 py-3 font-bold">P</th>
+                    <th class="text-center px-2 py-3 font-bold">GF</th>
+                    <th class="text-center px-2 py-3 font-bold">GC</th>
+                    <th class="text-center px-2 py-3 font-bold">Dif</th>
+                    <th class="text-center px-3 py-3 font-bold text-brand">Pts</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-neutral-800">
+                  @for (row of standings(); track row.teamId) {
+                    <tr class="hover:bg-neutral-800/40 transition-colors">
+                      <td class="px-4 py-3 text-neutral-500 font-bold">{{ row.position }}</td>
+                      <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                          @if (row.teamLogoUrl) {
+                            <img [src]="row.teamLogoUrl" class="w-6 h-6 rounded object-cover flex-shrink-0">
+                          } @else {
+                            <div class="w-6 h-6 rounded bg-neutral-800 flex items-center justify-center flex-shrink-0 text-[10px] font-black text-brand">
+                              {{ initials(row.teamName) }}
+                            </div>
+                          }
+                          <span class="font-semibold text-white">{{ row.teamName }}</span>
+                          @if (row.groupName) {
+                            <span class="text-[9px] text-neutral-500">({{ row.groupName }})</span>
+                          }
+                        </div>
+                      </td>
+                      <td class="text-center px-2 py-3 text-neutral-300">{{ row.played }}</td>
+                      <td class="text-center px-2 py-3 text-neutral-300">{{ row.won }}</td>
+                      <td class="text-center px-2 py-3 text-neutral-300">{{ row.drawn }}</td>
+                      <td class="text-center px-2 py-3 text-neutral-300">{{ row.lost }}</td>
+                      <td class="text-center px-2 py-3 text-neutral-300">{{ row.goalsFor }}</td>
+                      <td class="text-center px-2 py-3 text-neutral-300">{{ row.goalsAgainst }}</td>
+                      <td class="text-center px-2 py-3"
+                          [class]="row.goalDiff > 0 ? 'text-brand' : row.goalDiff < 0 ? 'text-red-400' : 'text-neutral-400'">
+                        {{ row.goalDiff > 0 ? '+' : '' }}{{ row.goalDiff }}
+                      </td>
+                      <td class="text-center px-3 py-3 font-black text-white">{{ row.points }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+
+      }
+    }
+
+    <!-- ── TAB: RESULTADOS ────────────────────────────────────────── -->
+    @if (activeTab() === 'results') {
+
+      @if (fixtureLoading()) {
+        <div class="flex justify-center py-20">
+          <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:32px">progress_activity</span>
+        </div>
+      } @else {
+
+        @if (t.isOrganizer) {
+
+          @if (!matchesLoaded() || scheduledMatches().length === 0) {
+            <div class="flex flex-col items-center py-16 text-center">
+              <span class="material-symbols-outlined text-neutral-700 mb-3" style="font-size:36px">scoreboard</span>
+              <p class="text-sm font-semibold text-neutral-400">Sin partidos programados pendientes</p>
+              <p class="text-xs text-neutral-600 mt-1">Programa partidos en la pestaña Fixture</p>
+            </div>
+          } @else {
+
+            <div class="flex flex-col gap-4">
+              @for (match of scheduledMatches(); track match.id) {
+                <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
+
+                  <!-- Teams -->
+                  <div class="flex items-center gap-4 mb-4">
+                    <p class="flex-1 text-sm font-bold text-white text-right truncate">{{ match.homeTeam?.name ?? 'TBD' }}</p>
+                    <span class="text-xs font-bold text-neutral-600 flex-shrink-0">VS</span>
+                    <p class="flex-1 text-sm font-bold text-white truncate">{{ match.awayTeam?.name ?? 'TBD' }}</p>
+                  </div>
+
+                  <!-- Match meta -->
+                  <div class="flex items-center justify-between mb-4">
+                    <span class="text-xs text-neutral-500">{{ match.round }}</span>
+                    @if (match.playedAt) {
+                      <span class="text-xs text-neutral-500">{{ formatMatchDate(match.playedAt) }}</span>
+                    }
+                  </div>
+
+                  <!-- Result form -->
+                  @if (openResultFor() === match.id) {
+                    <div class="flex items-center gap-3">
+                      <div class="flex-1 flex flex-col items-center gap-1">
+                        <p class="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider truncate w-full text-center">
+                          {{ match.homeTeam?.name ?? 'Local' }}
+                        </p>
+                        <input type="number" min="0"
+                               [ngModel]="resultHome()" (ngModelChange)="resultHome.set($event)"
+                               placeholder="0"
+                               class="w-full text-center text-2xl font-black bg-neutral-800 border border-neutral-700 rounded-xl py-3
+                                      text-white focus:outline-none focus:border-brand transition-colors" />
+                      </div>
+                      <span class="text-neutral-600 font-black text-lg flex-shrink-0">—</span>
+                      <div class="flex-1 flex flex-col items-center gap-1">
+                        <p class="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider truncate w-full text-center">
+                          {{ match.awayTeam?.name ?? 'Visita' }}
+                        </p>
+                        <input type="number" min="0"
+                               [ngModel]="resultAway()" (ngModelChange)="resultAway.set($event)"
+                               placeholder="0"
+                               class="w-full text-center text-2xl font-black bg-neutral-800 border border-neutral-700 rounded-xl py-3
+                                      text-white focus:outline-none focus:border-brand transition-colors" />
+                      </div>
+                    </div>
+                    <div class="flex gap-2 mt-3">
+                      <button (click)="cancelResult()"
+                              class="flex-1 py-2.5 rounded-xl bg-neutral-800 border border-neutral-700 text-sm font-semibold
+                                     text-neutral-400 hover:bg-neutral-700 transition-colors">
+                        Cancelar
+                      </button>
+                      <button (click)="saveResult(match.id)"
+                              [disabled]="savingResult() || resultHome() === '' || resultAway() === ''"
+                              class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-brand text-neutral-950
+                                     font-black text-sm hover:bg-brand/90 transition-colors disabled:opacity-50">
+                        @if (savingResult()) {
+                          <span class="w-4 h-4 border-2 border-neutral-700 border-t-neutral-950 rounded-full animate-spin"></span>
+                        } @else {
+                          Guardar resultado
+                        }
+                      </button>
+                    </div>
+                  } @else {
+                    <button (click)="openResult(match.id)"
+                            class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-neutral-800 border border-neutral-700
+                                   text-sm font-semibold text-neutral-300 hover:border-brand/40 hover:bg-neutral-700 transition-colors min-h-[44px]">
+                      <span class="material-symbols-outlined" style="font-size:18px">scoreboard</span>
+                      Cargar resultado
+                    </button>
+                  }
+
+                </div>
+              }
+            </div>
+          }
+
+        } @else {
+          <!-- Non-organizer: show played matches -->
+          <div class="flex flex-col items-center py-16 text-center">
+            <span class="material-symbols-outlined text-neutral-700 mb-3" style="font-size:36px">scoreboard</span>
+            <p class="text-sm font-semibold text-neutral-400">Solo el organizador puede cargar resultados</p>
+          </div>
+        }
+
+      }
+    }
+
+  }
+
+</div>

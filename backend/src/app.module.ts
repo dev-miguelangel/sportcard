@@ -11,11 +11,19 @@ import { EventsModule } from './events/events.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AdminModule } from './admin/admin.module';
 import { ContactsModule } from './contacts/contacts.module';
+import { TeamsModule } from './teams/teams.module';
+import { TournamentsModule } from './tournaments/tournaments.module';
+import { FixturesModule } from './fixtures/fixtures.module';
 import { User } from './users/entities/user.entity';
 import { Event } from './events/entities/event.entity';
 import { EventParticipant } from './events/entities/event-participant.entity';
 import { Notification } from './notifications/entities/notification.entity';
 import { Contact } from './contacts/entities/contact.entity';
+import { Team } from './teams/entities/team.entity';
+import { TeamMember } from './teams/entities/team-member.entity';
+import { Tournament } from './tournaments/entities/tournament.entity';
+import { TournamentTeam } from './tournaments/entities/tournament-team.entity';
+import { Match } from './fixtures/entities/match.entity';
 
 @Module({
   imports: [
@@ -37,7 +45,7 @@ import { Contact } from './contacts/entities/contact.entity';
         username: config.get('DATABASE_USER', 'sportcard'),
         password: config.get('DATABASE_PASSWORD', 'sportcard_dev'),
         database: config.get('DATABASE_NAME', 'sportcard'),
-        entities: [User, Event, EventParticipant, Notification, Contact],
+        entities: [User, Event, EventParticipant, Notification, Contact, Team, TeamMember, Tournament, TournamentTeam, Match],
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
         synchronize: false,
         migrationsRun: true,
@@ -50,6 +58,9 @@ import { Contact } from './contacts/entities/contact.entity';
     NotificationsModule,
     AdminModule,
     ContactsModule,
+    TeamsModule,
+    TournamentsModule,
+    FixturesModule,
   ],
   controllers: [AppController],
   providers: [

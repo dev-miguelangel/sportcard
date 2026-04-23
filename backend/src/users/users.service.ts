@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
+import { Match, MatchStatus } from '../fixtures/entities/match.entity';
+import { TeamMember } from '../teams/entities/team-member.entity';
+import { TournamentTeam, TournamentTeamStatus } from '../tournaments/entities/tournament-team.entity';
 
 // Dígitos 1-9 + letras del alfabeto español omitiendo la Ñ
 const STRING_ID_CHARS = '123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -19,6 +22,12 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @InjectRepository(Match)
+    private readonly matchRepo: Repository<Match>,
+    @InjectRepository(TeamMember)
+    private readonly memberRepo: Repository<TeamMember>,
+    @InjectRepository(TournamentTeam)
+    private readonly tournamentTeamRepo: Repository<TournamentTeam>,
   ) {}
 
   private generateCandidate(): string {
@@ -68,5 +77,29 @@ export class UsersService {
   async update(id: string, data: Partial<User>): Promise<User | null> {
     await this.usersRepository.update(id, data);
     return this.usersRepository.findOne({ where: { id } });
+  }
+
+  async getStats(userId: string): Promise<{ matchesPlayed: number; tournamentsParticipated: number }> {
+    const memberships = await this.memberRepo.find({ where: { userId } });
+    const teamIds = memberships.map(m => m.teamId);
+
+    if (teamIds.length === 0) {
+      return { matchesPlayed: 0, tournamentsParticipated: 0 };
+    }
+
+    const matchesPlayed = await this.matchRepo
+      .createQueryBuilder('m')
+      .where('m.status = :status', { status: MatchStatus.PLAYED })
+      .andWhere('(m.home_team_id IN (:...teamIds) OR m.away_team_id IN (:...teamIds))', { teamIds })
+      .getCount();
+
+    const rows = await this.tournamentTeamRepo
+      .createQueryBuilder('tt')
+      .select('DISTINCT tt.tournament_id', 'tournamentId')
+      .where('tt.team_id IN (:...teamIds)', { teamIds })
+      .andWhere('tt.status = :status', { status: TournamentTeamStatus.APPROVED })
+      .getRawMany<{ tournamentId: string }>();
+
+    return { matchesPlayed, tournamentsParticipated: rows.length };
   }
 }

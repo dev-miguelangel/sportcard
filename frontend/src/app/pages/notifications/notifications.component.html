@@ -91,16 +91,14 @@
       <div class="flex flex-col gap-2">
         @for (notif of notifications(); track notif.id) {
           <div class="bg-neutral-900 border rounded-xl overflow-hidden transition-colors"
-               [class]="notif.readAt ? 'border-neutral-800' : (notif.type === 'invitation' ? 'border-purple-500/40' : 'border-brand')">
+               [class]="borderColor(notif)">
 
             <!-- Cuerpo de la notificación -->
             <button (click)="markRead(notif)"
                     class="w-full text-left p-4 hover:bg-neutral-800 transition-colors">
               <div class="flex items-start gap-3">
                 <div class="mt-1.5 flex-shrink-0 w-2 h-2 rounded-full"
-                     [class.bg-brand]="!notif.readAt && notif.type !== 'invitation'"
-                     [class.bg-purple-400]="!notif.readAt && notif.type === 'invitation'"
-                     [class.bg-transparent]="notif.readAt">
+                     [class]="dotColor(notif)">
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-1">
@@ -137,6 +135,54 @@
                                transition-opacity disabled:opacity-60">
                   <span class="material-symbols-outlined" style="font-size:16px">close</span>
                   Rechazar
+                </button>
+              </div>
+            }
+
+            <!-- team_invite: botón ver equipo -->
+            @if (notif.type === 'team_invite' && notif.metadata?.['teamId']) {
+              <div class="px-4 pb-4">
+                <button (click)="goToTeam(notif); markRead(notif)"
+                        class="flex items-center gap-1.5 bg-neutral-800 text-orange-400 font-bold
+                               rounded-xl min-h-[40px] px-4 text-sm border border-neutral-700 hover:bg-neutral-700 transition-colors">
+                  <span class="material-symbols-outlined" style="font-size:16px">groups</span>
+                  Ver equipo
+                </button>
+              </div>
+            }
+
+            <!-- match_scheduled: botón ver evento -->
+            @if (notif.type === 'match_scheduled' && notif.eventId) {
+              <div class="px-4 pb-4">
+                <button (click)="goToEvent(notif.eventId!); markRead(notif)"
+                        class="flex items-center gap-1.5 bg-neutral-800 text-blue-400 font-bold
+                               rounded-xl min-h-[40px] px-4 text-sm border border-neutral-700 hover:bg-neutral-700 transition-colors">
+                  <span class="material-symbols-outlined" style="font-size:16px">sports</span>
+                  Ver evento
+                </button>
+              </div>
+            }
+
+            <!-- match_result: enlace al torneo -->
+            @if (notif.type === 'match_result' && notif.metadata?.['tournamentId']) {
+              <div class="px-4 pb-4">
+                <button (click)="goToTournament(notif); markRead(notif)"
+                        class="flex items-center gap-1.5 bg-neutral-800 text-brand font-bold
+                               rounded-xl min-h-[40px] px-4 text-sm border border-neutral-700 hover:bg-neutral-700 transition-colors">
+                  <span class="material-symbols-outlined" style="font-size:16px">emoji_events</span>
+                  Ver torneo
+                </button>
+              </div>
+            }
+
+            <!-- tournament_update: enlace al torneo -->
+            @if (notif.type === 'tournament_update' && notif.metadata?.['tournamentId']) {
+              <div class="px-4 pb-4">
+                <button (click)="goToTournament(notif); markRead(notif)"
+                        class="flex items-center gap-1.5 bg-neutral-800 text-yellow-400 font-bold
+                               rounded-xl min-h-[40px] px-4 text-sm border border-neutral-700 hover:bg-neutral-700 transition-colors">
+                  <span class="material-symbols-outlined" style="font-size:16px">emoji_events</span>
+                  Ver torneo
                 </button>
               </div>
             }

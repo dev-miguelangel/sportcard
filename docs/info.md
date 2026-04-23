@@ -53,11 +53,12 @@ docker compose up
 docker compose down -v
 ```
 
-| Servicio   | URL                        |
-|------------|----------------------------|
-| Frontend   | http://localhost:4200      |
-| Backend    | http://localhost:3000/api  |
-| PostgreSQL | localhost:5432 · `sportcard` |
+| Servicio         | URL                        |
+|------------------|----------------------------|
+| Frontend         | http://localhost:4200      |
+| Frontend Torneos | http://localhost:4201      |
+| Backend          | http://localhost:3000/api  |
+| PostgreSQL       | localhost:5432 · `sportcard` |
 
 ### Sin Docker
 

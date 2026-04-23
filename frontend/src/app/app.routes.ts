@@ -96,6 +96,20 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'teams/:id',
+    loadComponent: () =>
+      import('./pages/teams/detail/team-detail.component').then(
+        (m) => m.TeamDetailComponent,
+      ),
+  },
+  {
+    path: 'tournaments/:id',
+    loadComponent: () =>
+      import('./pages/tournaments/detail/tournament-detail.component').then(
+        (m) => m.TournamentDetailComponent,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'login',
   },

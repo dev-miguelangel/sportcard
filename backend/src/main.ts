@@ -23,13 +23,16 @@ async function bootstrap() {
     }),
   );
 
-  // §1.3 — FRONTEND_URL required in production
+  // §1.3 — FRONTEND_URL required in production (comma-separated for multiple origins)
   const frontendUrl = process.env.FRONTEND_URL;
   if (!frontendUrl && process.env.NODE_ENV === 'production') {
     throw new Error('FRONTEND_URL env var is required in production.');
   }
+  const allowedOrigins = frontendUrl
+    ? frontendUrl.split(',').map(u => u.trim()).filter(Boolean)
+    : ['http://localhost:4200', 'http://localhost:4201'];
   app.enableCors({
-    origin: frontendUrl || 'http://localhost:4200',
+    origin: allowedOrigins,
     credentials: true,
   });
 
