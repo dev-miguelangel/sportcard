@@ -12,6 +12,7 @@ import { TournamentTeam, TournamentTeamStatus } from './entities/tournament-team
 import { Team } from '../teams/entities/team.entity';
 import { TeamMember } from '../teams/entities/team-member.entity';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 export interface TournamentSummaryDto {
   id: string;
@@ -69,6 +70,7 @@ export class TournamentsService {
     @InjectRepository(TournamentTeam) private readonly tournamentTeamRepo: Repository<TournamentTeam>,
     @InjectRepository(Team)           private readonly teamRepo:           Repository<Team>,
     @InjectRepository(TeamMember)     private readonly memberRepo:         Repository<TeamMember>,
+    private readonly notifSvc: NotificationsService,
   ) {}
 
   async createTournament(organizerId: string, dto: CreateTournamentDto): Promise<TournamentDetailDto> {
@@ -176,6 +178,11 @@ export class TournamentsService {
     };
   }
 
+  async findByIdPublic(id: string): Promise<Omit<TournamentDetailDto, 'shareToken'>> {
+    const { shareToken: _, ...rest } = await this.findById(id);
+    return rest;
+  }
+
   async findByToken(shareToken: string): Promise<TournamentPublicDto> {
     const tournament = await this.tournamentRepo.findOne({ where: { shareToken } });
     if (!tournament) throw new NotFoundException('Torneo no encontrado.');
@@ -259,7 +266,7 @@ export class TournamentsService {
     organizerId: string,
     status: TournamentTeamStatus,
   ): Promise<TournamentTeamDto> {
-    await this.assertOrganizer(tournamentId, organizerId);
+    const tournament = await this.assertOrganizer(tournamentId, organizerId);
 
     const reg = await this.tournamentTeamRepo.findOne({
       where: { tournamentId, teamId },
@@ -269,6 +276,15 @@ export class TournamentsService {
 
     reg.status = status;
     await this.tournamentTeamRepo.save(reg);
+
+    if (status === TournamentTeamStatus.APPROVED || status === TournamentTeamStatus.REJECTED) {
+      await this.notifSvc.createTournamentUpdate(
+        reg.team.coachId,
+        tournamentId,
+        tournament.name,
+        status === TournamentTeamStatus.APPROVED,
+      );
+    }
 
     const memberCount = await this.memberRepo.count({ where: { teamId } });
 

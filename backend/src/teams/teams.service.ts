@@ -10,6 +10,9 @@ import { Repository } from 'typeorm';
 import { Team } from './entities/team.entity';
 import { TeamMember } from './entities/team-member.entity';
 import { User } from '../users/entities/user.entity';
+import { TournamentTeam, TournamentTeamStatus } from '../tournaments/entities/tournament-team.entity';
+import { Tournament, TournamentStatus } from '../tournaments/entities/tournament.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateTeamDto } from './dto/create-team.dto';
 
 export interface TeamMemberDto {
@@ -41,12 +44,27 @@ export interface TeamSummaryDto {
   isCoach: boolean;
 }
 
+export interface TeamActiveTournamentDto {
+  id: string;
+  name: string;
+  sport: string;
+  format: string;
+  status: string;
+}
+
+export interface TeamPublicDto extends TeamDto {
+  activeTournaments: TeamActiveTournamentDto[];
+}
+
 @Injectable()
 export class TeamsService {
   constructor(
-    @InjectRepository(Team)       private readonly teamRepo:   Repository<Team>,
-    @InjectRepository(TeamMember) private readonly memberRepo: Repository<TeamMember>,
-    @InjectRepository(User)       private readonly usersRepo:  Repository<User>,
+    @InjectRepository(Team)           private readonly teamRepo:           Repository<Team>,
+    @InjectRepository(TeamMember)     private readonly memberRepo:         Repository<TeamMember>,
+    @InjectRepository(User)           private readonly usersRepo:          Repository<User>,
+    @InjectRepository(TournamentTeam) private readonly tournamentTeamRepo: Repository<TournamentTeam>,
+    @InjectRepository(Tournament)     private readonly tournamentRepo:     Repository<Tournament>,
+    private readonly notifSvc: NotificationsService,
   ) {}
 
   async createTeam(coachId: string, dto: CreateTeamDto): Promise<TeamDto> {
@@ -136,7 +154,7 @@ export class TeamsService {
     targetUserId: string,
     position?: string,
   ): Promise<TeamMemberDto> {
-    await this.assertCoach(teamId, coachId);
+    const team = await this.assertCoach(teamId, coachId);
 
     if (coachId === targetUserId) {
       throw new BadRequestException('Ya eres miembro del equipo como entrenador.');
@@ -152,6 +170,8 @@ export class TeamsService {
       this.memberRepo.create({ teamId, userId: targetUserId, position: position ?? null }),
     );
 
+    await this.notifSvc.createTeamInvite(targetUserId, teamId, team.name);
+
     return {
       userId:   target.id,
       stringId: target.stringId,
@@ -161,6 +181,30 @@ export class TeamsService {
       position: member.position,
       joinedAt: member.joinedAt,
     };
+  }
+
+  async getPublicProfile(teamId: string): Promise<TeamPublicDto> {
+    const teamDto = await this.getTeamById(teamId);
+
+    const registrations = await this.tournamentTeamRepo.find({
+      where: { teamId, status: TournamentTeamStatus.APPROVED },
+      relations: ['tournament'],
+    });
+
+    const activeTournaments: TeamActiveTournamentDto[] = registrations
+      .filter(r =>
+        r.tournament.status === TournamentStatus.OPEN ||
+        r.tournament.status === TournamentStatus.IN_PROGRESS,
+      )
+      .map(r => ({
+        id:     r.tournament.id,
+        name:   r.tournament.name,
+        sport:  r.tournament.sport,
+        format: r.tournament.format,
+        status: r.tournament.status,
+      }));
+
+    return { ...teamDto, activeTournaments };
   }
 
   async removeMember(teamId: string, coachId: string, targetUserId: string): Promise<void> {

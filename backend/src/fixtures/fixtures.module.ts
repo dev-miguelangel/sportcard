@@ -7,7 +7,7 @@ import { Team } from '../teams/entities/team.entity';
 import { TeamMember } from '../teams/entities/team-member.entity';
 import { Event } from '../events/entities/event.entity';
 import { EventParticipant } from '../events/entities/event-participant.entity';
-import { Notification } from '../notifications/entities/notification.entity';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { FixturesService } from './fixtures.service';
 import { FixturesController } from './fixtures.controller';
 import { FixturesPublicController } from './fixtures-public.controller';
@@ -16,8 +16,9 @@ import { FixturesPublicController } from './fixtures-public.controller';
   imports: [
     TypeOrmModule.forFeature([
       Match, Tournament, TournamentTeam, Team, TeamMember,
-      Event, EventParticipant, Notification,
+      Event, EventParticipant,
     ]),
+    NotificationsModule,
   ],
   controllers: [FixturesController, FixturesPublicController],
   providers: [FixturesService],

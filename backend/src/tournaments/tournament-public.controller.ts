@@ -9,4 +9,9 @@ export class TournamentPublicController {
   findByToken(@Param('shareToken') shareToken: string) {
     return this.tournamentsSvc.findByToken(shareToken);
   }
+
+  @Get('p/:id')
+  findByIdPublic(@Param('id') id: string) {
+    return this.tournamentsSvc.findByIdPublic(id);
+  }
 }

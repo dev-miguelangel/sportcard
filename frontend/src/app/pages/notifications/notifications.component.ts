@@ -46,6 +46,20 @@ export class NotificationsComponent implements OnInit {
     this.router.navigate([path]);
   }
 
+  goToTeam(notif: AppNotification): void {
+    const teamId = notif.metadata?.['teamId'] as string | undefined;
+    if (teamId) this.router.navigate(['/teams', teamId]);
+  }
+
+  goToTournament(notif: AppNotification): void {
+    const tournamentId = notif.metadata?.['tournamentId'] as string | undefined;
+    if (tournamentId) this.router.navigate(['/tournaments', tournamentId]);
+  }
+
+  goToEvent(eventId: string): void {
+    this.router.navigate(['/events', eventId]);
+  }
+
   async install(): Promise<void> {
     await this.pwa.install();
   }
@@ -95,18 +109,45 @@ export class NotificationsComponent implements OnInit {
 
   typeLabel(type: string): string {
     const map: Record<string, string> = {
-      broadcast: 'General', event: 'Evento', system: 'Sistema', invitation: 'Invitación',
+      broadcast:        'General',
+      event:            'Evento',
+      system:           'Sistema',
+      invitation:       'Invitación',
+      team_invite:      'Equipo',
+      match_scheduled:  'Partido',
+      match_result:     'Resultado',
+      tournament_update:'Torneo',
     };
     return map[type] ?? type;
   }
 
   typeColor(type: string): string {
     const map: Record<string, string> = {
-      broadcast:  'text-brand bg-brand/10 border-brand/30',
-      event:      'text-blue-400 bg-blue-400/10 border-blue-400/30',
-      invitation: 'text-purple-400 bg-purple-400/10 border-purple-400/30',
+      broadcast:        'text-brand bg-brand/10 border-brand/30',
+      event:            'text-blue-400 bg-blue-400/10 border-blue-400/30',
+      invitation:       'text-purple-400 bg-purple-400/10 border-purple-400/30',
+      team_invite:      'text-orange-400 bg-orange-400/10 border-orange-400/30',
+      match_scheduled:  'text-blue-400 bg-blue-400/10 border-blue-400/30',
+      match_result:     'text-brand bg-brand/10 border-brand/30',
+      tournament_update:'text-yellow-400 bg-yellow-400/10 border-yellow-400/30',
     };
     return map[type] ?? 'text-neutral-400 bg-neutral-800 border-neutral-700';
+  }
+
+  dotColor(notif: AppNotification): string {
+    if (notif.readAt) return 'bg-transparent';
+    if (notif.type === 'invitation') return 'bg-purple-400';
+    if (notif.type === 'team_invite') return 'bg-orange-400';
+    if (notif.type === 'tournament_update') return 'bg-yellow-400';
+    return 'bg-brand';
+  }
+
+  borderColor(notif: AppNotification): string {
+    if (notif.readAt) return 'border-neutral-800';
+    if (notif.type === 'invitation') return 'border-purple-500/40';
+    if (notif.type === 'team_invite') return 'border-orange-500/40';
+    if (notif.type === 'tournament_update') return 'border-yellow-500/40';
+    return 'border-brand';
   }
 
   unreadCount(): number {

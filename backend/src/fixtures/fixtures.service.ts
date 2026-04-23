@@ -14,7 +14,7 @@ import { Team } from '../teams/entities/team.entity';
 import { TeamMember } from '../teams/entities/team-member.entity';
 import { Event, EventStatus } from '../events/entities/event.entity';
 import { EventParticipant, ParticipantStatus } from '../events/entities/event-participant.entity';
-import { Notification, NotificationType } from '../notifications/entities/notification.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 export interface MatchDto {
   id: string;
@@ -65,7 +65,7 @@ export class FixturesService {
     @InjectRepository(TeamMember)      private readonly memberRepo:          Repository<TeamMember>,
     @InjectRepository(Event)           private readonly eventRepo:           Repository<Event>,
     @InjectRepository(EventParticipant) private readonly participantRepo:    Repository<EventParticipant>,
-    @InjectRepository(Notification)    private readonly notificationRepo:    Repository<Notification>,
+    private readonly notifSvc: NotificationsService,
   ) {}
 
   // ── Generate fixture ─────────────────────────────────────────────────────
@@ -153,16 +153,14 @@ export class FixturesService {
     );
     await this.participantRepo.save(participants);
 
-    const notifications = uniqueUserIds.map(userId =>
-      this.notificationRepo.create({
-        userId,
-        eventId: event.id,
-        type:  NotificationType.EVENT,
-        title: 'Partido programado',
-        body:  `${title} el ${new Date(dto.startDatetime).toLocaleDateString('es-CL')} en ${dto.locationName}`,
-      }),
+    await this.notifSvc.createBulkMatchScheduled(
+      uniqueUserIds,
+      event.id,
+      title,
+      new Date(dto.startDatetime),
+      dto.locationName,
+      match.tournamentId,
     );
-    await this.notificationRepo.save(notifications);
 
     match.eventId = event.id;
     const saved = await this.matchRepo.save(match);
@@ -178,7 +176,7 @@ export class FixturesService {
   ): Promise<MatchDto> {
     const match = await this.matchRepo.findOne({
       where: { id: matchId },
-      relations: ['tournament'],
+      relations: ['tournament', 'homeTeam', 'awayTeam'],
     });
     if (!match) throw new NotFoundException('Partido no encontrado.');
     if (match.tournament.organizerId !== organizerId) {
@@ -204,6 +202,19 @@ export class FixturesService {
     if (isBracket && match.nextMatchId) {
       await this.advanceBracket(match);
     }
+
+    const members = await this.memberRepo.find({
+      where: [{ teamId: match.homeTeamId }, { teamId: match.awayTeamId! }],
+    });
+    const userIds = [...new Set(members.map(m => m.userId))];
+    await this.notifSvc.createBulkMatchResult(
+      userIds,
+      match.tournamentId,
+      match.homeTeam!.name,
+      match.awayTeam!.name,
+      dto.homeScore,
+      dto.awayScore,
+    );
 
     const updated = await this.matchRepo.findOne({ where: { id: matchId }, relations: ['homeTeam', 'awayTeam'] });
     return this.toMatchDto(updated!);

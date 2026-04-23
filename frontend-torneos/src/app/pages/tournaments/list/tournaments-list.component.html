@@ -1,0 +1,94 @@
+<div class="p-6 max-w-5xl mx-auto">
+
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl font-black">Torneos</h1>
+      <p class="text-neutral-400 text-sm mt-0.5">Torneos que organizas o donde participas</p>
+    </div>
+    <button (click)="goTo('/tournaments/new')"
+            class="flex items-center gap-2 bg-brand text-neutral-950 font-black px-4 py-2.5 rounded-xl hover:bg-brand/90 transition-colors min-h-[44px]">
+      <span class="material-symbols-outlined" style="font-size:20px">add</span>
+      Nuevo torneo
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-20">
+      <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:32px">progress_activity</span>
+    </div>
+  } @else {
+
+    <!-- Como organizador -->
+    @if (myTournaments().length > 0) {
+      <div class="mb-8">
+        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-3">Como organizador</p>
+        <div class="flex flex-col gap-2">
+          @for (t of myTournaments(); track t.id) {
+            <button (click)="goTo('/tournaments/' + t.id)"
+                    class="flex items-center gap-4 p-4 bg-neutral-900 border border-neutral-800 rounded-2xl hover:border-brand/40 hover:bg-neutral-800/60 transition-colors text-left">
+              <div class="w-11 h-11 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center flex-shrink-0 text-2xl">
+                {{ sportEmoji(t.sport) }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <p class="font-bold text-white truncate">{{ t.name }}</p>
+                  <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded {{ statusClass(t.status) }}">
+                    {{ statusLabel(t.status) }}
+                  </span>
+                </div>
+                <p class="text-xs text-neutral-500 mt-0.5">
+                  {{ formatLabel(t.format) }} · {{ t.approvedTeamCount }}{{ t.maxTeams ? '/' + t.maxTeams : '' }} equipos
+                </p>
+              </div>
+              <span class="material-symbols-outlined text-neutral-600 flex-shrink-0" style="font-size:18px">chevron_right</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Como participante -->
+    @if (otherTournaments().length > 0) {
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-3">Participando</p>
+        <div class="flex flex-col gap-2">
+          @for (t of otherTournaments(); track t.id) {
+            <button (click)="goTo('/tournaments/' + t.id)"
+                    class="flex items-center gap-4 p-4 bg-neutral-900 border border-neutral-800 rounded-2xl hover:border-neutral-700 transition-colors text-left opacity-80">
+              <div class="w-11 h-11 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center flex-shrink-0 text-2xl">
+                {{ sportEmoji(t.sport) }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <p class="font-bold text-white truncate">{{ t.name }}</p>
+                  <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded {{ statusClass(t.status) }}">
+                    {{ statusLabel(t.status) }}
+                  </span>
+                </div>
+                <p class="text-xs text-neutral-500 mt-0.5">
+                  {{ t.organizer.name }} · {{ formatLabel(t.format) }} · {{ t.approvedTeamCount }} equipos
+                </p>
+              </div>
+              <span class="material-symbols-outlined text-neutral-600 flex-shrink-0" style="font-size:18px">chevron_right</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    @if (tournaments().length === 0) {
+      <div class="flex flex-col items-center justify-center py-20 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-neutral-600" style="font-size:28px">emoji_events</span>
+        </div>
+        <p class="text-sm font-semibold text-neutral-400">Sin torneos</p>
+        <p class="text-xs text-neutral-600 mt-1">Crea tu primer torneo o inscribe tu equipo</p>
+        <button (click)="goTo('/tournaments/new')"
+                class="mt-4 bg-brand text-neutral-950 font-black px-5 py-2.5 rounded-xl hover:bg-brand/90 transition-colors text-sm">
+          Crear torneo
+        </button>
+      </div>
+    }
+  }
+
+</div>

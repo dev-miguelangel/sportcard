@@ -9,9 +9,10 @@ export interface AppNotification {
   eventId: string | null;
   title: string;
   body: string;
-  type: 'broadcast' | 'event' | 'system' | 'invitation';
+  type: 'broadcast' | 'event' | 'system' | 'invitation' | 'team_invite' | 'match_scheduled' | 'match_result' | 'tournament_update';
   readAt: string | null;
   createdAt: string;
+  metadata: Record<string, unknown> | null;
 }
 
 @Injectable({ providedIn: 'root' })
