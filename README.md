@@ -52,7 +52,7 @@ Las variables de Google OAuth son opcionales si usas el **Dev Auth** (ver más a
 
 ### 2. Opción A — Docker (recomendado)
 
-Levanta los tres servicios principales (PostgreSQL, backend, `frontend`) con un solo comando:
+Levanta todos los servicios (PostgreSQL, backend, `frontend`, `frontend-torneos`) con un solo comando:
 
 ```bash
 docker compose up --build
@@ -63,11 +63,10 @@ La primera vez descarga las imágenes e instala dependencias (~2-3 min). Las sig
 | Servicio | URL |
 |---|---|
 | Frontend (app principal) | http://localhost:4200 |
+| Portal de torneos | http://localhost:4201 |
 | Backend API | http://localhost:3000/api |
 | Health check | http://localhost:3000/api/health |
 | PostgreSQL | `localhost:5432` · base de datos `sportcard` |
-
-> **`frontend-torneos` no está incluido en Docker Compose.** Para usarlo junto a Docker, levanta Docker Compose normalmente y luego sigue las instrucciones del [Portal de Torneos](#portal-de-torneos-frontend-torneos) más abajo.
 
 Para detener:
 ```bash
@@ -165,31 +164,23 @@ Aplicación Angular 19 independiente orientada a **coaches y organizadores**. Fu
 
 ### Levantar en local
 
-Instala las dependencias la primera vez:
+**Con Docker (recomendado)** — el portal ya está incluido en `docker-compose.yml`:
+
+```bash
+docker compose up --build
+# → http://localhost:4201
+```
+
+**Sin Docker** — instala dependencias y arranca el servidor de desarrollo:
 
 ```bash
 cd frontend-torneos
 npm install
-```
-
-Luego arranca el servidor de desarrollo:
-
-```bash
 npm start
 # → http://localhost:4201
 ```
 
-El servidor de desarrollo proxea `/api` al backend en `http://localhost:3000` (configurado en `proxy.conf.json`), por lo que el backend debe estar corriendo previamente, ya sea con Docker Compose o directamente con `npm run start:dev`.
-
-### Flujo típico con Docker Compose
-
-```bash
-# Terminal 1 — backend + frontend principal + PostgreSQL
-docker compose up
-
-# Terminal 2 — portal de torneos
-cd frontend-torneos && npm start
-```
+El servidor de desarrollo proxea `/api` al backend en `http://localhost:3000` (configurado en `proxy.conf.json`).
 
 ### URLs en local
 
