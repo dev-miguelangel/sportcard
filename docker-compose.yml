@@ -54,6 +54,8 @@ services:
     restart: unless-stopped
     ports:
       - '4201:4201'
+    environment:
+      API_URL: http://backend:3000
     env_file:
       - .env
     volumes:

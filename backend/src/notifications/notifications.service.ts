@@ -85,6 +85,26 @@ export class NotificationsService {
     await this.repo.save(notifications);
   }
 
+  async createBulkMatchCancelled(
+    userIds: string[],
+    tournamentId: string,
+    homeTeam: string,
+    awayTeam: string,
+    status: 'cancelled' | 'postponed',
+  ): Promise<void> {
+    if (userIds.length === 0) return;
+    const notifications = userIds.map(userId =>
+      this.repo.create({
+        userId,
+        type: NotificationType.SYSTEM,
+        title: status === 'cancelled' ? 'Partido cancelado' : 'Partido pospuesto',
+        body: `El partido ${homeTeam} vs ${awayTeam} fue ${status === 'cancelled' ? 'cancelado' : 'pospuesto'}`,
+        metadata: { tournamentId, homeTeam, awayTeam, status },
+      }),
+    );
+    await this.repo.save(notifications);
+  }
+
   async createTournamentUpdate(
     userId: string,
     tournamentId: string,

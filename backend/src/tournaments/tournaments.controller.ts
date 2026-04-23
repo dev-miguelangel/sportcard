@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   Req,
@@ -78,5 +79,16 @@ export class TournamentsController {
   ) {
     const { id } = req.user as JwtUser;
     return this.tournamentsSvc.updateTournamentStatus(tournamentId, id, body.status);
+  }
+
+  @Delete(':id/teams/:teamId')
+  @HttpCode(204)
+  removeTeam(
+    @Param('id') tournamentId: string,
+    @Param('teamId') teamId: string,
+    @Req() req: Request,
+  ) {
+    const { id } = req.user as JwtUser;
+    return this.tournamentsSvc.removeTeam(tournamentId, teamId, id);
   }
 }

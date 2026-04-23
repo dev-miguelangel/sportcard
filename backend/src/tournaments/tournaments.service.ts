@@ -11,6 +11,7 @@ import { Tournament, TournamentFormat, TournamentStatus } from './entities/tourn
 import { TournamentTeam, TournamentTeamStatus } from './entities/tournament-team.entity';
 import { Team } from '../teams/entities/team.entity';
 import { TeamMember } from '../teams/entities/team-member.entity';
+import { Match, MatchStatus } from '../fixtures/entities/match.entity';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -70,6 +71,7 @@ export class TournamentsService {
     @InjectRepository(TournamentTeam) private readonly tournamentTeamRepo: Repository<TournamentTeam>,
     @InjectRepository(Team)           private readonly teamRepo:           Repository<Team>,
     @InjectRepository(TeamMember)     private readonly memberRepo:         Repository<TeamMember>,
+    @InjectRepository(Match)          private readonly matchRepo:          Repository<Match>,
     private readonly notifSvc: NotificationsService,
   ) {}
 
@@ -315,6 +317,25 @@ export class TournamentsService {
     tournament.status = status;
     await this.tournamentRepo.save(tournament);
     return this.findById(id, organizerId);
+  }
+
+  async removeTeam(tournamentId: string, teamId: string, organizerId: string): Promise<void> {
+    await this.assertOrganizer(tournamentId, organizerId);
+
+    const reg = await this.tournamentTeamRepo.findOne({ where: { tournamentId, teamId } });
+    if (!reg) throw new NotFoundException('Inscripción no encontrada.');
+
+    reg.status = TournamentTeamStatus.REJECTED;
+    await this.tournamentTeamRepo.save(reg);
+
+    await this.matchRepo.createQueryBuilder()
+      .update(Match)
+      .set({ status: MatchStatus.CANCELLED })
+      .where(
+        'tournament_id = :tournamentId AND status = :status AND (home_team_id = :teamId OR away_team_id = :teamId)',
+        { tournamentId, teamId, status: MatchStatus.SCHEDULED },
+      )
+      .execute();
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

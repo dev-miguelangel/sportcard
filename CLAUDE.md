@@ -12,11 +12,12 @@ docker compose up           # subsequent runs
 docker compose down -v      # stop and wipe the database volume
 ```
 
-| Service    | URL                          |
-|------------|------------------------------|
-| Frontend   | http://localhost:4200        |
-| Backend    | http://localhost:3000/api    |
-| PostgreSQL | localhost:5432 · `sportcard` |
+| Service         | URL                          |
+|-----------------|------------------------------|
+| Frontend        | http://localhost:4200        |
+| Frontend Torneos| http://localhost:4201        |
+| Backend         | http://localhost:3000/api    |
+| PostgreSQL      | localhost:5432 · `sportcard` |
 
 Without Docker, run each service separately (requires local PostgreSQL):
 
@@ -164,3 +165,23 @@ The Angular dev server proxies `/api` to the backend via `proxy.conf.json`.
 2. Add the entity class to the `entities` array in `app.module.ts`
 3. Import the module in `app.module.ts`
 4. Generate a migration for the new table(s)
+
+---
+
+## Session efficiency guide
+
+Full workflow guide: `docs/workflow-claude.md`. Quick reference:
+
+**One session = one vertical slice + verified commit.** Never span multiple features in one session.
+
+**Minimum context per task type:**
+- New endpoint → entity + service + controller only
+- New Angular page → the service it consumes + app.routes.ts
+- Bug fix → the error message + the one file suspected
+- Migration → only the modified entity
+
+**Files almost never needed:** `app.module.ts`, `package.json`, `angular.json`, migrations history, the other frontend.
+
+**When Claude starts guessing** (modifies unexpected files, adds TODOs, rewrites beyond scope) → stop, review `git diff`, discard extras, commit only what's correct.
+
+**Use subagents for exploration** (`/explorar` or Agent with Explore type) before implementing a feature you haven't touched before. Costs fewer tokens than loading files into the main session speculatively.

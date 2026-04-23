@@ -29,7 +29,9 @@ async function bootstrap() {
     throw new Error('FRONTEND_URL env var is required in production.');
   }
   app.enableCors({
-    origin: frontendUrl || 'http://localhost:4200',
+    origin: frontendUrl
+      ? [frontendUrl]
+      : ['http://localhost:4200', 'http://localhost:4201'],
     credentials: true,
   });
 

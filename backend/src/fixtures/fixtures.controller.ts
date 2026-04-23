@@ -49,4 +49,16 @@ export class FixturesController {
     const { id } = req.user as JwtUser;
     return this.fixturesSvc.recordResult(matchId, id, dto);
   }
+
+  @Patch(':id/matches/:matchId/cancel')
+  cancelMatch(
+    @Param('id') tournamentId: string,
+    @Param('matchId') matchId: string,
+    @Body() body: { status: 'cancelled' | 'postponed' },
+    @Req() req: Request,
+  ) {
+    void tournamentId;
+    const { id } = req.user as JwtUser;
+    return this.fixturesSvc.cancelMatch(matchId, id, body.status);
+  }
 }

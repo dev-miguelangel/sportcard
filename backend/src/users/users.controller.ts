@@ -1,6 +1,8 @@
 import {
   Controller,
+  Get,
   Patch,
+  Param,
   Body,
   Req,
   UseGuards,
@@ -34,5 +36,10 @@ export class UsersController {
     const updated = await this.usersService.update(id, { ...dto, onboardingStep: nextStep });
     const { googleId: _googleId, ...publicUser } = updated!;
     return publicUser;
+  }
+
+  @Get(':id/stats')
+  getStats(@Param('id') userId: string) {
+    return this.usersService.getStats(userId);
   }
 }

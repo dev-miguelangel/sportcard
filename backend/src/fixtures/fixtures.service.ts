@@ -186,6 +186,16 @@ export class FixturesService {
       throw new BadRequestException('Ambos equipos deben estar definidos para registrar el resultado.');
     }
 
+    const requiresPenalties =
+      match.tournament.format === TournamentFormat.CUP ||
+      (match.tournament.format === TournamentFormat.GROUPS_PLAYOFFS && match.bracketPosition !== null);
+
+    if (requiresPenalties && dto.homeScore === dto.awayScore) {
+      if (dto.homePenalties == null || dto.awayPenalties == null) {
+        throw new BadRequestException('En rondas eliminatorias con empate, se requieren los penales.');
+      }
+    }
+
     match.homeScore     = dto.homeScore;
     match.awayScore     = dto.awayScore;
     match.homePenalties = dto.homePenalties ?? null;
@@ -215,6 +225,46 @@ export class FixturesService {
       dto.homeScore,
       dto.awayScore,
     );
+
+    const updated = await this.matchRepo.findOne({ where: { id: matchId }, relations: ['homeTeam', 'awayTeam'] });
+    return this.toMatchDto(updated!);
+  }
+
+  // ── Cancel / postpone match ──────────────────────────────────────────────
+
+  async cancelMatch(
+    matchId: string,
+    organizerId: string,
+    status: 'cancelled' | 'postponed',
+  ): Promise<MatchDto> {
+    const match = await this.matchRepo.findOne({
+      where: { id: matchId },
+      relations: ['tournament', 'homeTeam', 'awayTeam'],
+    });
+    if (!match) throw new NotFoundException('Partido no encontrado.');
+    if (match.tournament.organizerId !== organizerId) {
+      throw new ForbiddenException('Solo el organizador puede cancelar partidos.');
+    }
+
+    match.status = status === 'cancelled' ? MatchStatus.CANCELLED : MatchStatus.POSTPONED;
+    await this.matchRepo.save(match);
+
+    if (match.eventId) {
+      await this.eventRepo.update(match.eventId, { status: EventStatus.CANCELLED });
+
+      const participants = await this.participantRepo.find({ where: { eventId: match.eventId } });
+      const userIds = participants.map(p => p.userId);
+
+      if (userIds.length > 0) {
+        await this.notifSvc.createBulkMatchCancelled(
+          userIds,
+          match.tournamentId,
+          match.homeTeam?.name ?? 'Equipo local',
+          match.awayTeam?.name ?? 'Equipo visitante',
+          status,
+        );
+      }
+    }
 
     const updated = await this.matchRepo.findOne({ where: { id: matchId }, relations: ['homeTeam', 'awayTeam'] });
     return this.toMatchDto(updated!);
