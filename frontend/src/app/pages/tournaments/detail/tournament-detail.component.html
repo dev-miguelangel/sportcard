@@ -25,7 +25,8 @@
         <span class="material-symbols-outlined text-neutral-600 mb-3" style="font-size:40px">error_outline</span>
         <p class="text-sm text-neutral-400">{{ error() }}</p>
       </div>
-    } @else if (tournament(); as t) {
+    } @else {
+      @if (tournament(); as t) {
 
       <!-- Hero del torneo -->
       <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 mb-4">
@@ -199,6 +200,7 @@
             }
           </div>
         </div>
+      }
       }
 
     }
