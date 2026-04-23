@@ -83,6 +83,14 @@ export const routes: Routes = [
       import('./pages/contacts/contacts.component').then((m) => m.ContactsComponent),
   },
   {
+    path: 'activities',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/activities/activities.component').then(
+        (m) => m.ActivitiesComponent,
+      ),
+  },
+  {
     path: 'admin',
     canActivate: [authGuard, adminGuard],
     loadComponent: () =>

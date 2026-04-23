@@ -1,4 +1,4 @@
-# Comando /plan — Planificador de tareas SportCard
+# Comando /doc — Planificador de tareas SportCard
 
 Eres un planificador de tareas técnicas para el proyecto SportCard. Tu único trabajo en esta invocación es **analizar la tarea, dividirla en slices y escribir los prompts listos para ejecutar**. No escribas código ni implementes nada.
 
@@ -24,7 +24,15 @@ Usa el subagente Explore para responder estas preguntas sin leer archivos innece
 - ¿Se necesita migración de base de datos?
 - ¿Hay dependencias entre los slices?
 
-### Paso 3 — Diseña los slices
+### Paso 3 — Pregunta sobre el HTML de flujo
+
+Antes de generar el documento, **pregunta al usuario**:
+
+> ¿Deseas que genere un archivo HTML con el flujo visual propuesto para esta tarea? (pantallas, estados, interacciones)
+
+Si responde **sí**, agrega el Paso 5 al flujo de trabajo (ver más abajo). Si responde **no**, omite ese paso.
+
+### Paso 4 — Diseña los slices
 
 Divide la tarea en slices siguiendo estas reglas del workflow:
 - Un slice = una sesión de Claude Code = un commit
@@ -33,11 +41,29 @@ Divide la tarea en slices siguiendo estas reglas del workflow:
 - Las migraciones van en un slice propio
 - Si un slice depende del anterior, márcalo explícitamente
 
-### Paso 4 — Escribe el documento de planificación
+### Paso 5 — Escribe el documento de planificación
 
 Guarda el resultado en `docs/plans/<nombre-kebab-case>.md` siguiendo exactamente el formato especificado abajo.
 
-## Formato del documento de salida
+### Paso 6 (condicional) — Genera el HTML de flujo
+
+Solo si el usuario respondió **sí** en el Paso 3, crea un archivo HTML en `docs/plans/<nombre-kebab-case>-flow.html` que muestre visualmente:
+
+- Las pantallas o vistas involucradas en el flujo (mockups oscuros, tema SportCard)
+- Los estados posibles de cada pantalla (loading, vacío, con datos, error)
+- Las transiciones y acciones del usuario entre pantallas
+- Los endpoints o llamadas API que dispara cada acción
+
+**Convenciones visuales del HTML de flujo:**
+- Fondo `#080808`, cards `#111`, bordes `#1e1e1e`
+- Color de marca `#00e87a` para acciones principales
+- Fuente Inter vía Google Fonts CDN
+- Cada pantalla renderizada como mockup de teléfono (cuando aplica) o panel de escritorio
+- Flechas SVG o CSS entre pantallas indicando la dirección del flujo
+- Leyenda de colores: verde = acción principal, amarillo = pendiente/aprobación, rojo = error/rechazo, azul = info
+- El archivo debe ser completamente autocontenido (CSS y JS inline, sin dependencias externas salvo Google Fonts CDN)
+
+## Formato del documento de planificación
 
 ```markdown
 # Plan: <Nombre de la tarea>
@@ -134,9 +160,10 @@ Al escribir los prompts listos para copiar, sigue estas reglas de `docs/workflow
 ## Después de generar el documento
 
 Confirma al usuario:
-- La ruta del archivo generado
+- La ruta del archivo `.md` generado
+- La ruta del archivo `.html` de flujo (si se generó)
 - Cuántos slices tiene el plan
 - Si algún slice tiene dependencias externas (datos en DB, auth, etc.)
 - El orden en que debe ejecutarse
 
-No implementes ningún slice. Tu tarea termina cuando el documento está guardado.
+No implementes ningún slice. Tu tarea termina cuando los documentos están guardados.

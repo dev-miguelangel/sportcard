@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { EventsService, EventResponse } from '../../core/services/events.service';
+import { ActivitiesService, StreakResult } from '../../core/services/activities.service';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
 
@@ -37,12 +38,14 @@ const SPORT_GRADIENTS: Record<string, string> = {
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
-  readonly auth              = inject(AuthService);
-  private readonly router    = inject(Router);
-  private readonly eventsSvc = inject(EventsService);
+  readonly auth                = inject(AuthService);
+  private readonly router      = inject(Router);
+  private readonly eventsSvc   = inject(EventsService);
+  private readonly actSvc      = inject(ActivitiesService);
 
-  readonly myEvents     = signal<EventResponse[]>([]);
+  readonly myEvents      = signal<EventResponse[]>([]);
   readonly loadingEvents = signal(true);
+  readonly streak        = signal<StreakResult | null>(null);
 
   readonly hasUpcoming = computed(() =>
     this.myEvents().some(e => new Date(e.startDatetime) > new Date()),
@@ -72,6 +75,7 @@ export class DashboardComponent implements OnInit {
       next: events => { this.myEvents.set(events); this.loadingEvents.set(false); },
       error: ()    => this.loadingEvents.set(false),
     });
+    this.actSvc.getStreak().subscribe({ next: s => this.streak.set(s), error: () => {} });
   }
 
   goToCreateEvent(): void {

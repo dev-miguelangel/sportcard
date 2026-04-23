@@ -1,7 +1,7 @@
 import { Component, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
 
-export type NavTab = 'home' | 'events' | 'contacts' | 'profile' | null;
+export type NavTab = 'home' | 'events' | 'activities' | 'contacts' | 'profile' | null;
 
 @Component({
   selector: 'app-bottom-nav',

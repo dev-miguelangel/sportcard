@@ -17,11 +17,14 @@
       <span [class]="'text-[10px] ' + (isActive('events') ? 'text-brand font-semibold' : 'text-neutral-500')">Eventos</span>
     </button>
 
-    <button (click)="navigateTo('/events/create')"
+    <button (click)="navigateTo('/activities')"
             class="flex flex-col items-center justify-center -mt-5 min-w-[60px]">
       <div class="w-14 h-14 bg-brand rounded-2xl flex items-center justify-center shadow-lg shadow-brand/30">
-        <span class="material-symbols-outlined text-neutral-950" style="font-size:28px">add</span>
+        <span class="material-symbols-outlined text-neutral-950" style="font-size:28px">directions_run</span>
       </div>
+      <span [class]="'text-[10px] mt-1 ' + (isActive('activities') ? 'text-brand font-semibold' : 'text-neutral-500')">
+        Actividad
+      </span>
     </button>
 
     <button (click)="navigateTo('/contacts')"
