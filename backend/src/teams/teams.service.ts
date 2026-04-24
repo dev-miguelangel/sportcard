@@ -166,6 +166,19 @@ export class TeamsService {
     const existing = await this.memberRepo.findOne({ where: { teamId, userId: targetUserId } });
     if (existing) throw new ConflictException('Este usuario ya es miembro del equipo.');
 
+    if (team.minAge !== null || team.maxAge !== null) {
+      if (!target.birthDate) {
+        throw new BadRequestException('El usuario no tiene fecha de nacimiento registrada');
+      }
+      const age = Math.floor((Date.now() - new Date(target.birthDate).getTime()) / (365.25 * 24 * 3600 * 1000));
+      if (team.minAge !== null && age < team.minAge) {
+        throw new BadRequestException('El usuario no cumple la edad mínima del equipo');
+      }
+      if (team.maxAge !== null && age > team.maxAge) {
+        throw new BadRequestException('El usuario supera la edad máxima del equipo');
+      }
+    }
+
     const member = await this.memberRepo.save(
       this.memberRepo.create({ teamId, userId: targetUserId, position: position ?? null }),
     );

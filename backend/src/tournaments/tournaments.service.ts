@@ -222,6 +222,19 @@ export class TournamentsService {
     if (!team) throw new NotFoundException('Equipo no encontrado.');
     if (team.coachId !== coachId) throw new ForbiddenException('Solo el entrenador puede inscribir al equipo.');
 
+    if (team.sport !== tournament.sport) {
+      throw new BadRequestException('El equipo y el torneo deben ser del mismo deporte');
+    }
+
+    if (tournament.minAge !== null || tournament.maxAge !== null) {
+      if (tournament.minAge !== null && team.maxAge !== null && team.maxAge < tournament.minAge) {
+        throw new BadRequestException('La categoría de edad del equipo no es compatible con este torneo');
+      }
+      if (tournament.maxAge !== null && team.minAge !== null && team.minAge > tournament.maxAge) {
+        throw new BadRequestException('La categoría de edad del equipo no es compatible con este torneo');
+      }
+    }
+
     const existing = await this.tournamentTeamRepo.findOne({ where: { tournamentId, teamId } });
     if (existing) throw new ConflictException('El equipo ya está inscrito en este torneo.');
 

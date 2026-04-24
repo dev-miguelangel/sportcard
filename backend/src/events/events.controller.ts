@@ -41,7 +41,7 @@ export class EventsController {
   }
 
   @Get()
-  findAll(@Query('past') past?: string, @Req() req: Request) {
+  findAll(@Req() req: Request, @Query('past') past?: string) {
     const { id } = req.user as JwtUser;
     if (past === 'true') return this.eventsService.findPublicPast(id);
     return this.eventsService.findPublic(id);
