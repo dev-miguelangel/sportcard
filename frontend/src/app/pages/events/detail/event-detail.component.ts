@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { EventsService, EventResponse } from '../../../core/services/events.service';
-import { ContactsService, ContactUser } from '../../../core/services/contacts.service';
+import { ContactsService, ContactUser, ContactGroup } from '../../../core/services/contacts.service';
 import { SportsService } from '../../../core/services/sports.service';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -66,6 +66,12 @@ export class EventDetailComponent implements OnInit {
   readonly closeSuccess = signal(false);
   readonly showCloseForm = signal(false);
 
+  readonly groups             = signal<ContactGroup[]>([]);
+  readonly groupsLoading      = signal(false);
+  readonly selectedGroupId    = signal<string | null>(null);
+  readonly inviteGroupLoading = signal(false);
+  readonly inviteGroupResult  = signal<{ invited: number; skipped: number } | null>(null);
+
   readonly hasSpots = computed(() => {
     const ev = this.event();
     if (!ev || ev.maxParticipants === null) return true;
@@ -87,6 +93,7 @@ export class EventDetailComponent implements OnInit {
         this.loading.set(false);
         if (this.auth.currentUser()?.id === ev.organizerId) {
           this.loadContacts();
+          this.loadGroups();
         }
       },
       error: () => { this.error.set('No se pudo cargar el evento.'); this.loading.set(false); },
@@ -196,6 +203,35 @@ export class EventDetailComponent implements OnInit {
     this.contactsSvc.getContacts().subscribe({
       next: cs => { this.contacts.set(cs); this.contactsLoading.set(false); },
       error: ()  => this.contactsLoading.set(false),
+    });
+  }
+
+  loadGroups(): void {
+    if (this.groups().length > 0 || this.groupsLoading()) return;
+    this.groupsLoading.set(true);
+    this.contactsSvc.getGroups().subscribe({
+      next: gs => { this.groups.set(gs); this.groupsLoading.set(false); },
+      error: ()  => this.groupsLoading.set(false),
+    });
+  }
+
+  inviteGroup(): void {
+    const ev = this.event();
+    const groupId = this.selectedGroupId();
+    if (!ev || !groupId || this.inviteGroupLoading()) return;
+    this.inviteGroupLoading.set(true);
+    this.inviteGroupResult.set(null);
+
+    this.eventsSvc.inviteGroup(ev.id, groupId).subscribe({
+      next: result => {
+        this.inviteGroupResult.set(result);
+        this.selectedGroupId.set(null);
+        this.inviteGroupLoading.set(false);
+      },
+      error: err => {
+        this.inviteGroupResult.set({ invited: 0, skipped: -1 });
+        this.inviteGroupLoading.set(false);
+      },
     });
   }
 
