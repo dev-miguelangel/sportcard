@@ -44,4 +44,18 @@ export class CreateTournamentDto {
   @IsOptional()
   @IsDateString()
   endDate?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  minAge?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  maxAge?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  allowIndividual?: boolean;
 }

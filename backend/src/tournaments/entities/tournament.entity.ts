@@ -64,6 +64,15 @@ export class Tournament {
   })
   shareToken: string;
 
+  @Column({ name: 'min_age', type: 'int', nullable: true })
+  minAge: number | null;
+
+  @Column({ name: 'max_age', type: 'int', nullable: true })
+  maxAge: number | null;
+
+  @Column({ name: 'allow_individual', default: false })
+  allowIndividual: boolean;
+
   @Column({ name: 'start_date', type: 'date', nullable: true })
   startDate: string | null;
 

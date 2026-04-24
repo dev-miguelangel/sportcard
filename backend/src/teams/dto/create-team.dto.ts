@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, MaxLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsInt, Min, MaxLength } from 'class-validator';
 
 export class CreateTeamDto {
   @IsString()
@@ -13,4 +13,14 @@ export class CreateTeamDto {
   @IsOptional()
   @IsString()
   logoUrl?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  minAge?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  maxAge?: number;
 }

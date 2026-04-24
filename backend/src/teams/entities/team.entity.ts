@@ -29,6 +29,12 @@ export class Team {
   @Column({ name: 'logo_url', nullable: true })
   logoUrl: string | null;
 
+  @Column({ name: 'min_age', type: 'int', nullable: true })
+  minAge: number | null;
+
+  @Column({ name: 'max_age', type: 'int', nullable: true })
+  maxAge: number | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }
