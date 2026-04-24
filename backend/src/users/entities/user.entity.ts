@@ -2,6 +2,9 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -76,6 +79,17 @@ export class User {
 
   @Column({ nullable: true })
   emergencyRelation: string;
+
+  // ── Guardian (tutor for minors) ─────────────────────
+  @Column({ name: 'guardian_id', nullable: true })
+  guardianId: string | null;
+
+  @ManyToOne(() => User, (user: User) => user.minors, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'guardian_id' })
+  guardian: User | null;
+
+  @OneToMany(() => User, (user: User) => user.guardian)
+  minors: User[];
 
   @CreateDateColumn()
   createdAt: Date;
