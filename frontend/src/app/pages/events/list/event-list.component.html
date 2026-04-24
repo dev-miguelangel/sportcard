@@ -50,6 +50,11 @@
               [class]="activeTab() === 'past' ? 'text-brand border-b-2 border-brand' : 'text-neutral-500'">
         Pasados
       </button>
+      <button (click)="switchTab('tournaments')"
+              class="flex-1 py-2.5 text-xs font-bold transition-colors min-h-[40px]"
+              [class]="activeTab() === 'tournaments' ? 'text-brand border-b-2 border-brand' : 'text-neutral-500'">
+        Torneos
+      </button>
     </div>
 
     <!-- Sport chips — solo en Próximos -->
@@ -385,6 +390,110 @@
                   <button (click)="goToDetail(event.id)"
                           class="text-[0.7rem] text-neutral-500 hover:text-neutral-300 transition-colors">
                     Ver detalles →
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+      }
+
+    }
+
+    <!-- ── Pestaña Torneos ── -->
+    @if (activeTab() === 'tournaments') {
+
+      <!-- Loading -->
+      @if (loadingTournaments()) {
+        <div class="flex flex-col gap-3">
+          @for (i of [1,2,3]; track i) {
+            <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden animate-pulse">
+              <div class="h-16 bg-neutral-800"></div>
+              <div class="p-4 flex flex-col gap-2">
+                <div class="h-4 bg-neutral-800 rounded-lg w-2/3"></div>
+                <div class="h-3 bg-neutral-800 rounded-lg w-1/2"></div>
+                <div class="h-3 bg-neutral-800 rounded-lg w-1/3"></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @if (!loadingTournaments()) {
+
+        <!-- Result count -->
+        <p class="text-[0.72rem] text-neutral-500 mb-3">
+          @if (filteredTournaments().length === 0) {
+            Sin resultados
+          } @else if (filteredTournaments().length === 1) {
+            1 torneo
+          } @else {
+            {{ filteredTournaments().length }} torneos
+          }
+        </p>
+
+        <!-- Empty state -->
+        @if (filteredTournaments().length === 0) {
+          <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-10 text-center">
+            <span class="material-symbols-outlined text-neutral-700 mb-4 block" style="font-size:48px">emoji_events</span>
+            <h2 class="font-bold text-neutral-400 mb-2">Sin torneos por ahora</h2>
+            <p class="text-sm text-neutral-600">Los torneos abiertos aparecerán aquí.</p>
+          </div>
+        }
+
+        <!-- Tournament cards -->
+        <div class="flex flex-col gap-3">
+          @for (t of filteredTournaments(); track t.id) {
+            <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
+
+              <!-- Banner -->
+              <div class="h-16 flex items-center justify-center relative"
+                   [style.background]="getBannerGradient(t.sport)">
+                <span class="text-3xl">{{ getSportEmoji(t.sport) }}</span>
+
+                <span class="absolute top-2 left-2.5 text-[0.55rem] font-black tracking-wider uppercase px-2 py-0.5 rounded-full bg-black/30 text-white border border-white/20">
+                  {{ getTournamentFormatLabel(t.format) }}
+                </span>
+
+                <span class="absolute top-2 right-2.5 text-[0.55rem] font-black tracking-wider uppercase px-2 py-0.5 rounded-full border"
+                      [class]="getTournamentStatusClass(t.status)">
+                  {{ getTournamentStatusLabel(t.status) }}
+                </span>
+              </div>
+
+              <!-- Body -->
+              <div class="px-4 pt-3 pb-4 flex flex-col gap-2">
+                <h3 class="font-black text-[0.92rem] tracking-tight leading-snug">{{ t.name }}</h3>
+
+                <div class="flex flex-col gap-1">
+                  @if (t.startDate) {
+                    <div class="flex items-center gap-2 text-[0.72rem] text-neutral-400">
+                      <span class="material-symbols-outlined text-neutral-600 flex-shrink-0" style="font-size:14px">calendar_today</span>
+                      {{ formatTournamentDate(t.startDate) }}
+                      @if (t.endDate) {
+                        <span class="text-neutral-600">→</span>
+                        {{ formatTournamentDate(t.endDate) }}
+                      }
+                    </div>
+                  }
+                  <div class="flex items-center gap-2 text-[0.72rem] text-neutral-400">
+                    <span class="material-symbols-outlined text-neutral-600 flex-shrink-0" style="font-size:14px">shield</span>
+                    {{ t.approvedTeamCount }}{{ t.maxTeams ? '/' + t.maxTeams : '' }} equipos inscritos
+                  </div>
+                  @if (t.allowIndividual) {
+                    <div class="flex items-center gap-2 text-[0.72rem] text-brand">
+                      <span class="material-symbols-outlined flex-shrink-0" style="font-size:14px">person</span>
+                      Permite inscripción individual
+                    </div>
+                  }
+                </div>
+
+                <!-- Footer -->
+                <div class="flex items-center justify-end pt-1">
+                  <button (click)="goToTournament(t.id)"
+                          class="flex items-center gap-1.5 bg-neutral-800 border border-neutral-700 text-neutral-200 text-[0.72rem] font-bold px-4 py-2 rounded-xl min-h-[36px] transition-colors hover:border-neutral-600">
+                    Ver torneo →
                   </button>
                 </div>
               </div>

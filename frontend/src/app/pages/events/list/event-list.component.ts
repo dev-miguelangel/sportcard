@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { EventsService, EventResponse } from '../../../core/services/events.service';
 import { SportsService } from '../../../core/services/sports.service';
+import { TournamentsService, TournamentSummary } from '../../../core/services/tournaments.service';
 import { BottomNavComponent } from '../../../shared/bottom-nav/bottom-nav.component';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -20,10 +21,11 @@ type WhenFilter = 'today' | 'tomorrow' | 'this_week';
   templateUrl: './event-list.component.html',
 })
 export class EventListComponent implements OnInit {
-  private readonly router    = inject(Router);
-  readonly auth              = inject(AuthService);
-  private readonly eventsSvc = inject(EventsService);
-  readonly sportsSvc         = inject(SportsService);
+  private readonly router          = inject(Router);
+  readonly auth                    = inject(AuthService);
+  private readonly eventsSvc       = inject(EventsService);
+  readonly sportsSvc               = inject(SportsService);
+  private readonly tournamentsSvc  = inject(TournamentsService);
 
   // ── State ────────────────────────────────────────────────
   readonly allEvents      = signal<EventResponse[]>([]);
@@ -33,9 +35,11 @@ export class EventListComponent implements OnInit {
   readonly selectedSport  = signal<string | null>(null);
   readonly selectedWhen   = signal<WhenFilter | null>(null);
   readonly withSpots      = signal(false);
-  readonly activeTab      = signal<'upcoming' | 'past'>('upcoming');
-  readonly pastEvents     = signal<EventResponse[]>([]);
-  readonly loadingPast    = signal(false);
+  readonly activeTab           = signal<'upcoming' | 'past' | 'tournaments'>('upcoming');
+  readonly pastEvents          = signal<EventResponse[]>([]);
+  readonly loadingPast         = signal(false);
+  readonly tournaments         = signal<TournamentSummary[]>([]);
+  readonly loadingTournaments  = signal(false);
 
   // ── Sheet state ──────────────────────────────────────────
   readonly sheetEvent     = signal<EventResponse | null>(null);
@@ -93,6 +97,14 @@ export class EventListComponent implements OnInit {
     });
   });
 
+  readonly filteredTournaments = computed(() => {
+    const q = this.searchQuery().toLowerCase().trim();
+    return this.tournaments().filter(t => {
+      if (q && !t.name.toLowerCase().includes(q) && !t.sport.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  });
+
   readonly sheetHasSpots = computed(() => {
     const ev = this.sheetEvent();
     if (!ev) return true;
@@ -128,13 +140,20 @@ export class EventListComponent implements OnInit {
     this.searchQuery.set('');
   }
 
-  switchTab(tab: 'upcoming' | 'past'): void {
+  switchTab(tab: 'upcoming' | 'past' | 'tournaments'): void {
     this.activeTab.set(tab);
     if (tab === 'past' && this.pastEvents().length === 0 && !this.loadingPast()) {
       this.loadingPast.set(true);
       this.eventsSvc.findAllPast().subscribe({
         next: events => { this.pastEvents.set(events); this.loadingPast.set(false); },
         error: ()    => this.loadingPast.set(false),
+      });
+    }
+    if (tab === 'tournaments' && this.tournaments().length === 0 && !this.loadingTournaments()) {
+      this.loadingTournaments.set(true);
+      this.tournamentsSvc.findPublic().subscribe({
+        next: ts => { this.tournaments.set(ts); this.loadingTournaments.set(false); },
+        error: ()  => this.loadingTournaments.set(false),
       });
     }
   }
@@ -264,6 +283,41 @@ export class EventListComponent implements OnInit {
   spotsLeft(event: EventResponse): number | null {
     if (event.maxParticipants === null) return null;
     return Math.max(0, event.maxParticipants - event.participantCount);
+  }
+
+  goToTournament(id: string): void {
+    this.router.navigate(['/tournaments', id]);
+  }
+
+  getTournamentFormatLabel(format: string): string {
+    const map: Record<string, string> = {
+      cup: 'Copa', league: 'Liga',
+      groups_playoffs: 'Grupos + Playoffs', points: 'Puntos',
+    };
+    return map[format] ?? format;
+  }
+
+  getTournamentStatusClass(status: string): string {
+    const map: Record<string, string> = {
+      open:        'text-brand bg-brand/10 border-brand/30',
+      in_progress: 'text-blue-400 bg-blue-400/10 border-blue-400/30',
+      finished:    'text-neutral-400 bg-neutral-800 border-neutral-700',
+      draft:       'text-neutral-500 bg-neutral-800 border-neutral-700',
+    };
+    return map[status] ?? map['draft'];
+  }
+
+  getTournamentStatusLabel(status: string): string {
+    const map: Record<string, string> = {
+      open: 'Abierto', in_progress: 'En progreso',
+      finished: 'Finalizado', draft: 'Borrador',
+    };
+    return map[status] ?? status;
+  }
+
+  formatTournamentDate(date: string | null): string {
+    if (!date) return '—';
+    return new Date(date).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
   private updateEventStatus(

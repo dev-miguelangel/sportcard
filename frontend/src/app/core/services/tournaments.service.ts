@@ -3,6 +3,19 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+export interface TournamentSummary {
+  id: string;
+  name: string;
+  sport: string;
+  format: 'cup' | 'league' | 'groups_playoffs' | 'points';
+  status: 'draft' | 'open' | 'in_progress' | 'finished';
+  startDate: string | null;
+  endDate: string | null;
+  approvedTeamCount: number;
+  maxTeams: number | null;
+  allowIndividual: boolean;
+}
+
 export interface TournamentTeamItem {
   registrationId: string;
   teamId: string;
@@ -77,6 +90,10 @@ export interface BracketRound {
 @Injectable({ providedIn: 'root' })
 export class TournamentsService {
   private readonly http = inject(HttpClient);
+
+  findPublic(): Observable<TournamentSummary[]> {
+    return this.http.get<TournamentSummary[]>(`${environment.apiUrl}/tournaments`);
+  }
 
   getPublicTournament(id: string): Observable<TournamentPublicDetail> {
     return this.http.get<TournamentPublicDetail>(`${environment.apiUrl}/tournaments/p/${id}`);
