@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Tournament, TournamentFormat, TournamentStatus } from './entities/tournament.entity';
 import { TournamentTeam, TournamentTeamStatus } from './entities/tournament-team.entity';
+import { TournamentParticipant, TournamentParticipantStatus } from './entities/tournament-participant.entity';
 import { Team } from '../teams/entities/team.entity';
 import { TeamMember } from '../teams/entities/team-member.entity';
 import { Match, MatchStatus } from '../fixtures/entities/match.entity';
@@ -67,11 +68,12 @@ export interface TournamentPublicDto {
 @Injectable()
 export class TournamentsService {
   constructor(
-    @InjectRepository(Tournament)     private readonly tournamentRepo:     Repository<Tournament>,
-    @InjectRepository(TournamentTeam) private readonly tournamentTeamRepo: Repository<TournamentTeam>,
-    @InjectRepository(Team)           private readonly teamRepo:           Repository<Team>,
-    @InjectRepository(TeamMember)     private readonly memberRepo:         Repository<TeamMember>,
-    @InjectRepository(Match)          private readonly matchRepo:          Repository<Match>,
+    @InjectRepository(Tournament)            private readonly tournamentRepo:            Repository<Tournament>,
+    @InjectRepository(TournamentTeam)        private readonly tournamentTeamRepo:        Repository<TournamentTeam>,
+    @InjectRepository(TournamentParticipant) private readonly participantRepo:           Repository<TournamentParticipant>,
+    @InjectRepository(Team)                  private readonly teamRepo:                  Repository<Team>,
+    @InjectRepository(TeamMember)            private readonly memberRepo:                Repository<TeamMember>,
+    @InjectRepository(Match)                 private readonly matchRepo:                 Repository<Match>,
     private readonly notifSvc: NotificationsService,
   ) {}
 
@@ -273,6 +275,29 @@ export class TournamentsService {
       groupName:    null,
       registeredAt: reg.registeredAt,
     };
+  }
+
+  async joinIndividual(tournamentId: string, userId: string): Promise<TournamentParticipant> {
+    const tournament = await this.tournamentRepo.findOne({ where: { id: tournamentId } });
+    if (!tournament) throw new NotFoundException('Torneo no encontrado.');
+
+    if (!tournament.allowIndividual) {
+      throw new BadRequestException('Este torneo no admite inscripciones individuales');
+    }
+    if (tournament.status !== TournamentStatus.OPEN) {
+      throw new BadRequestException('El torneo no está abierto');
+    }
+
+    const existing = await this.participantRepo.findOne({ where: { tournamentId, userId } });
+    if (existing) throw new ConflictException('Ya estás inscrito en este torneo.');
+
+    const status = tournament.requiresApproval
+      ? TournamentParticipantStatus.PENDING
+      : TournamentParticipantStatus.APPROVED;
+
+    return this.participantRepo.save(
+      this.participantRepo.create({ tournamentId, userId, status }),
+    );
   }
 
   async updateRegistration(

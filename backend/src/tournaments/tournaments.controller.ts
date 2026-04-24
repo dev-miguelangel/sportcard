@@ -60,6 +60,13 @@ export class TournamentsController {
     return this.tournamentsSvc.registerTeam(tournamentId, body.teamId, id);
   }
 
+  @Post(':id/join')
+  @HttpCode(201)
+  joinIndividual(@Param('id') id: string, @Req() req: Request) {
+    const { id: userId } = req.user as JwtUser;
+    return this.tournamentsSvc.joinIndividual(id, userId);
+  }
+
   @Patch(':id/teams/:teamId')
   updateRegistration(
     @Param('id') tournamentId: string,

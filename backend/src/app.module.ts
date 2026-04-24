@@ -27,6 +27,7 @@ import { Team } from './teams/entities/team.entity';
 import { TeamMember } from './teams/entities/team-member.entity';
 import { Tournament } from './tournaments/entities/tournament.entity';
 import { TournamentTeam } from './tournaments/entities/tournament-team.entity';
+import { TournamentParticipant } from './tournaments/entities/tournament-participant.entity';
 import { Match } from './fixtures/entities/match.entity';
 import { Activity } from './activities/entities/activity.entity';
 import { Sport } from './sports/entities/sport.entity';
@@ -51,7 +52,7 @@ import { Sport } from './sports/entities/sport.entity';
         username: config.get('DATABASE_USER', 'sportcard'),
         password: config.get('DATABASE_PASSWORD', 'sportcard_dev'),
         database: config.get('DATABASE_NAME', 'sportcard'),
-        entities: [User, Event, EventParticipant, Notification, Contact, ContactGroup, ContactGroupMember, Team, TeamMember, Tournament, TournamentTeam, Match, Activity, Sport],
+        entities: [User, Event, EventParticipant, Notification, Contact, ContactGroup, ContactGroupMember, Team, TeamMember, Tournament, TournamentTeam, TournamentParticipant, Match, Activity, Sport],
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
         synchronize: false,
         migrationsRun: true,
