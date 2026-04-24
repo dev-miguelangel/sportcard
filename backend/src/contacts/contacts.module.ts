@@ -11,7 +11,7 @@ import { ContactGroupsController } from './contact-groups.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Contact, ContactGroup, ContactGroupMember, User])],
-  controllers: [ContactsController, ContactGroupsController],
+  controllers: [ContactGroupsController, ContactsController],
   providers: [ContactsService, ContactGroupsService],
   exports: [ContactGroupsService],
 })
