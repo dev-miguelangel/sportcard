@@ -17,6 +17,13 @@ export enum EventStatus {
   FINISHED = 'finished',
 }
 
+export enum EventGender {
+  MALE   = 'male',
+  FEMALE = 'female',
+  MIXED  = 'mixed',
+  OPEN   = 'open',
+}
+
 @Entity('events')
 export class Event {
   @PrimaryGeneratedColumn('uuid')
@@ -51,6 +58,15 @@ export class Event {
 
   @Column({ name: 'requires_approval', default: false })
   requiresApproval: boolean;
+
+  @Column({ name: 'min_age', type: 'int', nullable: true })
+  minAge: number | null;
+
+  @Column({ name: 'max_age', type: 'int', nullable: true })
+  maxAge: number | null;
+
+  @Column({ type: 'enum', enum: EventGender, nullable: true })
+  gender: EventGender | null;
 
   @Column({ name: 'closing_notes', type: 'text', nullable: true })
   closingNotes: string | null;

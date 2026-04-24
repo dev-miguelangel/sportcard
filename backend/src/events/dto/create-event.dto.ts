@@ -1,6 +1,7 @@
 import {
   IsBoolean,
   IsDateString,
+  IsEnum,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -8,6 +9,7 @@ import {
   Max,
   Min,
 } from 'class-validator';
+import { EventGender } from '../entities/event.entity';
 
 export class CreateEventDto {
   @IsString()
@@ -49,4 +51,18 @@ export class CreateEventDto {
   @IsBoolean()
   @IsOptional()
   requiresApproval?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  minAge?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  maxAge?: number;
+
+  @IsOptional()
+  @IsEnum(EventGender)
+  gender?: EventGender;
 }
