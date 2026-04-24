@@ -123,6 +123,26 @@ export class NotificationsService {
     return this.repo.save(n);
   }
 
+  async createBulkTournamentRegistered(
+    userIds: string[],
+    tournamentId: string,
+    tournamentName: string,
+    teamId: string,
+    teamName: string,
+  ): Promise<void> {
+    if (userIds.length === 0) return;
+    const notifications = userIds.map(userId =>
+      this.repo.create({
+        userId,
+        type: NotificationType.TOURNAMENT_UPDATE,
+        title: 'Tu equipo se inscribió a un torneo',
+        body: `El equipo ${teamName} fue inscrito al torneo ${tournamentName}.`,
+        metadata: { tournamentId, teamId },
+      }),
+    );
+    await this.repo.save(notifications);
+  }
+
   async markRead(id: string, userId: string): Promise<Notification> {
     const n = await this.repo.findOne({ where: { id } });
     if (!n) throw new NotFoundException('Notificación no encontrada');

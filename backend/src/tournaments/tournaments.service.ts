@@ -257,7 +257,19 @@ export class TournamentsService {
       this.tournamentTeamRepo.create({ tournamentId, teamId, status }),
     );
 
-    const memberCount = await this.memberRepo.count({ where: { teamId } });
+    const members = await this.memberRepo.find({ where: { teamId, status: 'confirmed' } });
+    const memberCount = members.length;
+
+    if (status === TournamentTeamStatus.APPROVED) {
+      const memberIds = members.map(m => m.userId);
+      await this.notifSvc.createBulkTournamentRegistered(
+        memberIds,
+        tournament.id,
+        tournament.name,
+        team.id,
+        team.name,
+      );
+    }
 
     return {
       registrationId: reg.id,
