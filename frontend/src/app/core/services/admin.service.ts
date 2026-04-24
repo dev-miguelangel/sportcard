@@ -57,6 +57,23 @@ export interface PagedResult<T> {
   limit: number;
 }
 
+export interface AdminSport {
+  id: number;
+  name: string;
+  icon: string;
+  emoji: string;
+  gradient: string;
+  isActive: boolean;
+  order: number;
+}
+
+export interface PagedSports {
+  sports: AdminSport[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 const BASE = `${environment.apiUrl}/admin`;
 
 @Injectable({ providedIn: 'root' })
@@ -119,5 +136,24 @@ export class AdminService {
     return this.http.get<PagedResult<AdminEvent>>(`${BASE}/events`, {
       params: { page: '1', limit: '100' },
     });
+  }
+
+  // Sports
+  getSports(page = 1, limit = 20, search = ''): Observable<PagedSports> {
+    const params: Record<string, string> = { page: String(page), limit: String(limit) };
+    if (search) params['search'] = search;
+    return this.http.get<PagedSports>(`${BASE}/sports`, { params });
+  }
+
+  createSport(data: Omit<AdminSport, 'id'>): Observable<AdminSport> {
+    return this.http.post<AdminSport>(`${BASE}/sports`, data);
+  }
+
+  updateSport(id: number, data: Partial<Omit<AdminSport, 'id'>>): Observable<AdminSport> {
+    return this.http.patch<AdminSport>(`${BASE}/sports/${id}`, data);
+  }
+
+  deleteSport(id: number): Observable<void> {
+    return this.http.delete<void>(`${BASE}/sports/${id}`);
   }
 }

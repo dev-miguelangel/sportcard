@@ -135,7 +135,7 @@
       @if (showSportPanel()) {
         <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-3">
           <div class="grid grid-cols-3 gap-1.5">
-            @for (sport of sports; track sport.name) {
+            @for (sport of sportsSvc.sports(); track sport.name) {
               <button (click)="selectSport(sport.name)"
                       class="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl text-center transition-colors min-h-[60px]"
                       [class]="selectedSport() === sport.name

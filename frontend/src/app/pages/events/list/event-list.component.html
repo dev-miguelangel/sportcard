@@ -41,7 +41,7 @@
     <!-- Sport chips -->
     <div class="max-w-lg mx-auto flex gap-2 px-4 pb-2 overflow-x-auto [scrollbar-width:none] [-webkit-overflow-scrolling:touch]"
          style="-ms-overflow-style:none;">
-      @for (sport of filterSports; track sport.name) {
+      @for (sport of sportsSvc.sports(); track sport.name) {
         <button (click)="selectSport(sport.name)"
                 class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.7rem] font-semibold flex-shrink-0 border transition-colors min-h-[32px]"
                 [class]="selectedSport() === sport.name
@@ -270,6 +270,14 @@
 
     }
   </main>
+
+  <!-- Floating create-event button -->
+  <button (click)="goToCreate()"
+          class="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1rem)] right-4 z-30
+                 w-14 h-14 bg-brand rounded-2xl flex items-center justify-center
+                 shadow-xl shadow-brand/40">
+    <span class="material-symbols-outlined text-neutral-950 font-black" style="font-size:28px">add</span>
+  </button>
 
   <app-bottom-nav activeTab="events" />
 

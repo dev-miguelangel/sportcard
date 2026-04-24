@@ -22,7 +22,8 @@
         {id:'users',         label:'Usuarios',        icon:'group'},
         {id:'events',        label:'Eventos',          icon:'event'},
         {id:'stats',         label:'Estadísticas',     icon:'bar_chart'},
-        {id:'notifications', label:'Notificaciones',   icon:'notifications'}
+        {id:'notifications', label:'Notificaciones',   icon:'notifications'},
+        {id:'sports',        label:'Deportes',          icon:'sports_soccer'}
       ]; track tab.id) {
         <button (click)="setTab($any(tab.id))"
                 class="flex items-center gap-1.5 px-4 py-2.5 text-[0.72rem] font-bold border-b-2 transition-colors flex-1 justify-center"
@@ -441,5 +442,291 @@
       </div>
     }
 
+    <!-- ══════════════════════════════════════════
+         TAB: DEPORTES
+    ══════════════════════════════════════════════ -->
+    @if (activeTab() === 'sports') {
+      <div class="flex flex-col gap-4">
+
+        <!-- Search + New button -->
+        <div class="flex items-center gap-2">
+          <div class="flex-1 flex items-center gap-2 bg-neutral-900 border border-neutral-800 rounded-xl px-3 min-h-[44px]
+                      focus-within:border-neutral-600 transition-colors">
+            <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">search</span>
+            <input type="search"
+                   placeholder="Buscar deporte..."
+                   [value]="sportsSearch()"
+                   (input)="setSportsSearch($any($event.target).value)"
+                   class="flex-1 bg-transparent text-sm placeholder:text-neutral-600 focus:outline-none py-2" />
+          </div>
+          <button (click)="openCreateSport()"
+                  class="flex items-center gap-1.5 bg-brand text-neutral-950 font-black rounded-xl px-4 min-h-[44px] text-sm flex-shrink-0">
+            <span class="material-symbols-outlined" style="font-size:18px">add</span>
+            <span class="hidden sm:inline">Nuevo</span>
+          </button>
+        </div>
+
+        <p class="text-[0.72rem] text-neutral-500">
+          {{ sportsTotal() }} deporte{{ sportsTotal() === 1 ? '' : 's' }} en total
+        </p>
+
+        <!-- Loading -->
+        @if (sportsLoading()) {
+          <div class="flex flex-col gap-2">
+            @for (i of [1,2,3,4,5]; track i) {
+              <div class="h-16 bg-neutral-900 border border-neutral-800 rounded-xl animate-pulse"></div>
+            }
+          </div>
+        }
+
+        <!-- List -->
+        @if (!sportsLoading()) {
+
+          @if (sports().length === 0) {
+            <div class="flex flex-col items-center justify-center gap-3 py-16 text-center">
+              <span class="material-symbols-outlined text-neutral-700" style="font-size:40px">sports_soccer</span>
+              <p class="text-sm font-bold text-neutral-500">Sin deportes</p>
+              <p class="text-xs text-neutral-700">Crea el primero con el botón "Nuevo"</p>
+            </div>
+          }
+
+          <div class="flex flex-col gap-2">
+            @for (sport of sports(); track sport.id) {
+              <div class="bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 flex items-center gap-3">
+
+                <!-- Icon chip with gradient background -->
+                <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center"
+                     [style.background]="sport.gradient">
+                  <span class="material-symbols-outlined text-white" style="font-size:20px">{{ sport.icon }}</span>
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <p class="text-sm font-bold">{{ sport.name }}</p>
+                    <span class="text-[0.55rem] font-black px-1.5 py-0.5 rounded-full border"
+                          [class]="sport.isActive
+                            ? 'text-brand bg-brand/10 border-brand/30'
+                            : 'text-neutral-500 bg-neutral-800 border-neutral-700'">
+                      {{ sport.isActive ? 'ACTIVO' : 'INACTIVO' }}
+                    </span>
+                  </div>
+                  <p class="text-[0.65rem] text-neutral-500 truncate">
+                    {{ sport.emoji }} · <span class="font-mono">{{ sport.icon }}</span> · orden {{ sport.order }}
+                  </p>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                  <button (click)="openEditSport(sport)"
+                          class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-800 border border-neutral-700 hover:bg-neutral-700 transition-colors">
+                    <span class="material-symbols-outlined text-neutral-400" style="font-size:16px">edit</span>
+                  </button>
+                  <button (click)="confirmDeleteSport(sport.id)"
+                          class="w-9 h-9 flex items-center justify-center rounded-xl bg-red-400/10 border border-red-400/25 hover:bg-red-400/20 transition-colors">
+                    <span class="material-symbols-outlined text-red-400" style="font-size:16px">delete</span>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Pagination -->
+          @if (sportsTotal() > 20) {
+            <div class="flex items-center justify-between pt-2">
+              <button (click)="sportsPrevPage()" [disabled]="sportsPage() <= 1"
+                      class="flex items-center gap-1 text-[0.72rem] font-bold text-neutral-400 disabled:text-neutral-700 disabled:cursor-not-allowed min-h-[36px] px-3">
+                <span class="material-symbols-outlined" style="font-size:16px">chevron_left</span>
+                Anterior
+              </button>
+              <span class="text-[0.72rem] text-neutral-600">Pág. {{ sportsPage() }}</span>
+              <button (click)="sportsNextPage()" [disabled]="!sportsHasNext()"
+                      class="flex items-center gap-1 text-[0.72rem] font-bold text-neutral-400 disabled:text-neutral-700 disabled:cursor-not-allowed min-h-[36px] px-3">
+                Siguiente
+                <span class="material-symbols-outlined" style="font-size:16px">chevron_right</span>
+              </button>
+            </div>
+          }
+        }
+
+      </div>
+    }
+
   </main>
+
+  <!-- ══════════════════════════════════════════
+       MODAL: CREAR / EDITAR DEPORTE
+  ══════════════════════════════════════════════ -->
+  @if (showSportModal()) {
+    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-0 sm:p-4"
+         (click)="closeSportModal()">
+      <div class="bg-neutral-900 border border-neutral-800 rounded-t-2xl sm:rounded-2xl p-5 w-full sm:max-w-sm max-h-[90vh] overflow-y-auto"
+           (click)="$event.stopPropagation()">
+
+        <!-- Title -->
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="text-base font-black tracking-tight">
+            {{ editingSportId() ? 'Editar deporte' : 'Nuevo deporte' }}
+          </h2>
+          <button (click)="closeSportModal()"
+                  class="w-8 h-8 flex items-center justify-center rounded-xl bg-neutral-800 border border-neutral-700">
+            <span class="material-symbols-outlined text-neutral-400" style="font-size:16px">close</span>
+          </button>
+        </div>
+
+        <!-- Form -->
+        <div class="flex flex-col gap-4">
+
+          <!-- Name -->
+          <div>
+            <label class="block text-[0.7rem] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Nombre</label>
+            <input type="text"
+                   placeholder="ej: Squash"
+                   maxlength="50"
+                   [value]="sportFormName()"
+                   (input)="sportFormName.set($any($event.target).value)"
+                   class="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors min-h-[44px]" />
+          </div>
+
+          <!-- Icon selector -->
+          <div>
+            <label class="block text-[0.7rem] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Icono</label>
+            <button (click)="toggleIconPicker()"
+                    class="w-full flex items-center gap-3 bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 min-h-[44px] text-left transition-colors"
+                    [class.border-brand]="iconPickerOpen()">
+              @if (sportFormIcon()) {
+                <div class="w-8 h-8 rounded-lg bg-brand/15 border border-brand/30 flex items-center justify-center flex-shrink-0">
+                  <span class="material-symbols-outlined text-brand" style="font-size:18px">{{ sportFormIcon() }}</span>
+                </div>
+                <span class="text-sm font-mono text-neutral-300 flex-1 truncate">{{ sportFormIcon() }}</span>
+              } @else {
+                <div class="w-8 h-8 rounded-lg bg-neutral-700 border border-neutral-600 flex items-center justify-center flex-shrink-0">
+                  <span class="material-symbols-outlined text-neutral-500" style="font-size:18px">help_outline</span>
+                </div>
+                <span class="text-sm text-neutral-600 flex-1">Sin icono seleccionado</span>
+              }
+              <span class="text-[0.7rem] font-bold text-brand bg-brand/10 px-2 py-1 rounded-lg flex-shrink-0">
+                {{ iconPickerOpen() ? 'Cerrar' : 'Elegir' }}
+              </span>
+            </button>
+
+            <!-- Icon picker panel -->
+            @if (iconPickerOpen()) {
+              <div class="mt-2 bg-neutral-950 border border-neutral-800 rounded-xl p-3">
+                <div class="flex items-center gap-2 bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-2 mb-3
+                            focus-within:border-neutral-500 transition-colors">
+                  <span class="material-symbols-outlined text-neutral-500" style="font-size:16px">search</span>
+                  <input type="search"
+                         placeholder="Buscar icono..."
+                         [value]="iconSearch()"
+                         (input)="iconSearch.set($any($event.target).value)"
+                         class="flex-1 bg-transparent text-sm placeholder:text-neutral-600 focus:outline-none" />
+                </div>
+
+                @if (filteredIcons().length === 0) {
+                  <p class="text-center text-xs text-neutral-600 py-4">Sin resultados para "{{ iconSearch() }}"</p>
+                }
+
+                <div class="grid grid-cols-6 gap-1.5 max-h-[160px] overflow-y-auto">
+                  @for (icon of filteredIcons(); track icon) {
+                    <button (click)="selectIcon(icon)"
+                            class="w-10 h-10 flex items-center justify-center rounded-xl border transition-all"
+                            [class]="sportFormIcon() === icon
+                              ? 'bg-brand/15 border-brand/50'
+                              : 'bg-neutral-900 border-neutral-800 hover:bg-neutral-800 hover:border-neutral-700'">
+                      <span class="material-symbols-outlined"
+                            [class]="sportFormIcon() === icon ? 'text-brand' : 'text-neutral-400'"
+                            style="font-size:18px">{{ icon }}</span>
+                    </button>
+                  }
+                </div>
+                <p class="text-[0.65rem] text-neutral-700 text-center mt-2">
+                  {{ filteredIcons().length }} iconos · Material Symbols
+                </p>
+              </div>
+            }
+          </div>
+
+          <!-- Emoji + Order -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[0.7rem] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Emoji</label>
+              <input type="text"
+                     placeholder="⚽"
+                     maxlength="4"
+                     [value]="sportFormEmoji()"
+                     (input)="sportFormEmoji.set($any($event.target).value)"
+                     class="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-xl text-center placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors min-h-[44px]" />
+            </div>
+            <div>
+              <label class="block text-[0.7rem] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Orden</label>
+              <input type="number"
+                     min="0"
+                     [value]="sportFormOrder()"
+                     (input)="sportFormOrder.set(+$any($event.target).value)"
+                     class="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-neutral-500 transition-colors min-h-[44px] [color-scheme:dark]" />
+            </div>
+          </div>
+
+          <!-- Gradient -->
+          <div>
+            <label class="block text-[0.7rem] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Gradient CSS</label>
+            <input type="text"
+                   placeholder="linear-gradient(135deg,#003d20,#006b35)"
+                   [value]="sportFormGradient()"
+                   (input)="sportFormGradient.set($any($event.target).value)"
+                   class="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors min-h-[44px]" />
+            @if (sportFormGradient()) {
+              <div class="h-3 rounded-full mt-1.5" [style.background]="sportFormGradient()"></div>
+            }
+          </div>
+
+          <!-- Active toggle -->
+          <div class="flex items-center justify-between py-1">
+            <span class="text-sm font-semibold text-neutral-300">Activo</span>
+            <button (click)="sportFormIsActive.set(!sportFormIsActive())"
+                    class="relative w-12 h-6 rounded-full transition-colors flex-shrink-0"
+                    [class]="sportFormIsActive() ? 'bg-brand' : 'bg-neutral-700'">
+              <span class="absolute top-1 w-4 h-4 bg-black rounded-full shadow transition-all"
+                    [class]="sportFormIsActive() ? 'left-7' : 'left-1'"></span>
+            </button>
+          </div>
+
+          <!-- Feedback -->
+          @if (sportSuccess()) {
+            <div class="flex items-center gap-2 bg-brand/10 border border-brand/30 rounded-xl px-4 py-3 text-sm text-brand">
+              <span class="material-symbols-outlined" style="font-size:18px">check_circle</span>
+              {{ sportSuccess() }}
+            </div>
+          }
+          @if (sportError()) {
+            <div class="flex items-center gap-2 bg-red-950/50 border border-red-800/50 rounded-xl px-4 py-3 text-sm text-red-400">
+              <span class="material-symbols-outlined" style="font-size:18px">error</span>
+              {{ sportError() }}
+            </div>
+          }
+
+          <!-- Actions -->
+          <div class="flex gap-2 pt-1">
+            <button (click)="closeSportModal()"
+                    class="flex-1 text-sm font-bold text-neutral-400 bg-neutral-800 border border-neutral-700 rounded-xl min-h-[48px] hover:bg-neutral-700 transition-colors">
+              Cancelar
+            </button>
+            <button (click)="saveSport()"
+                    [disabled]="!sportFormName().trim() || !sportFormIcon() || sportSaving()"
+                    class="flex-1 flex items-center justify-center gap-2 bg-brand text-neutral-950 font-black rounded-xl min-h-[48px] text-sm transition-opacity disabled:opacity-40">
+              @if (sportSaving()) {
+                <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+              } @else {
+                <span class="material-symbols-outlined" style="font-size:18px">save</span>
+              }
+              Guardar
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  }
+
 </div>

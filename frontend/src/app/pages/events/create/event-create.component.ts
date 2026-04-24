@@ -1,24 +1,7 @@
-import { Component, inject, signal, computed, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, signal, computed, AfterViewInit, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { EventsService } from '../../../core/services/events.service';
-
-export const SPORTS_WITH_EMOJI: { name: string; emoji: string }[] = [
-  { name: 'Fútbol', emoji: '⚽' },
-  { name: 'Fútbol 7', emoji: '🏃' },
-  { name: 'Básquetbol', emoji: '🏀' },
-  { name: 'Tenis', emoji: '🎾' },
-  { name: 'Running', emoji: '🏃' },
-  { name: 'Ciclismo', emoji: '🚴' },
-  { name: 'Natación', emoji: '🏊' },
-  { name: 'Balonmano', emoji: '🤾' },
-  { name: 'Trekking', emoji: '🥾' },
-  { name: 'Escalada', emoji: '🧗' },
-  { name: 'Voleibol', emoji: '🏐' },
-  { name: 'Pádel', emoji: '🏓' },
-  { name: 'Rugby', emoji: '🏉' },
-  { name: 'Crossfit', emoji: '💪' },
-  { name: 'Yoga', emoji: '🧘' },
-];
+import { SportsService } from '../../../core/services/sports.service';
 
 export const EVENT_TYPES: { value: string; label: string; icon: string }[] = [
   { value: 'friendly',   label: 'Partido amistoso', icon: 'sports' },
@@ -35,13 +18,13 @@ export const EVENT_TYPES: { value: string; label: string; icon: string }[] = [
   imports: [],
   templateUrl: './event-create.component.html',
 })
-export class EventCreateComponent implements AfterViewInit {
+export class EventCreateComponent implements AfterViewInit, OnInit {
   private readonly router = inject(Router);
   private readonly eventsService = inject(EventsService);
+  readonly sportsSvc = inject(SportsService);
 
   @ViewChild('titleInput') titleInput!: ElementRef<HTMLInputElement>;
 
-  readonly sports = SPORTS_WITH_EMOJI;
   readonly eventTypes = EVENT_TYPES;
 
   // ── Required fields ──────────────────────────────────────
@@ -69,7 +52,7 @@ export class EventCreateComponent implements AfterViewInit {
   // ── Derived ──────────────────────────────────────────────
   readonly sportEmoji = computed(() => {
     const s = this.selectedSport();
-    return s ? (this.sports.find(x => x.name === s)?.emoji ?? '🏅') : '🏅';
+    return s ? this.sportsSvc.getEmoji(s) : '🏅';
   });
 
   readonly selectedTypeLabel = computed(() => {
@@ -101,6 +84,10 @@ export class EventCreateComponent implements AfterViewInit {
   );
 
   readonly canPublish = computed(() => this.requiredCompleted() === 6);
+
+  ngOnInit(): void {
+    this.sportsSvc.load();
+  }
 
   ngAfterViewInit(): void {
     setTimeout(() => this.titleInput?.nativeElement.focus(), 100);
