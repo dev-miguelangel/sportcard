@@ -13,6 +13,7 @@ import { Tournament } from './tournaments/entities/tournament.entity';
 import { TournamentTeam } from './tournaments/entities/tournament-team.entity';
 import { Match } from './fixtures/entities/match.entity';
 import { Activity } from './activities/entities/activity.entity';
+import { Sport } from './sports/entities/sport.entity';
 
 // Load .env from project root (one level above backend/)
 config({ path: resolve(__dirname, '../../.env') });
@@ -24,6 +25,6 @@ export const AppDataSource = new DataSource({
   username: process.env.DATABASE_USER ?? 'sportcard',
   password: process.env.DATABASE_PASSWORD ?? 'sportcard_dev',
   database: process.env.DATABASE_NAME ?? 'sportcard',
-  entities: [User, Event, EventParticipant, Notification, Contact, Team, TeamMember, Tournament, TournamentTeam, Match, Activity],
+  entities: [User, Event, EventParticipant, Notification, Contact, Team, TeamMember, Tournament, TournamentTeam, Match, Activity, Sport],
   migrations: ['src/migrations/*.ts'],
 });
