@@ -25,26 +25,42 @@
       </div>
     </div>
 
-    <!-- Próximos eventos -->
+    <!-- Mi actividad -->
     <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
 
       <!-- Header -->
-      <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
+      <div class="flex items-center justify-between px-4 py-3">
         <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-brand" style="font-size:18px">event_upcoming</span>
-          <h2 class="text-sm font-black tracking-tight">
-            {{ hasUpcoming() ? 'Próximos eventos' : 'Mis eventos' }}
-          </h2>
+          <span class="material-symbols-outlined text-brand" style="font-size:18px">timeline</span>
+          <h2 class="text-sm font-black tracking-tight">Mi actividad</h2>
         </div>
         <button (click)="goToEvents()"
                 class="text-[0.72rem] font-bold text-brand flex items-center gap-1 min-h-[36px]">
-          Ver todos
+          Explorar
           <span class="material-symbols-outlined" style="font-size:14px">chevron_right</span>
         </button>
       </div>
 
+      <!-- Tabs -->
+      <div class="flex border-y border-neutral-800">
+        <button (click)="setActiveTab('upcoming')"
+                class="flex-1 py-2.5 text-xs font-bold transition-colors min-h-[40px]"
+                [class]="activeTimelineTab() === 'upcoming'
+                  ? 'text-brand border-b-2 border-brand'
+                  : 'text-neutral-500'">
+          Próximos
+        </button>
+        <button (click)="setActiveTab('past')"
+                class="flex-1 py-2.5 text-xs font-bold transition-colors min-h-[40px]"
+                [class]="activeTimelineTab() === 'past'
+                  ? 'text-brand border-b-2 border-brand'
+                  : 'text-neutral-500'">
+          Pasados
+        </button>
+      </div>
+
       <!-- Loading skeleton -->
-      @if (loadingEvents()) {
+      @if (loadingTimeline()) {
         <div class="divide-y divide-neutral-800">
           @for (i of [1, 2, 3]; track i) {
             <div class="flex items-center gap-3 px-4 py-3 animate-pulse">
@@ -58,90 +74,187 @@
         </div>
       }
 
-      <!-- Events list -->
-      @if (!loadingEvents()) {
+      <!-- Content -->
+      @if (!loadingTimeline()) {
 
-        @if (upcomingEvents().length === 0) {
-          <!-- Empty state inside card -->
-          <div class="px-4 py-8 flex flex-col items-center text-center">
-            <span class="material-symbols-outlined text-neutral-700 mb-3" style="font-size:36px">calendar_month</span>
-            <p class="text-sm font-semibold text-neutral-400 mb-1">Sin eventos próximos</p>
-            <p class="text-xs text-neutral-600 mb-5">Crea uno o únete a un evento existente.</p>
-            <div class="flex gap-3">
+        <!-- ── Próximos ── -->
+        @if (activeTimelineTab() === 'upcoming') {
+
+          @if (upcomingItems().length === 0) {
+            <div class="px-4 py-8 flex flex-col items-center text-center">
+              <span class="material-symbols-outlined text-neutral-700 mb-3" style="font-size:36px">calendar_month</span>
+              <p class="text-sm font-semibold text-neutral-400 mb-1">No tienes eventos ni actividades próximas</p>
+              <p class="text-xs text-neutral-600 mb-5">Crea un evento o únete a uno existente.</p>
+              <div class="flex gap-3">
+                <button (click)="goToCreateEvent()"
+                        class="flex items-center gap-1.5 bg-brand text-neutral-950 text-xs font-black px-4 py-2.5 rounded-xl min-h-[40px]">
+                  <span class="material-symbols-outlined" style="font-size:16px">add</span>
+                  Crear evento
+                </button>
+                <button (click)="goToEvents()"
+                        class="flex items-center gap-1.5 bg-neutral-800 text-neutral-300 text-xs font-bold px-4 py-2.5 rounded-xl border border-neutral-700 min-h-[40px]">
+                  <span class="material-symbols-outlined" style="font-size:16px">search</span>
+                  Explorar
+                </button>
+              </div>
+            </div>
+          }
+
+          @if (upcomingItems().length > 0) {
+            <div class="divide-y divide-neutral-800">
+              @for (item of upcomingItems(); track item.data.id) {
+
+                @if (item.kind === 'event') {
+                  <button (click)="goToEvent(item.data.id)"
+                          class="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-neutral-800/40 transition-colors">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-xl"
+                         [style.background]="getBannerGradient(item.data.sport)">
+                      {{ getSportEmoji(item.data.sport) }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-bold truncate">{{ item.data.title }}</p>
+                      <div class="flex items-center gap-3 mt-0.5">
+                        <span class="flex items-center gap-1 text-[0.65rem]"
+                              [class]="isToday(item.data.startDatetime) ? 'text-brand font-semibold' : 'text-neutral-500'">
+                          <span class="material-symbols-outlined" style="font-size:11px">schedule</span>
+                          {{ formatDate(item.data.startDatetime) }}
+                        </span>
+                        <span class="flex items-center gap-1 text-[0.65rem] text-neutral-500 truncate">
+                          <span class="material-symbols-outlined" style="font-size:11px">location_on</span>
+                          <span class="truncate">{{ item.data.locationName }}</span>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                      @if (isToday(item.data.startDatetime)) {
+                        <span class="text-[0.55rem] font-black tracking-wider uppercase px-2 py-1 rounded-full
+                                     bg-brand/15 text-brand border border-brand/30">
+                          HOY
+                        </span>
+                      }
+                      <span class="material-symbols-outlined text-neutral-700" style="font-size:16px">chevron_right</span>
+                    </div>
+                  </button>
+                }
+
+                @if (item.kind === 'activity') {
+                  <div class="flex items-center gap-3 px-4 py-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-neutral-800 border border-neutral-700">
+                      <span class="material-symbols-outlined text-brand" style="font-size:20px">fitness_center</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-bold truncate">{{ item.data.sport }}</p>
+                      <div class="flex items-center gap-3 mt-0.5">
+                        @if (item.data.durationMinutes) {
+                          <span class="flex items-center gap-1 text-[0.65rem] text-neutral-500">
+                            <span class="material-symbols-outlined" style="font-size:11px">timer</span>
+                            {{ item.data.durationMinutes }} min
+                          </span>
+                        }
+                        <span class="flex items-center gap-1 text-[0.65rem] text-neutral-500">
+                          <span class="material-symbols-outlined" style="font-size:11px">calendar_today</span>
+                          {{ formatActivityDate(item.data.loggedAt) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                }
+
+              }
+            </div>
+
+            <div class="flex gap-2 px-4 py-3 border-t border-neutral-800">
               <button (click)="goToCreateEvent()"
-                      class="flex items-center gap-1.5 bg-brand text-neutral-950 text-xs font-black px-4 py-2.5 rounded-xl min-h-[40px]">
+                      class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 hover:bg-neutral-700
+                             text-neutral-300 text-xs font-bold px-4 py-2.5 rounded-xl border border-neutral-700
+                             transition-colors min-h-[40px]">
                 <span class="material-symbols-outlined" style="font-size:16px">add</span>
                 Crear evento
               </button>
               <button (click)="goToEvents()"
-                      class="flex items-center gap-1.5 bg-neutral-800 text-neutral-300 text-xs font-bold px-4 py-2.5 rounded-xl border border-neutral-700 min-h-[40px]">
+                      class="flex-1 flex items-center justify-center gap-1.5 bg-brand/10 hover:bg-brand/15
+                             text-brand text-xs font-bold px-4 py-2.5 rounded-xl border border-brand/25
+                             transition-colors min-h-[40px]">
                 <span class="material-symbols-outlined" style="font-size:16px">search</span>
-                Explorar
+                Explorar eventos
               </button>
             </div>
-          </div>
+          }
+
         }
 
-        @if (upcomingEvents().length > 0) {
-          <div class="divide-y divide-neutral-800">
-            @for (event of upcomingEvents(); track event.id) {
-              <button (click)="goToEvent(event.id)"
-                      class="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-neutral-800/40 transition-colors">
+        <!-- ── Pasados ── -->
+        @if (activeTimelineTab() === 'past') {
 
-                <!-- Sport icon -->
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-xl"
-                     [style.background]="getBannerGradient(event.sport)">
-                  {{ getSportEmoji(event.sport) }}
-                </div>
+          @if (pastItems().length === 0) {
+            <div class="px-4 py-8 flex flex-col items-center text-center">
+              <span class="material-symbols-outlined text-neutral-700 mb-3" style="font-size:36px">history</span>
+              <p class="text-sm font-semibold text-neutral-400 mb-1">Aún no tienes historial</p>
+              <p class="text-xs text-neutral-600">Tus eventos y actividades pasados aparecerán aquí.</p>
+            </div>
+          }
 
-                <!-- Info -->
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-bold truncate">{{ event.title }}</p>
-                  <div class="flex items-center gap-3 mt-0.5">
-                    <span class="flex items-center gap-1 text-[0.65rem]"
-                          [class]="isToday(event.startDatetime) ? 'text-brand font-semibold' : 'text-neutral-500'">
-                      <span class="material-symbols-outlined" style="font-size:11px">schedule</span>
-                      {{ formatDate(event.startDatetime) }}
-                    </span>
-                    <span class="flex items-center gap-1 text-[0.65rem] text-neutral-500 truncate">
-                      <span class="material-symbols-outlined" style="font-size:11px">location_on</span>
-                      <span class="truncate">{{ event.locationName }}</span>
-                    </span>
+          @if (pastItems().length > 0) {
+            <div class="divide-y divide-neutral-800">
+              @for (item of pastItems(); track item.data.id) {
+
+                @if (item.kind === 'event') {
+                  <button (click)="goToEvent(item.data.id)"
+                          class="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-neutral-800/40 transition-colors">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-xl opacity-60"
+                         [style.background]="getBannerGradient(item.data.sport)">
+                      {{ getSportEmoji(item.data.sport) }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-bold truncate text-neutral-300">{{ item.data.title }}</p>
+                      <div class="flex items-center gap-3 mt-0.5">
+                        <span class="flex items-center gap-1 text-[0.65rem] text-neutral-500">
+                          <span class="material-symbols-outlined" style="font-size:11px">schedule</span>
+                          {{ formatDate(item.data.startDatetime) }}
+                        </span>
+                        <span class="flex items-center gap-1 text-[0.65rem] text-neutral-500 truncate">
+                          <span class="material-symbols-outlined" style="font-size:11px">location_on</span>
+                          <span class="truncate">{{ item.data.locationName }}</span>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                      <span class="text-[0.55rem] font-black tracking-wider uppercase px-2 py-1 rounded-full
+                                   bg-neutral-800 text-neutral-400 border border-neutral-700">
+                        Finalizado
+                      </span>
+                      <span class="material-symbols-outlined text-neutral-700" style="font-size:16px">chevron_right</span>
+                    </div>
+                  </button>
+                }
+
+                @if (item.kind === 'activity') {
+                  <div class="flex items-center gap-3 px-4 py-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-neutral-800 border border-neutral-700">
+                      <span class="material-symbols-outlined text-neutral-500" style="font-size:20px">fitness_center</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-bold truncate text-neutral-300">{{ item.data.sport }}</p>
+                      <div class="flex items-center gap-3 mt-0.5">
+                        @if (item.data.durationMinutes) {
+                          <span class="flex items-center gap-1 text-[0.65rem] text-neutral-500">
+                            <span class="material-symbols-outlined" style="font-size:11px">timer</span>
+                            {{ item.data.durationMinutes }} min
+                          </span>
+                        }
+                        <span class="flex items-center gap-1 text-[0.65rem] text-neutral-500">
+                          <span class="material-symbols-outlined" style="font-size:11px">calendar_today</span>
+                          {{ formatActivityDate(item.data.loggedAt) }}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                }
 
-                <!-- Today badge / chevron -->
-                <div class="flex items-center gap-1.5 flex-shrink-0">
-                  @if (isToday(event.startDatetime)) {
-                    <span class="text-[0.55rem] font-black tracking-wider uppercase px-2 py-1 rounded-full
-                                 bg-brand/15 text-brand border border-brand/30">
-                      HOY
-                    </span>
-                  }
-                  <span class="material-symbols-outlined text-neutral-700" style="font-size:16px">chevron_right</span>
-                </div>
+              }
+            </div>
+          }
 
-              </button>
-            }
-          </div>
-
-          <!-- Footer actions -->
-          <div class="flex gap-2 px-4 py-3 border-t border-neutral-800">
-            <button (click)="goToCreateEvent()"
-                    class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 hover:bg-neutral-700
-                           text-neutral-300 text-xs font-bold px-4 py-2.5 rounded-xl border border-neutral-700
-                           transition-colors min-h-[40px]">
-              <span class="material-symbols-outlined" style="font-size:16px">add</span>
-              Crear evento
-            </button>
-            <button (click)="goToEvents()"
-                    class="flex-1 flex items-center justify-center gap-1.5 bg-brand/10 hover:bg-brand/15
-                           text-brand text-xs font-bold px-4 py-2.5 rounded-xl border border-brand/25
-                           transition-colors min-h-[40px]">
-              <span class="material-symbols-outlined" style="font-size:16px">search</span>
-              Explorar eventos
-            </button>
-          </div>
         }
 
       }
