@@ -65,4 +65,15 @@ export class ParticipantsController {
     const { id } = req.user as JwtUser;
     return this.participantsService.updateStatus(eventId, participantId, dto, id);
   }
+
+  @Post(':id/invite-group')
+  @HttpCode(200)
+  inviteGroup(
+    @Param('id') eventId: string,
+    @Body() body: { groupId: string },
+    @Req() req: Request,
+  ) {
+    const { id } = req.user as JwtUser;
+    return this.participantsService.inviteGroup(id, eventId, body.groupId);
+  }
 }

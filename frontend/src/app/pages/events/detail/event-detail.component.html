@@ -602,6 +602,63 @@
               </div>
             }
 
+            <!-- Invitar por grupo -->
+            @if (groups().length > 0 || groupsLoading()) {
+              <div>
+                <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-2">Invitar grupo</p>
+
+                @if (groupsLoading()) {
+                  <div class="flex flex-col gap-1.5">
+                    @for (i of [1, 2]; track i) {
+                      <div class="h-11 bg-neutral-900 border border-neutral-800 rounded-xl animate-pulse"></div>
+                    }
+                  </div>
+                } @else {
+                  <div class="flex flex-col gap-1.5">
+                    @for (group of groups(); track group.id) {
+                      <button (click)="selectedGroupId.set(selectedGroupId() === group.id ? null : group.id)"
+                              class="flex items-center gap-3 border rounded-xl px-3 py-2.5 text-left transition-colors w-full min-h-[44px]"
+                              [class]="selectedGroupId() === group.id
+                                ? 'bg-brand/5 border-brand/40'
+                                : 'bg-neutral-900 border-neutral-800'">
+                        <div class="w-5 h-5 rounded-md border flex-shrink-0 flex items-center justify-center transition-colors"
+                             [class]="selectedGroupId() === group.id ? 'bg-brand border-brand' : 'border-neutral-600'">
+                          @if (selectedGroupId() === group.id) {
+                            <span class="material-symbols-outlined text-neutral-950" style="font-size:13px">check</span>
+                          }
+                        </div>
+                        <span class="material-symbols-outlined text-neutral-500 flex-shrink-0" style="font-size:18px">group</span>
+                        <span class="text-sm font-semibold flex-1 truncate">{{ group.name }}</span>
+                        <span class="text-[0.65rem] text-neutral-600 flex-shrink-0">{{ group.memberCount }} miembro{{ group.memberCount !== 1 ? 's' : '' }}</span>
+                      </button>
+                    }
+                  </div>
+
+                  @if (selectedGroupId()) {
+                    <button (click)="inviteGroup()"
+                            [disabled]="inviteGroupLoading()"
+                            class="w-full flex items-center justify-center gap-2 bg-brand text-neutral-950
+                                   font-black rounded-xl min-h-[44px] text-sm mt-3
+                                   transition-opacity disabled:opacity-60">
+                      @if (inviteGroupLoading()) {
+                        <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+                      } @else {
+                        <span class="material-symbols-outlined" style="font-size:18px">group_add</span>
+                      }
+                      Invitar grupo seleccionado
+                    </button>
+                  }
+
+                  @if (inviteGroupResult() && inviteGroupResult()!.skipped !== -1) {
+                    <p class="text-xs mt-2 flex items-center gap-1.5 text-brand">
+                      <span class="material-symbols-outlined" style="font-size:14px">check_circle</span>
+                      {{ inviteGroupResult()!.invited }} invitado{{ inviteGroupResult()!.invited !== 1 ? 's' : '' }}{{ inviteGroupResult()!.skipped > 0 ? ', ' + inviteGroupResult()!.skipped + ' ya participaban' : '' }}
+                    </p>
+                  }
+                }
+              </div>
+            }
+
           </div>
         }
 

@@ -21,6 +21,8 @@ import { Event } from './events/entities/event.entity';
 import { EventParticipant } from './events/entities/event-participant.entity';
 import { Notification } from './notifications/entities/notification.entity';
 import { Contact } from './contacts/entities/contact.entity';
+import { ContactGroup } from './contacts/entities/contact-group.entity';
+import { ContactGroupMember } from './contacts/entities/contact-group-member.entity';
 import { Team } from './teams/entities/team.entity';
 import { TeamMember } from './teams/entities/team-member.entity';
 import { Tournament } from './tournaments/entities/tournament.entity';
@@ -49,7 +51,7 @@ import { Sport } from './sports/entities/sport.entity';
         username: config.get('DATABASE_USER', 'sportcard'),
         password: config.get('DATABASE_PASSWORD', 'sportcard_dev'),
         database: config.get('DATABASE_NAME', 'sportcard'),
-        entities: [User, Event, EventParticipant, Notification, Contact, Team, TeamMember, Tournament, TournamentTeam, Match, Activity, Sport],
+        entities: [User, Event, EventParticipant, Notification, Contact, ContactGroup, ContactGroupMember, Team, TeamMember, Tournament, TournamentTeam, Match, Activity, Sport],
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
         synchronize: false,
         migrationsRun: true,

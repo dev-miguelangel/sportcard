@@ -1,13 +1,18 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Contact } from './entities/contact.entity';
+import { ContactGroup } from './entities/contact-group.entity';
+import { ContactGroupMember } from './entities/contact-group-member.entity';
 import { User } from '../users/entities/user.entity';
 import { ContactsService } from './contacts.service';
 import { ContactsController } from './contacts.controller';
+import { ContactGroupsService } from './contact-groups.service';
+import { ContactGroupsController } from './contact-groups.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Contact, User])],
-  controllers: [ContactsController],
-  providers: [ContactsService],
+  imports: [TypeOrmModule.forFeature([Contact, ContactGroup, ContactGroupMember, User])],
+  controllers: [ContactsController, ContactGroupsController],
+  providers: [ContactsService, ContactGroupsService],
+  exports: [ContactGroupsService],
 })
 export class ContactsModule {}

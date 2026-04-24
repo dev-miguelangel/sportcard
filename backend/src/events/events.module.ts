@@ -9,10 +9,12 @@ import { ParticipantsService } from './participants.service';
 import { ParticipantsController } from './participants.controller';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { UsersModule } from '../users/users.module';
+import { ContactGroup } from '../contacts/entities/contact-group.entity';
+import { ContactGroupMember } from '../contacts/entities/contact-group-member.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Event, EventParticipant]),
+    TypeOrmModule.forFeature([Event, EventParticipant, ContactGroup, ContactGroupMember]),
     NotificationsModule,
     UsersModule,
   ],

@@ -102,4 +102,11 @@ export class EventsService {
   closeEvent(id: string, dto: { closingNotes?: string; results?: string }): Observable<EventResponse> {
     return this.http.patch<EventResponse>(`${environment.apiUrl}/events/${id}/close`, dto);
   }
+
+  inviteGroup(eventId: string, groupId: string): Observable<{ invited: number; skipped: number }> {
+    return this.http.post<{ invited: number; skipped: number }>(
+      `${environment.apiUrl}/events/${eventId}/invite-group`,
+      { groupId },
+    );
+  }
 }

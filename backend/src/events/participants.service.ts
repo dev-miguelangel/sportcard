@@ -12,6 +12,8 @@ import { JoinEventDto } from './dto/join-event.dto';
 import { UpdateParticipantStatusDto } from './dto/update-participant-status.dto';
 import { UsersService } from '../users/users.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ContactGroup } from '../contacts/entities/contact-group.entity';
+import { ContactGroupMember } from '../contacts/entities/contact-group-member.entity';
 
 @Injectable()
 export class ParticipantsService {
@@ -20,6 +22,10 @@ export class ParticipantsService {
     private readonly eventsRepository: Repository<Event>,
     @InjectRepository(EventParticipant)
     private readonly participantsRepository: Repository<EventParticipant>,
+    @InjectRepository(ContactGroup)
+    private readonly groupRepo: Repository<ContactGroup>,
+    @InjectRepository(ContactGroupMember)
+    private readonly groupMemberRepo: Repository<ContactGroupMember>,
     private readonly usersService: UsersService,
     private readonly notificationsService: NotificationsService,
   ) {}
@@ -133,5 +139,42 @@ export class ParticipantsService {
 
     await this.notificationsService.createInvitation(user.id, eventId, event.title);
     return { success: true, userName: user.name };
+  }
+
+  async inviteGroup(
+    organizerId: string,
+    eventId: string,
+    groupId: string,
+  ): Promise<{ invited: number; skipped: number }> {
+    const event = await this.eventsRepository.findOne({ where: { id: eventId } });
+    if (!event) throw new NotFoundException('Evento no encontrado');
+    if (event.organizerId !== organizerId) {
+      throw new ForbiddenException('Solo el organizador puede enviar invitaciones');
+    }
+
+    const group = await this.groupRepo.findOne({ where: { id: groupId } });
+    if (!group) throw new NotFoundException('Grupo no encontrado');
+    if (group.ownerId !== organizerId) {
+      throw new ForbiddenException('No tienes permiso para usar este grupo');
+    }
+
+    const members = await this.groupMemberRepo.find({
+      where: { groupId },
+      relations: ['user'],
+    });
+
+    let invited = 0;
+    let skipped = 0;
+
+    for (const member of members) {
+      try {
+        await this.inviteUser(eventId, organizerId, member.user.stringId);
+        invited++;
+      } catch {
+        skipped++;
+      }
+    }
+
+    return { invited, skipped };
   }
 }
