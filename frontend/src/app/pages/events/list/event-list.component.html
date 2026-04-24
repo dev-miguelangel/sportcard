@@ -13,6 +13,10 @@
         Limpiar ({{ activeFiltersCount() }})
       </button>
       }
+      <button (click)="goToCreate()"
+        class="w-9 h-9 flex items-center justify-center rounded-xl bg-brand min-h-[36px] flex-shrink-0">
+        <span class="material-symbols-outlined text-neutral-950 font-black" style="font-size:20px">add</span>
+      </button>
     </div>
 
     <!-- Search bar -->
@@ -506,13 +510,6 @@
     }
 
   </main>
-
-  <!-- Floating create-event button -->
-  <button (click)="goToCreate()" class="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1rem)] right-4 z-30
-                 w-14 h-14 bg-brand rounded-2xl flex items-center justify-center
-                 shadow-xl shadow-brand/40">
-    <span class="material-symbols-outlined text-neutral-950 font-black" style="font-size:28px">add</span>
-  </button>
 
   <app-bottom-nav activeTab="events" />
 
