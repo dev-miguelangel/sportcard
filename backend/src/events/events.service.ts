@@ -53,6 +53,21 @@ export class EventsService {
     return this.enrichWithStats(events, userId);
   }
 
+  async findPublicPast(userId?: string): Promise<EventWithStats[]> {
+    const where = userId
+      ? [
+          { isPublic: true, status: EventStatus.FINISHED },
+          { organizerId: userId, status: EventStatus.FINISHED },
+        ]
+      : { isPublic: true, status: EventStatus.FINISHED };
+
+    const events = await this.eventsRepository.find({
+      where,
+      order: { endDatetime: 'DESC' },
+    });
+    return this.enrichWithStats(events, userId);
+  }
+
   async findMine(userId: string): Promise<EventWithStats[]> {
     await this.autoFinishExpiredEvents();
     const organizedEvents = await this.eventsRepository.find({

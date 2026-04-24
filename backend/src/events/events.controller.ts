@@ -5,6 +5,7 @@ import {
   Patch,
   Body,
   Param,
+  Query,
   Req,
   UseGuards,
   HttpCode,
@@ -40,8 +41,9 @@ export class EventsController {
   }
 
   @Get()
-  findAll(@Req() req: Request) {
+  findAll(@Query('past') past?: string, @Req() req: Request) {
     const { id } = req.user as JwtUser;
+    if (past === 'true') return this.eventsService.findPublicPast(id);
     return this.eventsService.findPublic(id);
   }
 
