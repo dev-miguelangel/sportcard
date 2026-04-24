@@ -76,7 +76,7 @@ export class TeamsService {
     );
 
     await this.memberRepo.save(
-      this.memberRepo.create({ teamId: team.id, userId: coachId, position: null }),
+      this.memberRepo.create({ teamId: team.id, userId: coachId, position: null, status: 'confirmed' }),
     );
 
     return this.getTeamById(team.id);
@@ -191,6 +191,30 @@ export class TeamsService {
       name:     target.name,
       avatar:   target.avatar,
       sports:   target.sports ?? [],
+      position: member.position,
+      joinedAt: member.joinedAt,
+    };
+  }
+
+  async confirmMembership(teamId: string, userId: string, accept: boolean): Promise<TeamMemberDto> {
+    const member = await this.memberRepo.findOne({
+      where: { teamId, userId },
+      relations: ['user'],
+    });
+    if (!member) throw new NotFoundException('No se encontró la invitación al equipo.');
+    if (member.status !== 'invited') {
+      throw new BadRequestException('Esta invitación ya fue procesada.');
+    }
+
+    member.status = accept ? 'confirmed' : 'rejected';
+    await this.memberRepo.save(member);
+
+    return {
+      userId:   member.user.id,
+      stringId: member.user.stringId,
+      name:     member.user.name,
+      avatar:   member.user.avatar,
+      sports:   member.user.sports ?? [],
       position: member.position,
       joinedAt: member.joinedAt,
     };

@@ -30,6 +30,13 @@ export class TeamMember {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
+  @Column({
+    type: 'enum',
+    enum: ['invited', 'confirmed', 'rejected'],
+    default: 'invited',
+  })
+  status: 'invited' | 'confirmed' | 'rejected';
+
   @Column({ nullable: true })
   position: string | null;
 

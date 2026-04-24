@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Param,
   Query,
@@ -53,6 +54,16 @@ export class TeamsController {
   ) {
     const { id } = req.user as JwtUser;
     return this.teamsSvc.addMember(teamId, id, body.userId, body.position);
+  }
+
+  @Patch(':id/members/confirm')
+  confirmMembership(
+    @Param('id') teamId: string,
+    @Body('accept') accept: boolean,
+    @Req() req: Request,
+  ) {
+    const { id: userId } = req.user as JwtUser;
+    return this.teamsSvc.confirmMembership(teamId, userId, accept);
   }
 
   @Delete(':id/members/:userId')
