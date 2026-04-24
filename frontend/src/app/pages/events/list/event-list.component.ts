@@ -33,6 +33,9 @@ export class EventListComponent implements OnInit {
   readonly selectedSport  = signal<string | null>(null);
   readonly selectedWhen   = signal<WhenFilter | null>(null);
   readonly withSpots      = signal(false);
+  readonly activeTab      = signal<'upcoming' | 'past'>('upcoming');
+  readonly pastEvents     = signal<EventResponse[]>([]);
+  readonly loadingPast    = signal(false);
 
   // ── Sheet state ──────────────────────────────────────────
   readonly sheetEvent     = signal<EventResponse | null>(null);
@@ -78,6 +81,18 @@ export class EventListComponent implements OnInit {
       .filter(Boolean).length,
   );
 
+  readonly filteredPastEvents = computed(() => {
+    const q     = this.searchQuery().toLowerCase().trim();
+    const sport = this.selectedSport();
+    return this.pastEvents().filter(e => {
+      if (q && !e.title.toLowerCase().includes(q) &&
+               !e.locationName.toLowerCase().includes(q) &&
+               !e.sport.toLowerCase().includes(q)) return false;
+      if (sport && e.sport !== sport) return false;
+      return true;
+    });
+  });
+
   readonly sheetHasSpots = computed(() => {
     const ev = this.sheetEvent();
     if (!ev) return true;
@@ -111,6 +126,17 @@ export class EventListComponent implements OnInit {
     this.selectedWhen.set(null);
     this.withSpots.set(false);
     this.searchQuery.set('');
+  }
+
+  switchTab(tab: 'upcoming' | 'past'): void {
+    this.activeTab.set(tab);
+    if (tab === 'past' && this.pastEvents().length === 0 && !this.loadingPast()) {
+      this.loadingPast.set(true);
+      this.eventsSvc.findAllPast().subscribe({
+        next: events => { this.pastEvents.set(events); this.loadingPast.set(false); },
+        error: ()    => this.loadingPast.set(false),
+      });
+    }
   }
 
   setSearch(value: string): void {

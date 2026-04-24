@@ -72,6 +72,10 @@ export class EventsService {
     return this.http.get<EventResponse[]>(`${environment.apiUrl}/events`);
   }
 
+  findAllPast(): Observable<EventResponse[]> {
+    return this.http.get<EventResponse[]>(`${environment.apiUrl}/events?past=true`);
+  }
+
   findMine(): Observable<EventResponse[]> {
     return this.http.get<EventResponse[]>(`${environment.apiUrl}/events/mine`);
   }
