@@ -148,14 +148,14 @@
       <!-- Sport picker -->
       <p class="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Deporte *</p>
       <div class="flex flex-wrap gap-2 mb-5">
-        @for (sport of sports; track sport) {
-          <button (click)="selectSport(sport)"
+        @for (sport of sportsSvc.sports(); track sport.name) {
+          <button (click)="selectSport(sport.name)"
                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.75rem] font-semibold border transition-colors min-h-[34px]"
-                  [class]="selectedSport() === sport
+                  [class]="selectedSport() === sport.name
                     ? 'bg-brand/15 border-brand/50 text-brand'
                     : 'bg-neutral-800 border-neutral-700 text-neutral-400'">
-            <span>{{ getSportEmoji(sport) }}</span>
-            {{ sport }}
+            <span>{{ sport.emoji }}</span>
+            {{ sport.name }}
           </button>
         }
       </div>

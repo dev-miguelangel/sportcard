@@ -41,7 +41,7 @@
     <!-- Sport chips -->
     <div class="max-w-lg mx-auto flex gap-2 px-4 pb-2 overflow-x-auto [scrollbar-width:none] [-webkit-overflow-scrolling:touch]"
          style="-ms-overflow-style:none;">
-      @for (sport of filterSports; track sport.name) {
+      @for (sport of sportsSvc.sports(); track sport.name) {
         <button (click)="selectSport(sport.name)"
                 class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.7rem] font-semibold flex-shrink-0 border transition-colors min-h-[32px]"
                 [class]="selectedSport() === sport.name

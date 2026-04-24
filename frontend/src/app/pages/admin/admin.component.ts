@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import {
   AdminService, AdminUser, AdminEvent, AdminStats, AdminNotification, AdminSport,
 } from '../../core/services/admin.service';
+import { SportsService } from '../../core/services/sports.service';
 
 type AdminTab = 'users' | 'events' | 'stats' | 'notifications' | 'sports';
 
@@ -17,13 +18,6 @@ const SPORTS_ICONS: string[] = [
   'rowing', 'surfing', 'downhill_skiing', 'snowboarding', 'paragliding',
 ];
 
-const SPORT_EMOJIS: Record<string, string> = {
-  'Fútbol': '⚽', 'Fútbol 7': '⚽', 'Básquetbol': '🏀', 'Tenis': '🎾',
-  'Running': '🏃', 'Ciclismo': '🚴', 'Natación': '🏊', 'Balonmano': '🤾',
-  'Trekking': '🥾', 'Escalada': '🧗', 'Voleibol': '🏐', 'Pádel': '🏓',
-  'Rugby': '🏉', 'Crossfit': '💪', 'Yoga': '🧘',
-};
-
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -31,8 +25,9 @@ const SPORT_EMOJIS: Record<string, string> = {
   templateUrl: './admin.component.html',
 })
 export class AdminComponent implements OnInit {
-  private readonly router  = inject(Router);
-  private readonly adminSvc = inject(AdminService);
+  private readonly router    = inject(Router);
+  private readonly adminSvc  = inject(AdminService);
+  private readonly sportsSvc = inject(SportsService);
 
   readonly activeTab = signal<AdminTab>('users');
 
@@ -98,6 +93,7 @@ export class AdminComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.sportsSvc.load();
     this.loadUsers();
   }
 
@@ -385,7 +381,7 @@ export class AdminComponent implements OnInit {
   // ── Helpers ───────────────────────────────────────────────
   goBack(): void { this.router.navigate(['/dashboard']); }
 
-  getSportEmoji(sport: string): string { return SPORT_EMOJIS[sport] ?? '🏅'; }
+  getSportEmoji(sport: string): string { return this.sportsSvc.getEmoji(sport); }
 
   formatDate(d: string): string {
     return new Date(d).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' });

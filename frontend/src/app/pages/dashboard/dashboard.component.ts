@@ -3,33 +3,9 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { EventsService, EventResponse } from '../../core/services/events.service';
 import { ActivitiesService, StreakResult } from '../../core/services/activities.service';
+import { SportsService } from '../../core/services/sports.service';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
-
-const SPORT_EMOJIS: Record<string, string> = {
-  'Fútbol': '⚽', 'Fútbol 7': '⚽', 'Básquetbol': '🏀', 'Tenis': '🎾',
-  'Running': '🏃', 'Ciclismo': '🚴', 'Natación': '🏊', 'Balonmano': '🤾',
-  'Trekking': '🥾', 'Escalada': '🧗', 'Voleibol': '🏐', 'Pádel': '🏓',
-  'Rugby': '🏉', 'Crossfit': '💪', 'Yoga': '🧘',
-};
-
-const SPORT_GRADIENTS: Record<string, string> = {
-  'Fútbol': 'linear-gradient(135deg,#003d20,#006b35)',
-  'Fútbol 7': 'linear-gradient(135deg,#003d20,#005a2a)',
-  'Básquetbol': 'linear-gradient(135deg,#3d1500,#6b2500)',
-  'Tenis': 'linear-gradient(135deg,#2a3800,#3d5200)',
-  'Running': 'linear-gradient(135deg,#3d2600,#5a3800)',
-  'Ciclismo': 'linear-gradient(135deg,#00203d,#003d6b)',
-  'Natación': 'linear-gradient(135deg,#003d4d,#006b7a)',
-  'Voleibol': 'linear-gradient(135deg,#3d1500,#6b3500)',
-  'Balonmano': 'linear-gradient(135deg,#001a3d,#002a5a)',
-  'Pádel': 'linear-gradient(135deg,#0a003d,#1a006b)',
-  'Rugby': 'linear-gradient(135deg,#3d0000,#6b1500)',
-  'Trekking': 'linear-gradient(135deg,#1a2000,#3d4000)',
-  'Escalada': 'linear-gradient(135deg,#2a1500,#5a3000)',
-  'Crossfit': 'linear-gradient(135deg,#1a0020,#3d0050)',
-  'Yoga': 'linear-gradient(135deg,#001a1a,#003d3d)',
-};
 
 @Component({
   selector: 'app-dashboard',
@@ -42,6 +18,7 @@ export class DashboardComponent implements OnInit {
   private readonly router      = inject(Router);
   private readonly eventsSvc   = inject(EventsService);
   private readonly actSvc      = inject(ActivitiesService);
+  private readonly sportsSvc   = inject(SportsService);
 
   readonly myEvents      = signal<EventResponse[]>([]);
   readonly loadingEvents = signal(true);
@@ -71,6 +48,7 @@ export class DashboardComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.sportsSvc.load();
     this.eventsSvc.findMine().subscribe({
       next: events => { this.myEvents.set(events); this.loadingEvents.set(false); },
       error: ()    => this.loadingEvents.set(false),
@@ -91,11 +69,11 @@ export class DashboardComponent implements OnInit {
   }
 
   getSportEmoji(sport: string): string {
-    return SPORT_EMOJIS[sport] ?? '🏅';
+    return this.sportsSvc.getEmoji(sport);
   }
 
   getBannerGradient(sport: string): string {
-    return SPORT_GRADIENTS[sport] ?? 'linear-gradient(135deg,#1a1a1a,#2a2a2a)';
+    return this.sportsSvc.getGradient(sport);
   }
 
   formatDate(dateStr: string): string {

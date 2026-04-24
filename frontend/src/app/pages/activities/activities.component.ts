@@ -1,39 +1,9 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivitiesService, Activity, StreakResult } from '../../core/services/activities.service';
+import { SportsService } from '../../core/services/sports.service';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
-
-const SPORTS = [
-  'Fútbol', 'Fútbol 7', 'Básquetbol', 'Tenis', 'Running',
-  'Ciclismo', 'Natación', 'Balonmano', 'Trekking', 'Escalada',
-  'Voleibol', 'Pádel', 'Rugby', 'Crossfit', 'Yoga',
-];
-
-const SPORT_EMOJIS: Record<string, string> = {
-  'Fútbol': '⚽', 'Fútbol 7': '⚽', 'Básquetbol': '🏀', 'Tenis': '🎾',
-  'Running': '🏃', 'Ciclismo': '🚴', 'Natación': '🏊', 'Balonmano': '🤾',
-  'Trekking': '🥾', 'Escalada': '🧗', 'Voleibol': '🏐', 'Pádel': '🏓',
-  'Rugby': '🏉', 'Crossfit': '💪', 'Yoga': '🧘',
-};
-
-const SPORT_GRADIENTS: Record<string, string> = {
-  'Fútbol': 'linear-gradient(135deg,#003d20,#006b35)',
-  'Fútbol 7': 'linear-gradient(135deg,#003d20,#005a2a)',
-  'Básquetbol': 'linear-gradient(135deg,#3d1500,#6b2500)',
-  'Tenis': 'linear-gradient(135deg,#2a3800,#3d5200)',
-  'Running': 'linear-gradient(135deg,#3d2600,#5a3800)',
-  'Ciclismo': 'linear-gradient(135deg,#00203d,#003d6b)',
-  'Natación': 'linear-gradient(135deg,#003d4d,#006b7a)',
-  'Voleibol': 'linear-gradient(135deg,#3d1500,#6b3500)',
-  'Balonmano': 'linear-gradient(135deg,#001a3d,#002a5a)',
-  'Pádel': 'linear-gradient(135deg,#0a003d,#1a006b)',
-  'Rugby': 'linear-gradient(135deg,#3d0000,#6b1500)',
-  'Trekking': 'linear-gradient(135deg,#1a2000,#3d4000)',
-  'Escalada': 'linear-gradient(135deg,#2a1500,#5a3000)',
-  'Crossfit': 'linear-gradient(135deg,#1a0020,#3d0050)',
-  'Yoga': 'linear-gradient(135deg,#001a1a,#003d3d)',
-};
 
 export interface DayGroup {
   isoDate: string;
@@ -52,9 +22,8 @@ function todayIso(): string {
   templateUrl: './activities.component.html',
 })
 export class ActivitiesComponent implements OnInit {
-  private readonly svc = inject(ActivitiesService);
-
-  readonly sports = SPORTS;
+  private readonly svc   = inject(ActivitiesService);
+  readonly sportsSvc     = inject(SportsService);
 
   readonly streak        = signal<StreakResult | null>(null);
   readonly activities    = signal<Activity[]>([]);
@@ -84,6 +53,7 @@ export class ActivitiesComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.sportsSvc.load();
     this.load();
   }
 
@@ -156,11 +126,11 @@ export class ActivitiesComponent implements OnInit {
   }
 
   getSportEmoji(sport: string): string {
-    return SPORT_EMOJIS[sport] ?? '🏅';
+    return this.sportsSvc.getEmoji(sport);
   }
 
   getSportGradient(sport: string): string {
-    return SPORT_GRADIENTS[sport] ?? 'linear-gradient(135deg,#1a1a1a,#2a2a2a)';
+    return this.sportsSvc.getGradient(sport);
   }
 
   formatDayLabel(isoDate: string): string {
