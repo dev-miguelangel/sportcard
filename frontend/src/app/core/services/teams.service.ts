@@ -3,6 +3,17 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+export interface TeamSummary {
+  id: string;
+  name: string;
+  sport: string;
+  logoUrl: string | null;
+  memberCount: number;
+  isCoach: boolean;
+  minAge?: number | null;
+  maxAge?: number | null;
+}
+
 export interface TeamMemberItem {
   userId: string;
   stringId: string;
@@ -27,6 +38,10 @@ export interface TeamPublicDto {
 @Injectable({ providedIn: 'root' })
 export class TeamsService {
   private readonly http = inject(HttpClient);
+
+  findMine(): Observable<TeamSummary[]> {
+    return this.http.get<TeamSummary[]>(`${environment.apiUrl}/teams/mine`);
+  }
 
   getPublicTeam(id: string): Observable<TeamPublicDto> {
     return this.http.get<TeamPublicDto>(`${environment.apiUrl}/teams/p/${id}`);
