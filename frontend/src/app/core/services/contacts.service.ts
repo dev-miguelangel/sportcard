@@ -12,6 +12,20 @@ export interface ContactUser {
   isContact: boolean;
 }
 
+export interface ContactGroup {
+  id: string;
+  name: string;
+  description: string | null;
+  memberCount: number;
+}
+
+export interface GroupMember {
+  userId: string;
+  name: string;
+  avatar: string | null;
+  stringId: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ContactsService {
   private readonly http = inject(HttpClient);
@@ -32,5 +46,29 @@ export class ContactsService {
 
   removeContact(userId: string): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/contacts/${userId}`);
+  }
+
+  getGroups(): Observable<ContactGroup[]> {
+    return this.http.get<ContactGroup[]>(`${environment.apiUrl}/contacts/groups`);
+  }
+
+  createGroup(name: string, description?: string): Observable<ContactGroup> {
+    return this.http.post<ContactGroup>(`${environment.apiUrl}/contacts/groups`, { name, description });
+  }
+
+  deleteGroup(groupId: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/contacts/groups/${groupId}`);
+  }
+
+  getGroupMembers(groupId: string): Observable<GroupMember[]> {
+    return this.http.get<GroupMember[]>(`${environment.apiUrl}/contacts/groups/${groupId}/members`);
+  }
+
+  addGroupMember(groupId: string, userId: string): Observable<void> {
+    return this.http.post<void>(`${environment.apiUrl}/contacts/groups/${groupId}/members`, { userId });
+  }
+
+  removeGroupMember(groupId: string, userId: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/contacts/groups/${groupId}/members/${userId}`);
   }
 }
