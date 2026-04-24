@@ -4,6 +4,18 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback, Profile } from 'passport-google-oauth20';
 import { UsersService } from '../../users/users.service';
 
+// Passes the `origin` query param as OAuth state without requiring sessions.
+// verify() always returns true — the controller validates the URL against the whitelist.
+class PassthroughStateStore {
+  store(req: any, callback: (err: any, state: string) => void): void {
+    callback(null, req.query?.origin ?? '');
+  }
+
+  verify(req: any, _providedState: string, callback: (err: any, ok: boolean) => void): void {
+    callback(null, true);
+  }
+}
+
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
@@ -15,6 +27,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientSecret: configService.getOrThrow<string>('GOOGLE_CLIENT_SECRET'),
       callbackURL: configService.getOrThrow<string>('GOOGLE_CALLBACK_URL'),
       scope: ['email', 'profile'],
+      store: new PassthroughStateStore(),
     });
   }
 

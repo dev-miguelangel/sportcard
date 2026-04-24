@@ -61,7 +61,8 @@ export class AuthService {
 
   /** Redirige el navegador al endpoint de Google OAuth en el backend */
   loginWithGoogle(): void {
-    window.location.href = `${environment.apiUrl}/auth/google`;
+    const origin = encodeURIComponent(window.location.origin);
+    window.location.href = `${environment.apiUrl}/auth/google?origin=${origin}`;
   }
 
   /** Obtiene las credenciales de dev desde el backend (vienen del .env) */

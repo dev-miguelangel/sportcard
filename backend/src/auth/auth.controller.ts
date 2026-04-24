@@ -42,9 +42,12 @@ export class AuthController {
   googleCallback(@Req() req: Request, @Res() res: Response) {
     const user = req.user as User;
     const token = this.authService.generateToken(user);
-    const frontendUrl = this.configService.get('FRONTEND_URL') ?? 'http://localhost:4200';
+    const allowedOrigins = (this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:4200')
+      .split(',')
+      .map((u) => u.trim());
+    const state = req.query.state as string;
+    const frontendUrl = allowedOrigins.includes(state) ? state : allowedOrigins[0];
 
-    // Redirige al frontend con el JWT como query param
     res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
   }
 

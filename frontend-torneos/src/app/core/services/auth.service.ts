@@ -52,7 +52,8 @@ export class AuthService {
   ) {}
 
   loginWithGoogle(): void {
-    window.location.href = `${environment.apiUrl}/auth/google`;
+    const origin = encodeURIComponent(window.location.origin);
+    window.location.href = `${environment.apiUrl}/auth/google?origin=${origin}`;
   }
 
   fetchDevCredentials(): Observable<DevCredentials | null> {
