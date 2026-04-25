@@ -139,16 +139,40 @@
               </div>
             }
 
-            <!-- team_invite: botón ver equipo -->
+            <!-- team_invite: unirse o rechazar -->
             @if (notif.type === 'team_invite' && notif.metadata?.['teamId']) {
-              <div class="px-4 pb-4">
-                <button (click)="goToTeam(notif); markRead(notif)"
-                        class="flex items-center gap-1.5 bg-neutral-800 text-orange-400 font-bold
-                               rounded-xl min-h-[40px] px-4 text-sm border border-neutral-700 hover:bg-neutral-700 transition-colors">
-                  <span class="material-symbols-outlined" style="font-size:16px">groups</span>
-                  Ver equipo
-                </button>
-              </div>
+              @if (!notif.readAt) {
+                <div class="flex gap-2 px-4 pb-4">
+                  <button (click)="acceptTeamInvite(notif)"
+                          [disabled]="inviteLoading() === notif.id"
+                          class="flex-1 flex items-center justify-center gap-1.5 bg-brand text-neutral-950
+                                 font-black rounded-xl min-h-[40px] text-sm transition-opacity disabled:opacity-60">
+                    @if (inviteLoading() === notif.id) {
+                      <span class="material-symbols-outlined animate-spin" style="font-size:16px">progress_activity</span>
+                    } @else {
+                      <span class="material-symbols-outlined" style="font-size:16px">check</span>
+                    }
+                    Unirme al equipo
+                  </button>
+                  <button (click)="declineTeamInvite(notif)"
+                          [disabled]="inviteLoading() === notif.id"
+                          class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 text-red-400
+                                 font-bold rounded-xl min-h-[40px] text-sm border border-neutral-700
+                                 transition-opacity disabled:opacity-60">
+                    <span class="material-symbols-outlined" style="font-size:16px">close</span>
+                    Rechazar
+                  </button>
+                </div>
+              } @else {
+                <div class="px-4 pb-4">
+                  <button (click)="goToTeam(notif)"
+                          class="flex items-center gap-1.5 bg-neutral-800 text-orange-400 font-bold
+                                 rounded-xl min-h-[40px] px-4 text-sm border border-neutral-700 hover:bg-neutral-700 transition-colors">
+                    <span class="material-symbols-outlined" style="font-size:16px">groups</span>
+                    Ver equipo
+                  </button>
+                </div>
+              }
             }
 
             <!-- match_scheduled: botón ver evento -->

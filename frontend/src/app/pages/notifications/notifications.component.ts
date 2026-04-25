@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { PwaService } from '../../core/services/pwa.service';
 import { NotificationsService, AppNotification } from '../../core/services/notifications.service';
 import { EventsService } from '../../core/services/events.service';
+import { TeamsService } from '../../core/services/teams.service';
 import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
 
 @Component({
@@ -16,6 +17,7 @@ export class NotificationsComponent implements OnInit {
   private readonly router    = inject(Router);
   private readonly notifSvc  = inject(NotificationsService);
   private readonly eventsSvc = inject(EventsService);
+  private readonly teamsSvc  = inject(TeamsService);
 
   readonly inviteLoading = signal<string | null>(null);
 
@@ -101,6 +103,38 @@ export class NotificationsComponent implements OnInit {
     this.notifSvc.markRead(notif.id).subscribe({
       next: updated => {
         this.notifications.update(list => list.map(n => n.id === updated.id ? updated : n));
+        this.inviteLoading.set(null);
+      },
+      error: () => this.inviteLoading.set(null),
+    });
+  }
+
+  acceptTeamInvite(notif: AppNotification): void {
+    const teamId = notif.metadata?.['teamId'] as string | undefined;
+    if (!teamId || this.inviteLoading()) return;
+    this.inviteLoading.set(notif.id);
+    this.teamsSvc.confirmMembership(teamId, true).subscribe({
+      next: () => {
+        this.notifSvc.markRead(notif.id).subscribe({
+          next: updated => this.notifications.update(list =>
+            list.map(n => n.id === updated.id ? updated : n)),
+        });
+        this.inviteLoading.set(null);
+      },
+      error: () => this.inviteLoading.set(null),
+    });
+  }
+
+  declineTeamInvite(notif: AppNotification): void {
+    const teamId = notif.metadata?.['teamId'] as string | undefined;
+    if (!teamId || this.inviteLoading()) return;
+    this.inviteLoading.set(notif.id);
+    this.teamsSvc.confirmMembership(teamId, false).subscribe({
+      next: () => {
+        this.notifSvc.markRead(notif.id).subscribe({
+          next: updated => this.notifications.update(list =>
+            list.map(n => n.id === updated.id ? updated : n)),
+        });
         this.inviteLoading.set(null);
       },
       error: () => this.inviteLoading.set(null),

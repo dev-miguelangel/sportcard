@@ -46,4 +46,8 @@ export class TeamsService {
   getPublicTeam(id: string): Observable<TeamPublicDto> {
     return this.http.get<TeamPublicDto>(`${environment.apiUrl}/teams/p/${id}`);
   }
+
+  confirmMembership(teamId: string, accept: boolean): Observable<void> {
+    return this.http.patch<void>(`${environment.apiUrl}/teams/${teamId}/members/confirm`, { accept });
+  }
 }
