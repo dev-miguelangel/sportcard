@@ -36,16 +36,21 @@ export class TeamCreateComponent {
   logoUrl = signal('');
   loading = signal(false);
   error   = signal<string | null>(null);
+  minAge  = signal<number | null>(null);
+  maxAge  = signal<number | null>(null);
 
   submit(): void {
     if (!this.name().trim() || this.loading()) return;
     this.error.set(null);
     this.loading.set(true);
-    this.teamsSvc.createTeam({
+    const payload = {
       name:    this.name().trim(),
       sport:   this.sport(),
       logoUrl: this.logoUrl().trim() || undefined,
-    }).subscribe({
+      minAge:  this.minAge() ?? undefined,
+      maxAge:  this.maxAge() ?? undefined,
+    };
+    this.teamsSvc.createTeam(payload).subscribe({
       next: (team) => this.router.navigate(['/teams', team.id]),
       error: (err) => {
         this.error.set(err?.error?.message ?? 'Error al crear el equipo');

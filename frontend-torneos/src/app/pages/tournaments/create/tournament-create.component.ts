@@ -49,24 +49,30 @@ export class TournamentCreateComponent {
   endDate          = signal('');
   loading          = signal(false);
   error            = signal<string | null>(null);
+  minAge           = signal<number | null>(null);
+  maxAge           = signal<number | null>(null);
+  allowIndividual  = signal(false);
 
   submit(): void {
     if (!this.name().trim() || this.loading()) return;
     this.error.set(null);
     this.loading.set(true);
 
-    const maxTeamsNum = this.maxTeams() ?? undefined;
-
-    this.tournamentsSvc.create({
+    const payload = {
       name:             this.name().trim(),
       sport:            this.sport(),
       format:           this.format(),
-      maxTeams:         maxTeamsNum,
+      maxTeams:         this.maxTeams() ?? undefined,
       registrationOpen: this.registrationOpen(),
       requiresApproval: this.requiresApproval(),
       startDate:        this.startDate() || undefined,
       endDate:          this.endDate()   || undefined,
-    }).subscribe({
+      minAge:           this.minAge() ?? undefined,
+      maxAge:           this.maxAge() ?? undefined,
+      allowIndividual:  this.allowIndividual(),
+    };
+
+    this.tournamentsSvc.create(payload).subscribe({
       next: (t) => this.router.navigate(['/tournaments', t.id]),
       error: (err) => {
         this.error.set(err?.error?.message ?? 'Error al crear el torneo');
