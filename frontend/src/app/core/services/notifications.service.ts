@@ -9,7 +9,7 @@ export interface AppNotification {
   eventId: string | null;
   title: string;
   body: string;
-  type: 'broadcast' | 'event' | 'system' | 'invitation' | 'team_invite' | 'match_scheduled' | 'match_result' | 'tournament_update';
+  type: 'broadcast' | 'event' | 'system' | 'invitation' | 'team_invite' | 'match_scheduled' | 'match_result' | 'tournament_update' | 'guardian_approval';
   readAt: string | null;
   createdAt: string;
   metadata: Record<string, unknown> | null;

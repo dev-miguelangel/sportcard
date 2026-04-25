@@ -44,9 +44,20 @@ export class ParticipantsService {
       throw new BadRequestException('Ya tienes una inscripción en este evento');
     }
 
+    const joiningUser = await this.usersService.findById(userId);
+    const needsGuardianApproval =
+      event.organizerId !== userId &&
+      joiningUser?.birthDate != null &&
+      joiningUser.guardianId != null &&
+      Math.floor(
+        (Date.now() - new Date(joiningUser.birthDate + 'T00:00:00').getTime()) / (365.25 * 24 * 3600 * 1000),
+      ) < 18;
+
     let status: ParticipantStatus;
     if (event.organizerId === userId) {
       status = ParticipantStatus.APPROVED;
+    } else if (needsGuardianApproval) {
+      status = ParticipantStatus.PENDING;
     } else if (event.requiresApproval) {
       status = ParticipantStatus.PENDING;
     } else {
@@ -65,6 +76,41 @@ export class ParticipantsService {
       status,
       message: dto.message ?? null,
     });
+    const saved = await this.participantsRepository.save(participant);
+
+    if (needsGuardianApproval) {
+      await this.notificationsService.createGuardianApproval(
+        joiningUser!.guardianId!,
+        saved.id,
+        eventId,
+        joiningUser!.name,
+        event.title,
+      );
+    }
+
+    return saved;
+  }
+
+  async guardianApprove(
+    eventId: string,
+    participantId: string,
+    approve: boolean,
+    callerId: string,
+  ): Promise<EventParticipant> {
+    const event = await this.eventsRepository.findOne({ where: { id: eventId } });
+    if (!event) throw new NotFoundException('Evento no encontrado');
+
+    const participant = await this.participantsRepository.findOne({
+      where: { id: participantId, eventId },
+      relations: ['user'],
+    });
+    if (!participant) throw new NotFoundException('Participante no encontrado');
+
+    if (participant.user.guardianId !== callerId) {
+      throw new ForbiddenException('No eres el tutor de este participante');
+    }
+
+    participant.status = approve ? ParticipantStatus.APPROVED : ParticipantStatus.REJECTED;
     return this.participantsRepository.save(participant);
   }
 

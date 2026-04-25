@@ -231,6 +231,65 @@
         </section>
       }
 
+      <!-- ── Tutor / Guardián ────────────────────────────────── -->
+      <section class="mb-4">
+        <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-2 px-1">Tutor / Guardián</p>
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
+
+          @if (guardianLoading()) {
+            <div class="flex justify-center py-6">
+              <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:24px">progress_activity</span>
+            </div>
+          } @else if (guardian()) {
+            <div class="flex items-center gap-3 px-4 py-3">
+              @if (guardian()!.avatar) {
+                <img [src]="guardian()!.avatar" [alt]="guardian()!.name"
+                     class="w-10 h-10 rounded-xl object-cover ring-1 ring-neutral-700 flex-shrink-0" />
+              } @else {
+                <div class="w-10 h-10 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center flex-shrink-0">
+                  <span class="material-symbols-outlined text-neutral-500" style="font-size:20px">person</span>
+                </div>
+              }
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-white truncate">{{ guardian()!.name }}</p>
+                <p class="text-xs text-neutral-500 font-mono">{{ guardian()!.stringId }}</p>
+              </div>
+              <button (click)="removeGuardian()"
+                      [disabled]="guardianActionLoading()"
+                      class="flex items-center gap-1.5 text-xs text-red-400 border border-red-500/30 rounded-xl
+                             px-3 py-2 hover:bg-red-500/10 transition-colors disabled:opacity-50 min-h-[36px]">
+                <span class="material-symbols-outlined" style="font-size:14px">link_off</span>
+                Desvincular
+              </button>
+            </div>
+          } @else {
+            <div class="p-4 flex flex-col gap-3">
+              <p class="text-xs text-neutral-500">Ingresa el ID de Sport Card o email del tutor</p>
+              <div class="flex gap-2">
+                <input type="text" [ngModel]="guardianInput()" (ngModelChange)="guardianInput.set($event)"
+                       placeholder="ID o email del tutor"
+                       class="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white
+                              placeholder-neutral-600 focus:outline-none focus:border-brand transition-colors min-h-[44px]" />
+                <button (click)="setGuardian()"
+                        [disabled]="!guardianInput().trim() || guardianActionLoading()"
+                        class="flex items-center justify-center bg-brand text-neutral-950 font-black rounded-xl
+                               px-4 min-h-[44px] disabled:opacity-50 transition-opacity">
+                  @if (guardianActionLoading()) {
+                    <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+                  } @else {
+                    <span class="material-symbols-outlined" style="font-size:18px">link</span>
+                  }
+                </button>
+              </div>
+              @if (guardianError()) {
+                <p class="text-xs text-red-400">{{ guardianError() }}</p>
+              }
+            </div>
+          }
+
+        </div>
+      </section>
+
       <!-- ── Cuenta ─────────────────────────────────────────── -->
       <section class="mb-4">
         <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-2 px-1">Cuenta</p>

@@ -109,6 +109,38 @@ export class NotificationsComponent implements OnInit {
     });
   }
 
+  approveGuardian(notif: AppNotification): void {
+    const participantId = notif.metadata?.['participantId'] as string | undefined;
+    if (!participantId || !notif.eventId || this.inviteLoading()) return;
+    this.inviteLoading.set(notif.id);
+    this.eventsSvc.guardianApprove(notif.eventId, participantId, true).subscribe({
+      next: () => {
+        this.notifSvc.markRead(notif.id).subscribe({
+          next: updated => this.notifications.update(list =>
+            list.map(n => n.id === updated.id ? updated : n)),
+        });
+        this.inviteLoading.set(null);
+      },
+      error: () => this.inviteLoading.set(null),
+    });
+  }
+
+  rejectGuardian(notif: AppNotification): void {
+    const participantId = notif.metadata?.['participantId'] as string | undefined;
+    if (!participantId || !notif.eventId || this.inviteLoading()) return;
+    this.inviteLoading.set(notif.id);
+    this.eventsSvc.guardianApprove(notif.eventId, participantId, false).subscribe({
+      next: () => {
+        this.notifSvc.markRead(notif.id).subscribe({
+          next: updated => this.notifications.update(list =>
+            list.map(n => n.id === updated.id ? updated : n)),
+        });
+        this.inviteLoading.set(null);
+      },
+      error: () => this.inviteLoading.set(null),
+    });
+  }
+
   acceptTeamInvite(notif: AppNotification): void {
     const teamId = notif.metadata?.['teamId'] as string | undefined;
     if (!teamId || this.inviteLoading()) return;
@@ -150,20 +182,22 @@ export class NotificationsComponent implements OnInit {
       team_invite:      'Equipo',
       match_scheduled:  'Partido',
       match_result:     'Resultado',
-      tournament_update:'Torneo',
+      tournament_update: 'Torneo',
+      guardian_approval: 'Tutor',
     };
     return map[type] ?? type;
   }
 
   typeColor(type: string): string {
     const map: Record<string, string> = {
-      broadcast:        'text-brand bg-brand/10 border-brand/30',
-      event:            'text-blue-400 bg-blue-400/10 border-blue-400/30',
-      invitation:       'text-purple-400 bg-purple-400/10 border-purple-400/30',
-      team_invite:      'text-orange-400 bg-orange-400/10 border-orange-400/30',
-      match_scheduled:  'text-blue-400 bg-blue-400/10 border-blue-400/30',
-      match_result:     'text-brand bg-brand/10 border-brand/30',
-      tournament_update:'text-yellow-400 bg-yellow-400/10 border-yellow-400/30',
+      broadcast:         'text-brand bg-brand/10 border-brand/30',
+      event:             'text-blue-400 bg-blue-400/10 border-blue-400/30',
+      invitation:        'text-purple-400 bg-purple-400/10 border-purple-400/30',
+      team_invite:       'text-orange-400 bg-orange-400/10 border-orange-400/30',
+      match_scheduled:   'text-blue-400 bg-blue-400/10 border-blue-400/30',
+      match_result:      'text-brand bg-brand/10 border-brand/30',
+      tournament_update: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/30',
+      guardian_approval: 'text-pink-400 bg-pink-400/10 border-pink-400/30',
     };
     return map[type] ?? 'text-neutral-400 bg-neutral-800 border-neutral-700';
   }
@@ -173,6 +207,7 @@ export class NotificationsComponent implements OnInit {
     if (notif.type === 'invitation') return 'bg-purple-400';
     if (notif.type === 'team_invite') return 'bg-orange-400';
     if (notif.type === 'tournament_update') return 'bg-yellow-400';
+    if (notif.type === 'guardian_approval') return 'bg-pink-400';
     return 'bg-brand';
   }
 
@@ -181,6 +216,7 @@ export class NotificationsComponent implements OnInit {
     if (notif.type === 'invitation') return 'border-purple-500/40';
     if (notif.type === 'team_invite') return 'border-orange-500/40';
     if (notif.type === 'tournament_update') return 'border-yellow-500/40';
+    if (notif.type === 'guardian_approval') return 'border-pink-500/40';
     return 'border-brand';
   }
 

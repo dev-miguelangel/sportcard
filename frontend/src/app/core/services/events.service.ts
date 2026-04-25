@@ -113,4 +113,11 @@ export class EventsService {
       { groupId },
     );
   }
+
+  guardianApprove(eventId: string, participantId: string, approve: boolean): Observable<void> {
+    return this.http.patch<void>(
+      `${environment.apiUrl}/events/${eventId}/participants/${participantId}/guardian-approve`,
+      { approve },
+    );
+  }
 }

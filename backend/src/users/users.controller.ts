@@ -1,7 +1,9 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
+  Delete,
   Param,
   Body,
   Req,
@@ -36,6 +38,29 @@ export class UsersController {
     const updated = await this.usersService.update(id, { ...dto, onboardingStep: nextStep });
     const { googleId: _googleId, ...publicUser } = updated!;
     return publicUser;
+  }
+
+  @Get('me/guardian')
+  @UseGuards(JwtAuthGuard)
+  getGuardian(@Req() req: Request) {
+    const { id } = req.user as JwtUser;
+    return this.usersService.getGuardian(id);
+  }
+
+  @Post('me/guardian')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  setGuardian(@Req() req: Request, @Body('identifier') identifier: string) {
+    const { id } = req.user as JwtUser;
+    return this.usersService.setGuardian(id, identifier);
+  }
+
+  @Delete('me/guardian')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(204)
+  removeGuardian(@Req() req: Request) {
+    const { id } = req.user as JwtUser;
+    return this.usersService.removeGuardian(id);
   }
 
   @Get(':id/stats')

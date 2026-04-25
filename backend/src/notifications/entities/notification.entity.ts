@@ -18,7 +18,8 @@ export enum NotificationType {
   TEAM_INVITE       = 'team_invite',
   MATCH_SCHEDULED   = 'match_scheduled',
   MATCH_RESULT      = 'match_result',
-  TOURNAMENT_UPDATE = 'tournament_update',
+  TOURNAMENT_UPDATE  = 'tournament_update',
+  GUARDIAN_APPROVAL  = 'guardian_approval',
 }
 
 @Entity('notifications')

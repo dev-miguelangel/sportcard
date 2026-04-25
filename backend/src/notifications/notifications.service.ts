@@ -143,6 +143,24 @@ export class NotificationsService {
     await this.repo.save(notifications);
   }
 
+  async createGuardianApproval(
+    guardianId: string,
+    participantId: string,
+    eventId: string,
+    minorName: string,
+    eventTitle: string,
+  ): Promise<Notification> {
+    const n = this.repo.create({
+      userId: guardianId,
+      eventId,
+      type: NotificationType.GUARDIAN_APPROVAL,
+      title: 'Aprobación requerida',
+      body: `${minorName} quiere inscribirse al evento "${eventTitle}"`,
+      metadata: { participantId, minorName },
+    });
+    return this.repo.save(n);
+  }
+
   async markRead(id: string, userId: string): Promise<Notification> {
     const n = await this.repo.findOne({ where: { id } });
     if (!n) throw new NotFoundException('Notificación no encontrada');

@@ -66,6 +66,17 @@ export class ParticipantsController {
     return this.participantsService.updateStatus(eventId, participantId, dto, id);
   }
 
+  @Patch(':id/participants/:participantId/guardian-approve')
+  guardianApprove(
+    @Param('id') eventId: string,
+    @Param('participantId') participantId: string,
+    @Body('approve') approve: boolean,
+    @Req() req: Request,
+  ) {
+    const { id } = req.user as JwtUser;
+    return this.participantsService.guardianApprove(eventId, participantId, approve, id);
+  }
+
   @Post(':id/invite-group')
   @HttpCode(200)
   inviteGroup(

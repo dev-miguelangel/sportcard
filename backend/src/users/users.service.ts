@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -77,6 +77,44 @@ export class UsersService {
   async update(id: string, data: Partial<User>): Promise<User | null> {
     await this.usersRepository.update(id, data);
     return this.usersRepository.findOne({ where: { id } });
+  }
+
+  async setGuardian(
+    userId: string,
+    identifier: string,
+  ): Promise<{ id: string; name: string; avatar: string | null; stringId: string }> {
+    const isStringId = /^[1-9A-Z]{6}$/i.test(identifier);
+    const guardian = isStringId
+      ? await this.findByStringId(identifier.toUpperCase())
+      : await this.findByEmail(identifier);
+
+    if (!guardian) throw new NotFoundException('Usuario no encontrado');
+    if (guardian.id === userId) throw new BadRequestException('No puedes ser tu propio tutor');
+    if (!guardian.birthDate) throw new BadRequestException('El tutor no tiene fecha de nacimiento registrada');
+
+    const age = Math.floor(
+      (Date.now() - new Date(guardian.birthDate + 'T00:00:00').getTime()) / (365.25 * 24 * 3600 * 1000),
+    );
+    if (age < 18) throw new BadRequestException('El tutor debe ser mayor de 18 años');
+
+    await this.usersRepository.update(userId, { guardianId: guardian.id });
+    return { id: guardian.id, name: guardian.name, avatar: guardian.avatar ?? null, stringId: guardian.stringId };
+  }
+
+  async removeGuardian(userId: string): Promise<void> {
+    await this.usersRepository.update(userId, { guardianId: null });
+  }
+
+  async getGuardian(
+    userId: string,
+  ): Promise<{ id: string; name: string; avatar: string | null; stringId: string } | null> {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      relations: ['guardian'],
+    });
+    if (!user?.guardian) return null;
+    const g = user.guardian;
+    return { id: g.id, name: g.name, avatar: g.avatar ?? null, stringId: g.stringId };
   }
 
   async getStats(userId: string): Promise<{ matchesPlayed: number; tournamentsParticipated: number }> {
