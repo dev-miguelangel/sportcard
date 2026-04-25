@@ -320,6 +320,73 @@ export class EventListComponent implements OnInit {
     return new Date(date).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
+  // ── Compact card helpers ─────────────────────────────────
+  getDay(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString('es-CL', { day: 'numeric' });
+  }
+
+  getMonth(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString('es-CL', { month: 'short' }).replace('.', '');
+  }
+
+  getTime(dateStr: string): string {
+    return new Date(dateStr).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
+  }
+
+  getWeekday(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString('es-CL', { weekday: 'short' }).replace('.', '');
+  }
+
+  getEventStatusLabel(event: EventResponse): string {
+    const { myStatus, maxParticipants, participantCount } = event;
+    if (myStatus === 'approved') return 'Inscrito';
+    if (myStatus === 'pending')  return 'Pendiente';
+    if (myStatus === 'waiting')  return 'En espera';
+    if (myStatus === 'rejected') return 'Rechazado';
+    if (maxParticipants !== null && participantCount >= maxParticipants) return 'Lleno';
+    return 'Abierto';
+  }
+
+  getEventStatusColor(event: EventResponse): string {
+    const { myStatus, maxParticipants, participantCount } = event;
+    if (myStatus === 'approved') return 'text-brand';
+    if (myStatus === 'pending')  return 'text-yellow-400';
+    if (myStatus === 'waiting')  return 'text-blue-400';
+    if (myStatus === 'rejected') return 'text-red-400';
+    if (maxParticipants !== null && participantCount >= maxParticipants) return 'text-neutral-500';
+    return 'text-brand';
+  }
+
+  getCardBorderStyle(sport: string): string {
+    const g = this.sportsSvc.getGradient(sport);
+    return `background:#171717 padding-box,${g} border-box;border:1px solid transparent;border-top-width:3px`;
+  }
+
+  getTournamentDay(dateStr: string | null): string {
+    if (!dateStr) return '';
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('es-CL', { day: 'numeric' });
+  }
+
+  getTournamentMonth(dateStr: string | null): string {
+    if (!dateStr) return '';
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('es-CL', { month: 'short' }).replace('.', '');
+  }
+
+  getTournamentWeekday(dateStr: string | null): string {
+    if (!dateStr) return '';
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('es-CL', { weekday: 'short' }).replace('.', '');
+  }
+
+  getTournamentStatusTextColor(status: string): string {
+    const map: Record<string, string> = {
+      open: 'text-brand',
+      in_progress: 'text-blue-400',
+      finished: 'text-neutral-400',
+      draft: 'text-neutral-500',
+    };
+    return map[status] ?? 'text-neutral-500';
+  }
+
   private updateEventStatus(
     eventId: string,
     status: EventResponse['myStatus'],
