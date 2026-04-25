@@ -15,6 +15,11 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'agenda',
+    loadComponent: () =>
+      import('./pages/agenda/agenda.component').then((m) => m.AgendaComponent),
+  },
+  {
     path: 'tournaments/t/:shareToken',
     loadComponent: () =>
       import('./pages/tournaments/public/tournament-public.component').then(

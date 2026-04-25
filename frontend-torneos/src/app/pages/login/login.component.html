@@ -13,6 +13,13 @@
       <p class="text-neutral-400 text-sm mt-1">Portal de entrenadores y organizadores</p>
     </div>
 
+    <!-- Agenda pública -->
+    <button (click)="goToAgenda()"
+            class="w-full flex items-center justify-center gap-2 text-neutral-400 hover:text-white text-sm font-semibold py-3 transition-colors mb-3 min-h-[44px]">
+      <span class="material-symbols-outlined" style="font-size:18px">calendar_month</span>
+      Ver agenda de torneos y eventos
+    </button>
+
     <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
 
       <button (click)="loginWithGoogle()"

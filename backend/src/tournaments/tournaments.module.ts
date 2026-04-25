@@ -16,7 +16,7 @@ import { TournamentPublicController } from './tournament-public.controller';
     TypeOrmModule.forFeature([Tournament, TournamentTeam, TournamentParticipant, Team, TeamMember, Match]),
     NotificationsModule,
   ],
-  controllers: [TournamentsController, TournamentPublicController],
+  controllers: [TournamentPublicController, TournamentsController],
   providers: [TournamentsService],
   exports: [TournamentsService],
 })

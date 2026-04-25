@@ -36,6 +36,23 @@ export interface TournamentSummaryDto {
   isOrganizer: boolean;
 }
 
+export interface PublicTournamentDto extends TournamentSummaryDto {
+  shareToken: string;
+}
+
+export interface PublicEventDto {
+  id: string;
+  title: string;
+  sport: string;
+  type: string;
+  startDatetime: string;
+  locationName: string;
+  maxParticipants: number | null;
+  participantCount: number;
+  isPublic: boolean;
+  shareToken: string;
+}
+
 export interface TournamentDetailDto extends TournamentSummaryDto {
   shareToken: string;
   approvedTeams: TournamentTeamItem[];
@@ -71,6 +88,14 @@ export interface CreateTournamentDto {
 export class TournamentsService {
   private readonly http = inject(HttpClient);
   private readonly api  = environment.apiUrl;
+
+  listPublic(): Observable<PublicTournamentDto[]> {
+    return this.http.get<PublicTournamentDto[]>(`${this.api}/tournaments/t`);
+  }
+
+  listPublicEvents(): Observable<PublicEventDto[]> {
+    return this.http.get<PublicEventDto[]>(`${this.api}/events/token`);
+  }
 
   getAll(): Observable<TournamentSummaryDto[]> {
     return this.http.get<TournamentSummaryDto[]>(`${this.api}/tournaments`);

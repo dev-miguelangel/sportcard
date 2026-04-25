@@ -5,6 +5,11 @@ import { TournamentsService } from './tournaments.service';
 export class TournamentPublicController {
   constructor(private readonly tournamentsSvc: TournamentsService) {}
 
+  @Get('t')
+  listPublic() {
+    return this.tournamentsSvc.listPublic();
+  }
+
   @Get('t/:shareToken')
   findByToken(@Param('shareToken') shareToken: string) {
     return this.tournamentsSvc.findByToken(shareToken);

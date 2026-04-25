@@ -5,6 +5,11 @@ import { EventsService } from './events.service';
 export class EventPublicController {
   constructor(private readonly eventsService: EventsService) {}
 
+  @Get('token')
+  listPublic() {
+    return this.eventsService.findPublic();
+  }
+
   @Get('token/:shareToken')
   findByToken(@Param('shareToken') shareToken: string) {
     return this.eventsService.findByShareToken(shareToken);

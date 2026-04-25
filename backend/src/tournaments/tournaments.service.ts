@@ -95,6 +95,16 @@ export class TournamentsService {
     return this.findById(tournament.id, organizerId);
   }
 
+  async listPublic(): Promise<Array<TournamentSummaryDto & { shareToken: string }>> {
+    const tournaments = await this.tournamentRepo.find({
+      where: { status: In([TournamentStatus.OPEN, TournamentStatus.IN_PROGRESS]) },
+      relations: ['organizer'],
+      order: { createdAt: 'DESC' },
+    });
+    const summaries = await this.enrichSummaries(tournaments);
+    return summaries.map((s, i) => ({ ...s, shareToken: tournaments[i].shareToken }));
+  }
+
   async findPublic(userId?: string): Promise<TournamentSummaryDto[]> {
     const qb = this.tournamentRepo
       .createQueryBuilder('t')

@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -9,7 +10,8 @@ import { AuthService } from '../../core/services/auth.service';
   templateUrl: './login.component.html',
 })
 export class LoginComponent implements OnInit {
-  private readonly auth = inject(AuthService);
+  private readonly auth   = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly devAuthEnabled = this.auth.devAuthEnabled;
 
@@ -25,7 +27,8 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  loginWithGoogle(): void { this.auth.loginWithGoogle(); }
+  loginWithGoogle(): void  { this.auth.loginWithGoogle(); }
+  goToAgenda(): void       { this.router.navigate(['/agenda']); }
 
   devLogin(): void {
     if (this.devLoading()) return;
