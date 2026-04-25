@@ -112,9 +112,9 @@
           </div>
           <button type="button" (click)="registrationOpen.set(!registrationOpen())"
                   [class]="registrationOpen() ? 'bg-brand' : 'bg-neutral-700'"
-                  class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0">
-            <span [class]="registrationOpen() ? 'translate-x-5' : 'translate-x-0.5'"
-                  class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"></span>
+                  class="relative w-12 h-6 rounded-full transition-colors flex-shrink-0">
+            <span class="absolute top-[2px] w-5 h-5 rounded-full bg-white shadow transition-all duration-200"
+                  [style.left]="registrationOpen() ? '26px' : '2px'"></span>
           </button>
         </label>
 
@@ -125,9 +125,9 @@
           </div>
           <button type="button" (click)="requiresApproval.set(!requiresApproval())"
                   [class]="requiresApproval() ? 'bg-brand' : 'bg-neutral-700'"
-                  class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0">
-            <span [class]="requiresApproval() ? 'translate-x-5' : 'translate-x-0.5'"
-                  class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"></span>
+                  class="relative w-12 h-6 rounded-full transition-colors flex-shrink-0">
+            <span class="absolute top-[2px] w-5 h-5 rounded-full bg-white shadow transition-all duration-200"
+                  [style.left]="requiresApproval() ? '26px' : '2px'"></span>
           </button>
         </label>
 
@@ -138,9 +138,9 @@
           </div>
           <button type="button" (click)="allowIndividual.set(!allowIndividual())"
                   [class]="allowIndividual() ? 'bg-brand' : 'bg-neutral-700'"
-                  class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0">
-            <span [class]="allowIndividual() ? 'translate-x-5' : 'translate-x-0.5'"
-                  class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"></span>
+                  class="relative w-12 h-6 rounded-full transition-colors flex-shrink-0">
+            <span class="absolute top-[2px] w-5 h-5 rounded-full bg-white shadow transition-all duration-200"
+                  [style.left]="allowIndividual() ? '26px' : '2px'"></span>
           </button>
         </label>
       </div>
