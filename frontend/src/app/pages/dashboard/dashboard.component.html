@@ -18,11 +18,26 @@
           @if (streak()?.todayLogged) { ¡activo hoy! } @else { días activos }
         </p>
       </div>
-      <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
-        <p class="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">Victorias</p>
-        <p class="text-2xl font-black text-blue-400">0</p>
-        <p class="text-[10px] text-neutral-600 mt-1">registradas</p>
-      </div>
+      <button (click)="goToTeams()"
+              class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-left hover:border-neutral-700 transition-colors">
+        <p class="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">Equipos</p>
+        <p class="text-2xl font-black text-purple-400">{{ myTeams().length || '—' }}</p>
+        <p class="text-[10px] text-neutral-600 mt-1">
+          @if (myTeams().length === 0) {
+            sin equipos
+          } @else if (teamsAsCoach() === myTeams().length) {
+            entrenas
+          } @else if (teamsAsCoach() > 0) {
+            {{ teamsAsCoach() }} entrenas
+          } @else {
+            como miembro
+          }
+        </p>
+        <p class="text-[9px] text-purple-400/70 mt-2 flex items-center gap-0.5">
+          Ver equipos
+          <span class="material-symbols-outlined" style="font-size:11px">chevron_right</span>
+        </p>
+      </button>
     </div>
 
     <!-- Mi actividad -->

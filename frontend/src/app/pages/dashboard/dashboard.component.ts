@@ -4,6 +4,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { EventsService, EventResponse } from '../../core/services/events.service';
 import { ActivitiesService, Activity, StreakResult } from '../../core/services/activities.service';
 import { SportsService } from '../../core/services/sports.service';
+import { TeamsService, TeamSummary } from '../../core/services/teams.service';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
 
@@ -23,6 +24,7 @@ export class DashboardComponent implements OnInit {
   private readonly eventsSvc  = inject(EventsService);
   private readonly actSvc     = inject(ActivitiesService);
   private readonly sportsSvc  = inject(SportsService);
+  private readonly teamsSvc   = inject(TeamsService);
 
   readonly myEvents          = signal<EventResponse[]>([]);
   readonly loadingEvents     = signal(true);
@@ -30,6 +32,9 @@ export class DashboardComponent implements OnInit {
   readonly loadingActivities = signal(true);
   readonly activeTimelineTab = signal<'upcoming' | 'past'>('upcoming');
   readonly streak            = signal<StreakResult | null>(null);
+  readonly myTeams           = signal<TeamSummary[]>([]);
+
+  readonly teamsAsCoach = computed(() => this.myTeams().filter(t => t.isCoach).length);
 
   readonly eventsThisMonth = computed(() => {
     const now   = new Date();
@@ -82,10 +87,15 @@ export class DashboardComponent implements OnInit {
       error: ()   => this.loadingActivities.set(false),
     });
     this.actSvc.getStreak().subscribe({ next: s => this.streak.set(s), error: () => {} });
+    this.teamsSvc.findMine().subscribe({ next: teams => this.myTeams.set(teams), error: () => {} });
   }
 
   setActiveTab(tab: 'upcoming' | 'past'): void {
     this.activeTimelineTab.set(tab);
+  }
+
+  goToTeams(): void {
+    this.router.navigate(['/teams']);
   }
 
   goToCreateEvent(): void {
