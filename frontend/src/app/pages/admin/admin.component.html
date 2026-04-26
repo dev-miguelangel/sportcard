@@ -668,17 +668,43 @@
             </div>
           </div>
 
-          <!-- Gradient -->
+          <!-- Color -->
           <div>
-            <label class="block text-[0.7rem] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Gradient CSS</label>
-            <input type="text"
-                   placeholder="linear-gradient(135deg,#003d20,#006b35)"
-                   [value]="sportFormGradient()"
-                   (input)="sportFormGradient.set($any($event.target).value)"
-                   class="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors min-h-[44px]" />
-            @if (sportFormGradient()) {
-              <div class="h-3 rounded-full mt-1.5" [style.background]="sportFormGradient()"></div>
-            }
+            <label class="block text-[0.7rem] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Color base</label>
+
+            <!-- Presets -->
+            <div class="flex flex-wrap gap-2 mb-3">
+              @for (c of colorPresets; track c) {
+                <button type="button" (click)="sportFormColor.set(c)"
+                        class="w-8 h-8 rounded-lg border-2 transition-all flex-shrink-0"
+                        [style.background]="c"
+                        [class]="sportFormColor() === c
+                          ? 'border-white scale-110 shadow-lg'
+                          : 'border-transparent hover:border-neutral-400'">
+                </button>
+              }
+            </div>
+
+            <!-- Native picker + info row -->
+            <div class="flex items-center gap-3">
+              <label class="relative cursor-pointer flex-shrink-0">
+                <input type="color"
+                       [value]="sportFormColor()"
+                       (input)="sportFormColor.set($any($event.target).value)"
+                       class="sr-only" />
+                <div class="w-12 h-12 rounded-xl border-2 border-neutral-600 hover:border-neutral-400 transition-colors shadow-inner"
+                     [style.background]="sportFormColor()">
+                </div>
+              </label>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-mono text-neutral-200">{{ sportFormColor() }}</p>
+                <p class="text-[0.65rem] text-neutral-600 mt-0.5">Toca el cuadro para personalizar</p>
+              </div>
+              <!-- Gradient preview -->
+              <div class="w-16 h-10 rounded-xl flex-shrink-0 border border-neutral-700"
+                   [style.background]="sportFormGradient()">
+              </div>
+            </div>
           </div>
 
           <!-- Active toggle -->

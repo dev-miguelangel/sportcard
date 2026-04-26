@@ -8,6 +8,25 @@ import { SportsService } from '../../core/services/sports.service';
 
 type AdminTab = 'users' | 'events' | 'stats' | 'notifications' | 'sports';
 
+const COLOR_PRESETS = [
+  '#00c853', '#1e88e5', '#e53935', '#fb8c00', '#8e24aa',
+  '#00897b', '#f4511e', '#3949ab', '#d81b60', '#00acc1',
+  '#43a047', '#fdd835',
+];
+
+function gradientFromColor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const d = (n: number) => Math.round(n * 0.5).toString(16).padStart(2, '0');
+  return `linear-gradient(135deg,#${d(r)}${d(g)}${d(b)},${hex})`;
+}
+
+function extractColorFromGradient(gradient: string): string {
+  const match = gradient.match(/#([0-9a-fA-F]{6})\s*\)\s*$/);
+  return match ? match[0].replace(/\)\s*$/, '').trim() : '#00c853';
+}
+
 const SPORTS_ICONS: string[] = [
   'sports_soccer', 'sports_basketball', 'sports_tennis', 'sports_baseball',
   'sports_football', 'sports_golf', 'sports_handball', 'sports_hockey',
@@ -77,9 +96,11 @@ export class AdminComponent implements OnInit {
   readonly sportFormName     = signal('');
   readonly sportFormIcon     = signal('');
   readonly sportFormEmoji    = signal('');
-  readonly sportFormGradient = signal('');
+  readonly sportFormColor    = signal('#00c853');
+  readonly sportFormGradient = computed(() => gradientFromColor(this.sportFormColor()));
   readonly sportFormIsActive = signal(true);
   readonly sportFormOrder    = signal(0);
+  readonly colorPresets      = COLOR_PRESETS;
   readonly iconPickerOpen    = signal(false);
   readonly iconSearch        = signal('');
   readonly sportSaving       = signal(false);
@@ -299,7 +320,7 @@ export class AdminComponent implements OnInit {
     this.sportFormName.set('');
     this.sportFormIcon.set('');
     this.sportFormEmoji.set('');
-    this.sportFormGradient.set('');
+    this.sportFormColor.set('#00c853');
     this.sportFormIsActive.set(true);
     this.sportFormOrder.set(this.sportsTotal());
     this.iconPickerOpen.set(false);
@@ -314,7 +335,7 @@ export class AdminComponent implements OnInit {
     this.sportFormName.set(sport.name);
     this.sportFormIcon.set(sport.icon);
     this.sportFormEmoji.set(sport.emoji);
-    this.sportFormGradient.set(sport.gradient);
+    this.sportFormColor.set(extractColorFromGradient(sport.gradient));
     this.sportFormIsActive.set(sport.isActive);
     this.sportFormOrder.set(sport.order);
     this.iconPickerOpen.set(false);
