@@ -86,4 +86,10 @@ export class FixturesService {
       `${this.api}/tournaments/${tournamentId}/matches/${matchId}/result`, dto,
     );
   }
+
+  cancelMatch(tournamentId: string, matchId: string, status: 'cancelled' | 'postponed'): Observable<MatchItem> {
+    return this.http.patch<MatchItem>(
+      `${this.api}/tournaments/${tournamentId}/matches/${matchId}/cancel`, { status },
+    );
+  }
 }

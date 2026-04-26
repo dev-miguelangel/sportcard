@@ -301,17 +301,33 @@
                         }
                       </div>
 
-                      <!-- Organizer: schedule button -->
+                      <!-- Organizer: schedule / cancel / postpone -->
                       @if (t.isOrganizer && match.status !== 'played' && match.status !== 'cancelled') {
                         @if (openScheduleFor() !== match.id) {
-                          <button (click)="openSchedule(match)"
-                                  class="text-xs text-brand font-semibold hover:text-brand/80 transition-colors">
-                            Programar
-                          </button>
+                          <div class="flex items-center gap-3">
+                            <button (click)="openSchedule(match)"
+                                    class="text-xs text-brand font-semibold hover:text-brand/80 transition-colors">
+                              {{ match.status === 'scheduled' ? 'Reprogramar' : 'Programar' }}
+                            </button>
+                            <button (click)="cancelMatch(match.id, 'postponed')"
+                                    [disabled]="!!cancellingMatch()"
+                                    class="text-xs text-neutral-500 font-semibold hover:text-yellow-400 transition-colors disabled:opacity-40">
+                              @if (cancellingMatch() === match.id) {
+                                <span class="inline-block w-3 h-3 border-2 border-neutral-600 border-t-transparent rounded-full animate-spin"></span>
+                              } @else {
+                                Postponer
+                              }
+                            </button>
+                            <button (click)="cancelMatch(match.id, 'cancelled')"
+                                    [disabled]="!!cancellingMatch()"
+                                    class="text-xs text-neutral-500 font-semibold hover:text-red-400 transition-colors disabled:opacity-40">
+                              Cancelar
+                            </button>
+                          </div>
                         } @else {
                           <button (click)="cancelSchedule()"
                                   class="text-xs text-neutral-500 font-semibold hover:text-neutral-400 transition-colors">
-                            Cancelar
+                            Cerrar
                           </button>
                         }
                       }

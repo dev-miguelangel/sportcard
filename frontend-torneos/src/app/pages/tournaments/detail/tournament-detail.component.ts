@@ -68,6 +68,9 @@ export class TournamentDetailComponent implements OnInit {
   readonly scheduleLocation = signal('');
   readonly savingSchedule   = signal(false);
 
+  // Cancel / postpone match
+  readonly cancellingMatch = signal<string | null>(null);
+
   // Inline result form
   readonly openResultFor = signal<string | null>(null);
   readonly resultHome    = signal('');
@@ -223,6 +226,21 @@ export class TournamentDetailComponent implements OnInit {
   }
 
   cancelResult(): void { this.openResultFor.set(null); }
+
+  cancelMatch(matchId: string, status: 'cancelled' | 'postponed'): void {
+    if (this.cancellingMatch()) return;
+    this.cancellingMatch.set(matchId);
+    this.fixturesSvc.cancelMatch(this.tournamentId, matchId, status).subscribe({
+      next: updated => {
+        this.matches.update(list => list.map(m => m.id === matchId ? updated : m));
+        this.cancellingMatch.set(null);
+      },
+      error: (err) => {
+        alert(err?.error?.message ?? 'Error al actualizar el partido');
+        this.cancellingMatch.set(null);
+      },
+    });
+  }
 
   saveResult(matchId: string): void {
     if (this.savingResult()) return;
