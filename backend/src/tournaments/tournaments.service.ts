@@ -376,6 +376,30 @@ export class TournamentsService {
     const tournament = await this.assertOrganizer(id, organizerId);
     tournament.status = status;
     await this.tournamentRepo.save(tournament);
+
+    if (status === TournamentStatus.CANCELLED) {
+      await this.matchRepo.createQueryBuilder()
+        .update(Match)
+        .set({ status: MatchStatus.CANCELLED })
+        .where(
+          'tournament_id = :id AND status IN (:...active)',
+          { id, active: [MatchStatus.SCHEDULED, MatchStatus.POSTPONED] },
+        )
+        .execute();
+    }
+
+    return this.findById(id, organizerId);
+  }
+
+  async rescheduleTournament(
+    id: string,
+    organizerId: string,
+    dto: { startDate?: string | null; endDate?: string | null },
+  ): Promise<TournamentDetailDto> {
+    const tournament = await this.assertOrganizer(id, organizerId);
+    if ('startDate' in dto) tournament.startDate = dto.startDate ?? null;
+    if ('endDate'   in dto) tournament.endDate   = dto.endDate   ?? null;
+    await this.tournamentRepo.save(tournament);
     return this.findById(id, organizerId);
   }
 

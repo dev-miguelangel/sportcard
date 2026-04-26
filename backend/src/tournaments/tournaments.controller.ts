@@ -88,6 +88,16 @@ export class TournamentsController {
     return this.tournamentsSvc.updateTournamentStatus(tournamentId, id, body.status);
   }
 
+  @Patch(':id/reschedule')
+  rescheduleTournament(
+    @Param('id') tournamentId: string,
+    @Body() body: { startDate?: string | null; endDate?: string | null },
+    @Req() req: Request,
+  ) {
+    const { id } = req.user as JwtUser;
+    return this.tournamentsSvc.rescheduleTournament(tournamentId, id, body);
+  }
+
   @Delete(':id/teams/:teamId')
   @HttpCode(204)
   removeTeam(

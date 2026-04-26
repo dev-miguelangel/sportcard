@@ -23,7 +23,7 @@ const FORMAT_LABELS: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  draft:'Borrador', open:'Abierto', in_progress:'En curso', finished:'Finalizado',
+  draft:'Borrador', open:'Abierto', in_progress:'En curso', finished:'Finalizado', cancelled:'Cancelado',
 };
 
 @Component({
@@ -44,8 +44,13 @@ export class TournamentDetailComponent implements OnInit {
   readonly tournament    = signal<TournamentDetailDto | null>(null);
   readonly loading       = signal(true);
   readonly error         = signal<string | null>(null);
-  readonly statusLoading = signal(false);
-  readonly linkCopied    = signal(false);
+  readonly statusLoading      = signal(false);
+  readonly linkCopied         = signal(false);
+  readonly cancellingTournament = signal(false);
+  readonly rescheduleOpen     = signal(false);
+  readonly rescheduleStart    = signal('');
+  readonly rescheduleEnd      = signal('');
+  readonly rescheduleLoading  = signal(false);
 
   // Tabs
   readonly activeTab = signal<Tab>('teams');
@@ -313,6 +318,44 @@ export class TournamentDetailComponent implements OnInit {
     this.tournamentsSvc.updateStatus(this.tournamentId, next).subscribe({
       next: updated => { this.tournament.set(updated); this.statusLoading.set(false); },
       error: ()      => this.statusLoading.set(false),
+    });
+  }
+
+  cancelTournament(): void {
+    const t = this.tournament();
+    if (!t || this.cancellingTournament() || t.status === 'cancelled' || t.status === 'finished') return;
+    this.cancellingTournament.set(true);
+    this.tournamentsSvc.updateStatus(this.tournamentId, 'cancelled').subscribe({
+      next: updated => { this.tournament.set(updated); this.cancellingTournament.set(false); },
+      error: ()      => this.cancellingTournament.set(false),
+    });
+  }
+
+  openReschedule(): void {
+    const t = this.tournament();
+    this.rescheduleStart.set(t?.startDate?.slice(0, 10) ?? '');
+    this.rescheduleEnd.set(t?.endDate?.slice(0, 10) ?? '');
+    this.rescheduleOpen.set(true);
+  }
+
+  closeReschedule(): void { this.rescheduleOpen.set(false); }
+
+  saveReschedule(): void {
+    if (this.rescheduleLoading()) return;
+    this.rescheduleLoading.set(true);
+    this.tournamentsSvc.reschedule(this.tournamentId, {
+      startDate: this.rescheduleStart() || null,
+      endDate:   this.rescheduleEnd()   || null,
+    }).subscribe({
+      next: updated => {
+        this.tournament.set(updated);
+        this.rescheduleOpen.set(false);
+        this.rescheduleLoading.set(false);
+      },
+      error: (err) => {
+        alert(err?.error?.message ?? 'Error al reprogramar el torneo');
+        this.rescheduleLoading.set(false);
+      },
     });
   }
 

@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export type TournamentFormat = 'cup' | 'league' | 'groups_playoffs' | 'points';
-export type TournamentStatus = 'draft' | 'open' | 'in_progress' | 'finished';
+export type TournamentStatus = 'draft' | 'open' | 'in_progress' | 'finished' | 'cancelled';
 export type RegistrationStatus = 'pending' | 'approved' | 'rejected';
 
 export interface TournamentTeamItem {
@@ -127,5 +127,9 @@ export class TournamentsService {
 
   updateStatus(tournamentId: string, status: TournamentStatus): Observable<TournamentDetailDto> {
     return this.http.patch<TournamentDetailDto>(`${this.api}/tournaments/${tournamentId}/status`, { status });
+  }
+
+  reschedule(tournamentId: string, dto: { startDate?: string | null; endDate?: string | null }): Observable<TournamentDetailDto> {
+    return this.http.patch<TournamentDetailDto>(`${this.api}/tournaments/${tournamentId}/reschedule`, dto);
   }
 }

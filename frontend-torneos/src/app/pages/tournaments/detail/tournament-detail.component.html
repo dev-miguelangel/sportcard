@@ -25,6 +25,7 @@
                 [class]="t.status === 'in_progress' ? 'text-brand bg-brand/10 border border-brand/20'
                        : t.status === 'open'        ? 'text-blue-400 bg-blue-400/10 border border-blue-400/20'
                        : t.status === 'finished'    ? 'text-neutral-400 bg-neutral-800 border border-neutral-700'
+                       : t.status === 'cancelled'   ? 'text-red-400 bg-red-400/10 border border-red-400/20'
                        :                              'text-neutral-500 bg-neutral-800 border border-neutral-700'">
             {{ statusLabel(t.status) }}
           </span>
@@ -40,6 +41,14 @@
             <span class="material-symbols-outlined text-neutral-400" style="font-size:16px">{{ linkCopied() ? 'check' : 'share' }}</span>
             {{ linkCopied() ? 'Copiado' : 'Compartir' }}
           </button>
+          <!-- Reprogramar torneo -->
+          @if (t.status !== 'cancelled' && t.status !== 'finished') {
+            <button (click)="openReschedule()"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 transition-colors text-xs font-semibold min-h-[36px]">
+              <span class="material-symbols-outlined text-neutral-400" style="font-size:16px">event</span>
+              Fechas
+            </button>
+          }
           <!-- Advance status -->
           @if (nextStatus(t.status)) {
             <button (click)="advanceStatus()" [disabled]="statusLoading()"
@@ -52,6 +61,18 @@
               {{ nextStatusLabel(t.status) }}
             </button>
           }
+          <!-- Cancelar torneo -->
+          @if (t.status !== 'cancelled' && t.status !== 'finished') {
+            <button (click)="cancelTournament()" [disabled]="cancellingTournament()"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors text-xs font-semibold disabled:opacity-50 min-h-[36px]">
+              @if (cancellingTournament()) {
+                <span class="w-4 h-4 border-2 border-red-400/40 border-t-red-400 rounded-full animate-spin"></span>
+              } @else {
+                <span class="material-symbols-outlined" style="font-size:14px">cancel</span>
+              }
+              Cancelar
+            </button>
+          }
         </div>
       }
       }
@@ -60,6 +81,56 @@
   </div>
 
   @if (!loading() && !error() && tournament(); as t) {
+
+    <!-- Reschedule tournament form -->
+    @if (t.isOrganizer && rescheduleOpen()) {
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 mb-5">
+        <p class="text-sm font-bold mb-4">Reprogramar torneo</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          <div>
+            <label class="text-xs text-neutral-500 block mb-1.5">Fecha de inicio</label>
+            <input type="date"
+                   [ngModel]="rescheduleStart()" (ngModelChange)="rescheduleStart.set($event)"
+                   class="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-white
+                          focus:outline-none focus:border-brand transition-colors" />
+          </div>
+          <div>
+            <label class="text-xs text-neutral-500 block mb-1.5">Fecha de fin</label>
+            <input type="date"
+                   [ngModel]="rescheduleEnd()" (ngModelChange)="rescheduleEnd.set($event)"
+                   class="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-white
+                          focus:outline-none focus:border-brand transition-colors" />
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <button (click)="closeReschedule()"
+                  class="flex-1 py-2.5 rounded-xl bg-neutral-800 border border-neutral-700 text-sm font-semibold
+                         text-neutral-400 hover:bg-neutral-700 transition-colors">
+            Cancelar
+          </button>
+          <button (click)="saveReschedule()" [disabled]="rescheduleLoading()"
+                  class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-brand text-neutral-950
+                         font-black text-sm hover:bg-brand/90 transition-colors disabled:opacity-50">
+            @if (rescheduleLoading()) {
+              <span class="w-4 h-4 border-2 border-neutral-700 border-t-neutral-950 rounded-full animate-spin"></span>
+            } @else {
+              Guardar
+            }
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Cancelled banner -->
+    @if (t.status === 'cancelled') {
+      <div class="flex items-center gap-3 bg-red-500/10 border border-red-500/20 rounded-2xl px-5 py-4 mb-5">
+        <span class="material-symbols-outlined text-red-400 flex-shrink-0" style="font-size:22px">cancel</span>
+        <div>
+          <p class="text-sm font-bold text-red-400">Torneo cancelado</p>
+          <p class="text-xs text-red-400/60 mt-0.5">Todos los partidos pendientes han sido cancelados automáticamente.</p>
+        </div>
+      </div>
+    }
 
     <!-- Stats -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">

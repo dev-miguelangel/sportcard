@@ -21,6 +21,7 @@ export enum TournamentStatus {
   OPEN        = 'open',
   IN_PROGRESS = 'in_progress',
   FINISHED    = 'finished',
+  CANCELLED   = 'cancelled',
 }
 
 @Entity('tournament')
