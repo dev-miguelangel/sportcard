@@ -95,7 +95,7 @@ export class DashboardComponent implements OnInit {
   }
 
   goToTeams(): void {
-    this.router.navigate(['/teams']);
+    this.router.navigate(['/contacts'], { queryParams: { tab: 'teams' } });
   }
 
   goToCreateEvent(): void {

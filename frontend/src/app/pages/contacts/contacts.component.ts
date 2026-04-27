@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ContactsService, ContactUser, ContactGroup, GroupMember } from '../../core/services/contacts.service';
 import { TeamsService, TeamSummary, TeamPublicDto, TeamMemberItem } from '../../core/services/teams.service';
@@ -18,6 +18,7 @@ type ActiveTab = 'contacts' | 'groups' | 'teams';
 })
 export class ContactsComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
   private readonly contactsSvc = inject(ContactsService);
   private readonly teamsSvc = inject(TeamsService);
   private readonly authSvc = inject(AuthService);
@@ -132,6 +133,14 @@ export class ContactsComponent implements OnInit, OnDestroy {
     this.loadContacts();
     this.loadGroups();
     this.sportsSvc.load();
+
+    // Leer el parámetro 'tab' del query string
+    this.activatedRoute.queryParams.subscribe(params => {
+      const tab = params['tab'] as ActiveTab;
+      if (tab && (tab === 'contacts' || tab === 'groups' || tab === 'teams')) {
+        this.setTab(tab);
+      }
+    });
   }
 
   ngOnDestroy(): void {

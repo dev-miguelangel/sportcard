@@ -104,12 +104,6 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'teams',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./pages/teams/teams.component').then((m) => m.TeamsComponent),
-  },
-  {
     path: 'teams/:id',
     loadComponent: () =>
       import('./pages/teams/detail/team-detail.component').then(
