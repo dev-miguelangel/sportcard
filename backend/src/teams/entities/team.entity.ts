@@ -38,7 +38,7 @@ export class Team {
   @Column({ name: 'is_amateur', default: false })
   isAmateur: boolean;
 
-  @Column({ name: 'team_id', unique: true, length: 10, default: '' })
+  @Column({ name: 'team_id', unique: true, length: 11, default: '' })
   teamId: string;
 
   @Column({ name: 'icon_name', default: 'shield' })
