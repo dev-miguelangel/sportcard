@@ -50,4 +50,12 @@ export class TeamsService {
   confirmMembership(teamId: string, accept: boolean): Observable<void> {
     return this.http.patch<void>(`${environment.apiUrl}/teams/${teamId}/members/confirm`, { accept });
   }
+
+  removeMember(teamId: string, userId: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/teams/${teamId}/members/${userId}`);
+  }
+
+  deleteTeam(teamId: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/teams/${teamId}`);
+  }
 }

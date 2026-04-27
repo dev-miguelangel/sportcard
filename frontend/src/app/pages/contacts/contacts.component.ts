@@ -1,7 +1,8 @@
 import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { ContactsService, ContactUser, ContactGroup, GroupMember } from '../../core/services/contacts.service';
-import { TeamsService, TeamSummary, TeamPublicDto } from '../../core/services/teams.service';
+import { TeamsService, TeamSummary, TeamPublicDto, TeamMemberItem } from '../../core/services/teams.service';
+import { AuthService } from '../../core/services/auth.service';
 import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
 
 type ActiveTab = 'contacts' | 'groups' | 'teams';
@@ -16,6 +17,9 @@ export class ContactsComponent implements OnInit, OnDestroy {
   private readonly router      = inject(Router);
   private readonly contactsSvc = inject(ContactsService);
   private readonly teamsSvc    = inject(TeamsService);
+  private readonly authSvc     = inject(AuthService);
+
+  readonly currentUserId = this.authSvc.currentUser;
 
   // ── Contacts tab ────────────────────────────────────────────
   readonly activeTab      = signal<ActiveTab>('contacts');
@@ -41,9 +45,11 @@ export class ContactsComponent implements OnInit, OnDestroy {
   readonly memberActionId   = signal<string | null>(null);
 
   // ── Teams tab ───────────────────────────────────────────────
-  readonly myTeams      = signal<TeamSummary[]>([]);
-  readonly teamDetails  = signal<Record<string, TeamPublicDto>>({});
-  readonly loadingTeams = signal(false);
+  readonly myTeams           = signal<TeamSummary[]>([]);
+  readonly teamDetails       = signal<Record<string, TeamPublicDto>>({});
+  readonly loadingTeams      = signal(false);
+  readonly deletingTeamId    = signal<string | null>(null);
+  readonly removingMemberId  = signal<string | null>(null);
 
   readonly availableToAdd = computed(() => {
     const memberIds = new Set(this.groupMembers().map(m => m.userId));
@@ -257,6 +263,46 @@ export class ContactsComponent implements OnInit, OnDestroy {
         this.groupActionError.set(err?.error?.message ?? 'No se pudo quitar el miembro');
         this.memberActionId.set(null);
       },
+    });
+  }
+
+  deleteTeam(team: TeamSummary): void {
+    if (this.deletingTeamId()) return;
+    this.deletingTeamId.set(team.id);
+    this.teamsSvc.deleteTeam(team.id).subscribe({
+      next: () => {
+        this.myTeams.update(ts => ts.filter(t => t.id !== team.id));
+        this.teamDetails.update(map => {
+          const next = { ...map };
+          delete next[team.id];
+          return next;
+        });
+        this.deletingTeamId.set(null);
+      },
+      error: () => this.deletingTeamId.set(null),
+    });
+  }
+
+  removeMember(teamId: string, member: TeamMemberItem): void {
+    const key = `${teamId}:${member.userId}`;
+    if (this.removingMemberId()) return;
+    this.removingMemberId.set(key);
+    this.teamsSvc.removeMember(teamId, member.userId).subscribe({
+      next: () => {
+        const me = this.currentUserId()?.id;
+        if (me === member.userId) {
+          this.myTeams.update(ts => ts.filter(t => t.id !== teamId));
+          this.teamDetails.update(map => { const n = { ...map }; delete n[teamId]; return n; });
+        } else {
+          this.teamDetails.update(map => ({
+            ...map,
+            [teamId]: { ...map[teamId], members: map[teamId].members.filter(m => m.userId !== member.userId) },
+          }));
+          this.myTeams.update(ts => ts.map(t => t.id === teamId ? { ...t, memberCount: t.memberCount - 1 } : t));
+        }
+        this.removingMemberId.set(null);
+      },
+      error: () => this.removingMemberId.set(null),
     });
   }
 

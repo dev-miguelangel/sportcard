@@ -467,8 +467,18 @@
                   </p>
                 </div>
                 @if (team.isCoach) {
-                  <span class="w-5 h-5 bg-brand rounded flex items-center justify-center text-[10px] font-black text-neutral-950 flex-shrink-0"
-                        title="Eres el coach">C</span>
+                  <span class="w-5 h-5 bg-brand rounded flex items-center justify-center text-[10px] font-black text-neutral-950 flex-shrink-0">C</span>
+                  <!-- Eliminar equipo (solo coach/creador) -->
+                  <button (click)="deleteTeam(team)"
+                          [disabled]="deletingTeamId() === team.id"
+                          class="w-8 h-8 flex items-center justify-center rounded-xl bg-red-500/10 border border-red-500/20
+                                 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40 flex-shrink-0">
+                    @if (deletingTeamId() === team.id) {
+                      <span class="material-symbols-outlined animate-spin" style="font-size:15px">progress_activity</span>
+                    } @else {
+                      <span class="material-symbols-outlined" style="font-size:15px">delete</span>
+                    }
+                  </button>
                 }
               </div>
 
@@ -481,6 +491,9 @@
                 <div class="divide-y divide-neutral-800">
                   @for (member of detail.members; track member.userId) {
                     @let isCoach = member.userId === detail.coach.id;
+                    @let isSelf  = member.userId === currentUserId()?.id;
+                    @let canRemove = !isCoach && (isSelf || team.isCoach);
+                    @let removeKey = team.id + ':' + member.userId;
                     <div class="flex items-center gap-3 px-4 py-3"
                          [class]="isCoach ? 'bg-brand/5' : ''">
 
@@ -503,6 +516,9 @@
                         <p class="text-sm font-semibold truncate"
                            [class]="isCoach ? 'text-white' : 'text-neutral-200'">
                           {{ member.name }}
+                          @if (isSelf) {
+                            <span class="text-[0.6rem] font-bold text-neutral-500 ml-1">(tú)</span>
+                          }
                         </p>
                         <span class="text-[0.62rem] font-mono text-neutral-500">{{ member.stringId }}</span>
                       </div>
@@ -510,6 +526,24 @@
                       <!-- Coach badge -->
                       @if (isCoach) {
                         <span class="w-5 h-5 bg-brand rounded flex items-center justify-center text-[10px] font-black text-neutral-950 flex-shrink-0">C</span>
+                      }
+
+                      <!-- Remove / leave button -->
+                      @if (canRemove) {
+                        <button (click)="removeMember(team.id, member)"
+                                [disabled]="removingMemberId() === removeKey"
+                                class="w-8 h-8 flex items-center justify-center rounded-xl border transition-colors disabled:opacity-40 flex-shrink-0"
+                                [class]="isSelf
+                                  ? 'bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-red-400 hover:border-red-400/30'
+                                  : 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20'">
+                          @if (removingMemberId() === removeKey) {
+                            <span class="material-symbols-outlined animate-spin" style="font-size:14px">progress_activity</span>
+                          } @else {
+                            <span class="material-symbols-outlined" style="font-size:14px">
+                              {{ isSelf ? 'logout' : 'person_remove' }}
+                            </span>
+                          }
+                        </button>
                       }
 
                     </div>

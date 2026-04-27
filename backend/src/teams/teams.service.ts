@@ -244,17 +244,30 @@ export class TeamsService {
     return { ...teamDto, activeTournaments };
   }
 
-  async removeMember(teamId: string, coachId: string, targetUserId: string): Promise<void> {
-    await this.assertCoach(teamId, coachId);
+  async removeMember(teamId: string, actorId: string, targetUserId: string): Promise<void> {
+    const team = await this.teamRepo.findOne({ where: { id: teamId } });
+    if (!team) throw new NotFoundException('Equipo no encontrado.');
 
-    if (coachId === targetUserId) {
-      throw new BadRequestException('El entrenador no puede abandonar el equipo por esta vía.');
+    const isSelf  = actorId === targetUserId;
+    const isCoach = team.coachId === actorId;
+
+    if (!isSelf && !isCoach) {
+      throw new ForbiddenException('Solo el entrenador o el propio deportista pueden realizar esta acción.');
+    }
+    if (isCoach && isSelf) {
+      throw new BadRequestException('El entrenador no puede abandonar el equipo. Elimina el equipo en su lugar.');
     }
 
     const member = await this.memberRepo.findOne({ where: { teamId, userId: targetUserId } });
     if (!member) throw new NotFoundException('El usuario no es miembro del equipo.');
 
     await this.memberRepo.remove(member);
+  }
+
+  async deleteTeam(teamId: string, actorId: string): Promise<void> {
+    const team = await this.assertCoach(teamId, actorId);
+    await this.memberRepo.delete({ teamId: team.id });
+    await this.teamRepo.remove(team);
   }
 
   async searchForTeam(q: string): Promise<TeamSummaryDto[]> {

@@ -66,6 +66,16 @@ export class TeamsController {
     return this.teamsSvc.confirmMembership(teamId, userId, accept);
   }
 
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteTeam(
+    @Param('id') teamId: string,
+    @Req() req: Request,
+  ) {
+    const { id } = req.user as JwtUser;
+    return this.teamsSvc.deleteTeam(teamId, id);
+  }
+
   @Delete(':id/members/:userId')
   @HttpCode(HttpStatus.NO_CONTENT)
   removeMember(
