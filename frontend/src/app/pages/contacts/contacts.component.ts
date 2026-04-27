@@ -389,7 +389,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
     if (!user) return;
 
     const text = encodeURIComponent(
-      `🎯 ${user.name}, ¡te está invitando a SportCard! ⚽\n\nUn lugar increíble para organizar eventos deportivos, encontrar equipos y conocer gente que comparte tus pasiones.\n\n👉 Inicia sesión: https://dev.sportcard.miguelangeljaimen.cl/\n🔍 Búscame en contactos como: ${user.stringId}\n\n¿Qué esperas? ¡Vamos a jugar! 🏆`,
+      `${user.name} te está invitando a SportCard\n\nUn lugar increíble para organizar eventos deportivos, encontrar equipos y conocer gente que comparte tus pasiones.\n\n▪ Inicia sesión: https://dev.sportcard.miguelangeljaimen.cl/\n▪ Búscame en contactos como: ${user.stringId}\n\n¿Qué esperas? ¡Vamos a jugar!`,
     );
     window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener');
   }
