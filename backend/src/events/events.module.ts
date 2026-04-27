@@ -11,10 +11,12 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { UsersModule } from '../users/users.module';
 import { ContactGroup } from '../contacts/entities/contact-group.entity';
 import { ContactGroupMember } from '../contacts/entities/contact-group-member.entity';
+import { Team } from '../teams/entities/team.entity';
+import { TeamMember } from '../teams/entities/team-member.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Event, EventParticipant, ContactGroup, ContactGroupMember]),
+    TypeOrmModule.forFeature([Event, EventParticipant, ContactGroup, ContactGroupMember, Team, TeamMember]),
     NotificationsModule,
     UsersModule,
   ],

@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
   Max,
   Min,
 } from 'class-validator';
@@ -65,4 +66,12 @@ export class CreateEventDto {
   @IsOptional()
   @IsEnum(EventGender)
   gender?: EventGender;
+
+  @IsOptional()
+  @IsUUID()
+  challengerTeamId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  challengedTeamId?: string;
 }

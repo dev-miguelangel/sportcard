@@ -89,6 +89,12 @@ export class Event {
   })
   status: EventStatus;
 
+  @Column({ name: 'challenger_team_id', nullable: true })
+  challengerTeamId: string | null;
+
+  @Column({ name: 'challenged_team_id', nullable: true })
+  challengedTeamId: string | null;
+
   @Column({ name: 'organizer_id' })
   organizerId: string;
 

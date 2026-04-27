@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -14,6 +15,7 @@ import { UsersService } from '../users/users.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ContactGroup } from '../contacts/entities/contact-group.entity';
 import { ContactGroupMember } from '../contacts/entities/contact-group-member.entity';
+import { TeamMember } from '../teams/entities/team-member.entity';
 
 @Injectable()
 export class ParticipantsService {
@@ -26,6 +28,8 @@ export class ParticipantsService {
     private readonly groupRepo: Repository<ContactGroup>,
     @InjectRepository(ContactGroupMember)
     private readonly groupMemberRepo: Repository<ContactGroupMember>,
+    @InjectRepository(TeamMember)
+    private readonly teamMemberRepo: Repository<TeamMember>,
     private readonly usersService: UsersService,
     private readonly notificationsService: NotificationsService,
   ) {}
@@ -42,6 +46,21 @@ export class ParticipantsService {
     });
     if (existing) {
       throw new BadRequestException('Ya tienes una inscripción en este evento');
+    }
+
+    if (event.type === 'desafio' && event.challengerTeamId && event.challengedTeamId) {
+      const isChallengerMember = await this.teamMemberRepo.findOne({
+        where: { teamId: event.challengerTeamId, userId, status: 'confirmed' },
+      });
+      const isChallengedMember = await this.teamMemberRepo.findOne({
+        where: { teamId: event.challengedTeamId, userId, status: 'confirmed' },
+      });
+      if (isChallengerMember && isChallengedMember) {
+        throw new ConflictException('No puedes participar en ambos equipos del mismo desafío');
+      }
+      if (!isChallengerMember && !isChallengedMember) {
+        throw new ForbiddenException('Debes ser miembro de uno de los equipos para participar');
+      }
     }
 
     const joiningUser = await this.usersService.findById(userId);

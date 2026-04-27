@@ -1,10 +1,12 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, LessThan, Repository } from 'typeorm';
 import { Event, EventStatus } from './entities/event.entity';
 import { EventParticipant, ParticipantStatus } from './entities/event-participant.entity';
 import { CreateEventDto } from './dto/create-event.dto';
 import { CloseEventDto } from './dto/close-event.dto';
+import { Team } from '../teams/entities/team.entity';
+import { TeamMember } from '../teams/entities/team-member.entity';
 
 export interface EventWithStats extends Event {
   participantCount: number;
@@ -18,6 +20,10 @@ export class EventsService {
     private readonly eventsRepository: Repository<Event>,
     @InjectRepository(EventParticipant)
     private readonly participantsRepository: Repository<EventParticipant>,
+    @InjectRepository(Team)
+    private readonly teamRepo: Repository<Team>,
+    @InjectRepository(TeamMember)
+    private readonly teamMemberRepo: Repository<TeamMember>,
   ) {}
 
   private async autoFinishExpiredEvents(): Promise<void> {
@@ -34,6 +40,39 @@ export class EventsService {
       endDatetime: dto.endDatetime ? new Date(dto.endDatetime) : null,
       organizerId,
     });
+
+    if (dto.type === 'desafio') {
+      if (!dto.challengerTeamId || !dto.challengedTeamId) {
+        throw new BadRequestException('El desafío requiere challengerTeamId y challengedTeamId');
+      }
+      if (dto.challengerTeamId === dto.challengedTeamId) {
+        throw new BadRequestException('Un equipo no puede desafiarse a sí mismo');
+      }
+
+      const challengerTeam = await this.teamRepo.findOneBy({ id: dto.challengerTeamId });
+      if (!challengerTeam) throw new NotFoundException('Equipo retador no encontrado');
+
+      const challengedTeam = await this.teamRepo.findOneBy({ id: dto.challengedTeamId });
+      if (!challengedTeam) throw new NotFoundException('Equipo retado no encontrado');
+
+      if (!challengerTeam.isAmateur || !challengedTeam.isAmateur) {
+        throw new BadRequestException('Solo se pueden desafiar equipos amateur');
+      }
+      if (challengerTeam.sport !== challengedTeam.sport) {
+        throw new BadRequestException('Ambos equipos deben ser del mismo deporte');
+      }
+
+      const membership = await this.teamMemberRepo.findOne({
+        where: { teamId: dto.challengerTeamId, userId: organizerId, status: 'confirmed' },
+      });
+      if (!membership) {
+        throw new ForbiddenException('Debes ser miembro confirmado del equipo retador');
+      }
+
+      event.challengerTeamId = dto.challengerTeamId;
+      event.challengedTeamId = dto.challengedTeamId;
+    }
+
     return this.eventsRepository.save(event);
   }
 
