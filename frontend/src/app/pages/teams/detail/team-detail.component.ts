@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TeamsService, TeamPublicDto } from '../../../core/services/teams.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -37,9 +37,18 @@ export class TeamDetailComponent implements OnInit {
   private readonly teamsSvc = inject(TeamsService);
   readonly auth = inject(AuthService);
 
-  readonly team    = signal<TeamPublicDto | null>(null);
-  readonly loading = signal(true);
-  readonly error   = signal<string | null>(null);
+  readonly team            = signal<TeamPublicDto | null>(null);
+  readonly loading         = signal(true);
+  readonly error           = signal<string | null>(null);
+  readonly confirmLoading  = signal(false);
+
+  readonly currentUserPending = computed(() => {
+    const team = this.team();
+    const user = this.auth.currentUser();
+    if (!team || !user) return false;
+    const member = team.members.find(m => m.userId === user.id);
+    return member?.status === 'invited';
+  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
@@ -75,5 +84,45 @@ export class TeamDetailComponent implements OnInit {
 
   goToTournament(id: string): void {
     this.router.navigate(['/tournaments', id]);
+  }
+
+  acceptInvitation(): void {
+    const teamId = this.team()?.id;
+    if (!teamId) return;
+
+    this.confirmLoading.set(true);
+    this.teamsSvc.confirmMembership(teamId, true).subscribe({
+      next: () => {
+        this.confirmLoading.set(false);
+        // Recargar los datos del equipo
+        this.teamsSvc.getPublicTeam(teamId).subscribe({
+          next: t => this.team.set(t),
+        });
+      },
+      error: () => {
+        this.confirmLoading.set(false);
+        this.error.set('Error al aceptar la invitación.');
+      },
+    });
+  }
+
+  rejectInvitation(): void {
+    const teamId = this.team()?.id;
+    if (!teamId) return;
+
+    this.confirmLoading.set(true);
+    this.teamsSvc.confirmMembership(teamId, false).subscribe({
+      next: () => {
+        this.confirmLoading.set(false);
+        // Recargar los datos del equipo
+        this.teamsSvc.getPublicTeam(teamId).subscribe({
+          next: t => this.team.set(t),
+        });
+      },
+      error: () => {
+        this.confirmLoading.set(false);
+        this.error.set('Error al rechazar la invitación.');
+      },
+    });
   }
 }

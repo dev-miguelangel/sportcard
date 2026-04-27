@@ -48,6 +48,29 @@
       </div>
     </div>
 
+    <!-- Invitación pendiente -->
+    @if (currentUserPending()) {
+    <div class="bg-brand/10 border border-brand/30 rounded-2xl p-4 mb-4">
+      <p class="text-sm text-neutral-300 mb-3">Te han invitado a unirte a este equipo.</p>
+      <div class="flex gap-3">
+        <button (click)="acceptInvitation()" [disabled]="confirmLoading()"
+          class="flex-1 bg-brand text-neutral-950 font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center justify-center gap-2">
+          @if (confirmLoading()) {
+          <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+          } @else {
+          <span class="material-symbols-outlined text-sm">check</span>
+          }
+          <span>Aceptar</span>
+        </button>
+        <button (click)="rejectInvitation()" [disabled]="confirmLoading()"
+          class="flex-1 bg-neutral-800 text-neutral-300 font-semibold py-2.5 rounded-lg hover:bg-neutral-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-sm">close</span>
+          <span>Rechazar</span>
+        </button>
+      </div>
+    </div>
+    }
+
     <!-- Entrenador -->
     <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 mb-4">
       <h2 class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-3">Entrenador</h2>

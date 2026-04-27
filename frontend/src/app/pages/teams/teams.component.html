@@ -5,6 +5,11 @@
        style="padding-top: env(safe-area-inset-top)">
     <div class="max-w-lg mx-auto flex items-center gap-3 px-4 h-14">
       <h1 class="font-black tracking-tight flex-1">Mis equipos</h1>
+      <button (click)="openJoinModal()"
+        class="flex items-center gap-1.5 bg-brand/10 border border-brand/30 text-brand text-[0.72rem] font-bold px-3 py-1.5 rounded-lg min-h-[36px] hover:bg-brand/20 transition-colors">
+        <span class="material-symbols-outlined" style="font-size:16px">add</span>
+        <span class="hidden sm:inline">Unirme</span>
+      </button>
     </div>
   </div>
 
@@ -96,6 +101,103 @@
     }
 
   </main>
+
+  <!-- Modal: Unirme a un equipo -->
+  @if (showJoinModal()) {
+  <div class="fixed inset-0 z-50 flex items-end">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/40" (click)="closeJoinModal()"></div>
+
+    <!-- Bottom Sheet -->
+    <div class="relative w-full bg-neutral-900 border-t border-neutral-800 rounded-t-3xl max-h-[90vh] overflow-y-auto"
+      style="padding-bottom: env(safe-area-inset-bottom)">
+
+      <!-- Header -->
+      <div class="sticky top-0 z-10 bg-neutral-900 border-b border-neutral-800 px-4 py-3 flex items-center justify-between">
+        <h2 class="font-bold text-sm">Unirme a un equipo</h2>
+        <button (click)="closeJoinModal()"
+          class="p-1 hover:bg-neutral-800 rounded-lg transition-colors">
+          <span class="material-symbols-outlined text-neutral-400">close</span>
+        </button>
+      </div>
+
+      <!-- Search bar -->
+      <div class="px-4 pt-3 pb-2 sticky top-12 bg-neutral-900/95 backdrop-blur-sm z-10">
+        <input type="text" [(ngModel)]="searchQuery" (input)="searchTeams()"
+          placeholder="Buscar equipo..."
+          class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand">
+      </div>
+
+      <!-- Content -->
+      <div class="px-4 py-3">
+
+        <!-- Resultados de búsqueda -->
+        @if (searchQuery().length >= 2 && searchResults().length > 0) {
+        <div class="mb-6">
+          <h3 class="text-xs font-bold uppercase text-neutral-500 mb-2">Resultados de búsqueda</h3>
+          <div class="flex flex-col gap-2">
+            @for (team of searchResults(); track team.id) {
+            <div class="bg-neutral-800 border border-neutral-700 rounded-lg p-3 flex items-center gap-3 min-h-[44px]">
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-white truncate">{{ team.name }}</p>
+                <p class="text-xs text-neutral-500">{{ team.memberCount }} miembro{{ team.memberCount === 1 ? '' : 's' }}</p>
+              </div>
+              <button (click)="applyToTeam(team.id)" [disabled]="applyingTeamId() === team.id"
+                class="text-[0.72rem] font-bold px-3 py-1.5 rounded-lg bg-brand text-neutral-950 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity min-h-[36px] flex items-center justify-center">
+                @if (applyingTeamId() === team.id) {
+                <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                } @else {
+                <span>Postular</span>
+                }
+              </button>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        <!-- Equipos disponibles recomendados -->
+        @if (searchQuery().length < 2) {
+        <div>
+          @if (loadingAvailable()) {
+          <div class="flex justify-center py-4">
+            <span class="material-symbols-outlined text-neutral-600 animate-spin">progress_activity</span>
+          </div>
+          } @else if (availableTeams().length === 0) {
+          <div class="text-center py-6 text-neutral-500 text-sm">
+            <p>No hay equipos disponibles en este momento.</p>
+          </div>
+          } @else {
+          <div>
+            <h3 class="text-xs font-bold uppercase text-neutral-500 mb-2">Equipos sugeridos</h3>
+            <div class="flex flex-col gap-2 mb-6">
+              @for (team of availableTeams(); track team.id) {
+              <div class="bg-neutral-800 border border-neutral-700 rounded-lg p-3 flex items-center gap-3 min-h-[44px]">
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-white truncate">{{ team.name }}</p>
+                  <p class="text-xs text-neutral-500">{{ team.memberCount }} miembro{{ team.memberCount === 1 ? '' : 's' }} • {{ team.sport }}</p>
+                </div>
+                <button (click)="applyToTeam(team.id)" [disabled]="applyingTeamId() === team.id"
+                  class="text-[0.72rem] font-bold px-3 py-1.5 rounded-lg bg-brand text-neutral-950 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity min-h-[36px] flex items-center justify-center">
+                  @if (applyingTeamId() === team.id) {
+                  <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                  } @else {
+                  <span>Postular</span>
+                  }
+                </button>
+              </div>
+              }
+            </div>
+          </div>
+          }
+        </div>
+        }
+
+      </div>
+
+    </div>
+  </div>
+  }
 
   <app-bottom-nav [activeTab]="null" />
 

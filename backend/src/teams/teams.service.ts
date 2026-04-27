@@ -277,6 +277,47 @@ export class TeamsService {
     };
   }
 
+  async applyToTeam(teamId: string, userId: string): Promise<TeamMemberDto> {
+    const team = await this.teamRepo.findOne({ where: { id: teamId } });
+    if (!team) throw new NotFoundException('Equipo no encontrado.');
+
+    const user = await this.usersRepo.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Usuario no encontrado.');
+
+    const existing = await this.memberRepo.findOne({ where: { teamId, userId } });
+    if (existing) throw new ConflictException('Ya eres miembro de este equipo.');
+
+    if (team.minAge !== null || team.maxAge !== null) {
+      if (!user.birthDate) {
+        throw new BadRequestException('Debes registrar tu fecha de nacimiento para postularte.');
+      }
+      const age = Math.floor((Date.now() - new Date(user.birthDate).getTime()) / (365.25 * 24 * 3600 * 1000));
+      if (team.minAge !== null && age < team.minAge) {
+        throw new BadRequestException('No cumples la edad mínima del equipo.');
+      }
+      if (team.maxAge !== null && age > team.maxAge) {
+        throw new BadRequestException('Superas la edad máxima del equipo.');
+      }
+    }
+
+    const member = await this.memberRepo.save(
+      this.memberRepo.create({ teamId, userId, position: null, status: 'invited' }),
+    );
+
+    await this.notifSvc.createTeamInvite(userId, teamId, team.name);
+
+    return {
+      userId:   user.id,
+      stringId: user.stringId,
+      name:     user.name,
+      avatar:   user.avatar,
+      sports:   user.sports ?? [],
+      position: member.position,
+      joinedAt: member.joinedAt,
+      status:   member.status,
+    };
+  }
+
   async getPublicProfile(teamId: string): Promise<TeamPublicDto> {
     const teamDto = await this.getTeamById(teamId);
 
@@ -377,6 +418,47 @@ export class TeamsService {
       backgroundColor: team.backgroundColor,
       iconColor:       team.iconColor,
     };
+  }
+
+  async getAvailableTeams(userId: string): Promise<TeamSummaryDto[]> {
+    // Obtener equipos a los que el usuario ya pertenece
+    const userTeamIds = await this.memberRepo
+      .find({ where: { userId } })
+      .then(members => members.map(m => m.teamId));
+
+    // Obtener equipos disponibles que el usuario no ha unido
+    let query = this.teamRepo
+      .createQueryBuilder('t')
+      .where('t.id NOT IN (:...userTeamIds)', { userTeamIds: userTeamIds.length > 0 ? userTeamIds : ['none'] });
+
+    const teams = await query.take(10).getMany();
+
+    if (teams.length === 0) return [];
+
+    const ids = teams.map(t => t.id);
+    const counts = await this.memberRepo
+      .createQueryBuilder('tm')
+      .select('tm.team_id', 'teamId')
+      .addSelect('COUNT(*)', 'count')
+      .where('tm.team_id IN (:...ids)', { ids })
+      .groupBy('tm.team_id')
+      .getRawMany<{ teamId: string; count: string }>();
+
+    const countMap = new Map(counts.map(r => [r.teamId, parseInt(r.count)]));
+
+    return teams.map(t => ({
+      id:              t.id,
+      name:            t.name,
+      sport:           t.sport,
+      logoUrl:         t.logoUrl,
+      isAmateur:       t.isAmateur,
+      teamId:          t.teamId,
+      iconName:        t.iconName,
+      backgroundColor: t.backgroundColor,
+      iconColor:       t.iconColor,
+      memberCount:     countMap.get(t.id) ?? 0,
+      isCoach:         false,
+    }));
   }
 
   private async assertCoach(teamId: string, userId: string): Promise<Team> {

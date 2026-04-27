@@ -82,6 +82,18 @@ export class TeamsService {
     return this.addMember(teamId, userId);
   }
 
+  getAvailableTeams(): Observable<TeamSummary[]> {
+    return this.http.get<TeamSummary[]>(`${environment.apiUrl}/teams/available`);
+  }
+
+  applyToTeam(teamId: string): Observable<void> {
+    return this.http.post<void>(`${environment.apiUrl}/teams/${teamId}/apply`, {});
+  }
+
+  searchForTeam(q: string): Observable<TeamSummary[]> {
+    return this.http.get<TeamSummary[]>(`${environment.apiUrl}/teams/search`, { params: { q } });
+  }
+
   findByTeamId(teamId: string): Observable<{ id: string; teamId: string; name: string; sport: string; iconName: string; backgroundColor: string; iconColor: string }> {
     return this.http.get<{ id: string; teamId: string; name: string; sport: string; iconName: string; backgroundColor: string; iconColor: string }>(`${environment.apiUrl}/teams/find?teamId=${teamId}`);
   }

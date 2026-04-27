@@ -41,6 +41,12 @@ export class TeamsController {
     return this.teamsSvc.searchForTeam(q);
   }
 
+  @Get('available')
+  getAvailableTeams(@Req() req: Request) {
+    const { id } = req.user as JwtUser;
+    return this.teamsSvc.getAvailableTeams(id);
+  }
+
   @Get('find')
   findByTeamId(@Query('teamId') teamId: string) {
     return this.teamsSvc.findByTeamId(teamId);
@@ -69,6 +75,15 @@ export class TeamsController {
   ) {
     const { id: userId } = req.user as JwtUser;
     return this.teamsSvc.confirmMembership(teamId, userId, accept);
+  }
+
+  @Post(':id/apply')
+  applyToTeam(
+    @Param('id') teamId: string,
+    @Req() req: Request,
+  ) {
+    const { id: userId } = req.user as JwtUser;
+    return this.teamsSvc.applyToTeam(teamId, userId);
   }
 
   @Delete(':id')
