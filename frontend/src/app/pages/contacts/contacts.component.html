@@ -579,7 +579,7 @@
 
           <!-- Deporte -->
           <div class="grid grid-cols-3 gap-2">
-            @for (sport of ['futbol','basquet','tenis','volleyball','rugby','otro']; track sport) {
+            @for (sport of availableSports(); track sport) {
               <button (click)="newTeamSport.set(sport)"
                       class="py-2.5 rounded-xl text-[0.75rem] font-bold border transition-colors min-h-[40px]"
                       [class]="newTeamSport() === sport

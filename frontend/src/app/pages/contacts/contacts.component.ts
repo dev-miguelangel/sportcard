@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ContactsService, ContactUser, ContactGroup, GroupMember } from '../../core/services/contacts.service';
 import { TeamsService, TeamSummary, TeamPublicDto, TeamMemberItem } from '../../core/services/teams.service';
 import { AuthService } from '../../core/services/auth.service';
+import { SportsService } from '../../core/services/sports.service';
 import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
 
 type ActiveTab = 'contacts' | 'groups' | 'teams';
@@ -18,6 +19,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
   private readonly contactsSvc = inject(ContactsService);
   private readonly teamsSvc = inject(TeamsService);
   private readonly authSvc = inject(AuthService);
+  private readonly sportsSvc = inject(SportsService);
 
   readonly currentUserId = this.authSvc.currentUser;
 
@@ -77,6 +79,10 @@ export class ContactsComponent implements OnInit, OnDestroy {
     this.TEAM_ICONS.filter(i => i.includes(this.iconFilter())),
   );
 
+  readonly availableSports = computed(() =>
+    this.sportsSvc.sports().map(s => s.name),
+  );
+
   readonly availableToAdd = computed(() => {
     const memberIds = new Set(this.groupMembers().map(m => m.userId));
     return this.myContacts().filter(c => !memberIds.has(c.id));
@@ -87,6 +93,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadContacts();
     this.loadGroups();
+    this.sportsSvc.load();
   }
 
   ngOnDestroy(): void {
@@ -99,8 +106,11 @@ export class ContactsComponent implements OnInit, OnDestroy {
 
   setTab(tab: ActiveTab): void {
     this.activeTab.set(tab);
-    if (tab === 'teams' && this.myTeams().length === 0 && !this.loadingTeams()) {
-      this.loadTeams();
+    if (tab === 'teams') {
+      this.sportsSvc.load();
+      if (this.myTeams().length === 0 && !this.loadingTeams()) {
+        this.loadTeams();
+      }
     }
   }
 
