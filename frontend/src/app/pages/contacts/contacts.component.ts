@@ -1,9 +1,10 @@
 import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { ContactsService, ContactUser, ContactGroup, GroupMember } from '../../core/services/contacts.service';
+import { TeamsService, TeamSummary, TeamPublicDto } from '../../core/services/teams.service';
 import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
 
-type ActiveTab = 'contacts' | 'groups';
+type ActiveTab = 'contacts' | 'groups' | 'teams';
 
 @Component({
   selector: 'app-contacts',
@@ -14,6 +15,7 @@ type ActiveTab = 'contacts' | 'groups';
 export class ContactsComponent implements OnInit, OnDestroy {
   private readonly router      = inject(Router);
   private readonly contactsSvc = inject(ContactsService);
+  private readonly teamsSvc    = inject(TeamsService);
 
   // ── Contacts tab ────────────────────────────────────────────
   readonly activeTab      = signal<ActiveTab>('contacts');
@@ -38,6 +40,11 @@ export class ContactsComponent implements OnInit, OnDestroy {
   readonly addingMember     = signal(false);
   readonly memberActionId   = signal<string | null>(null);
 
+  // ── Teams tab ───────────────────────────────────────────────
+  readonly myTeams      = signal<TeamSummary[]>([]);
+  readonly teamDetails  = signal<Record<string, TeamPublicDto>>({});
+  readonly loadingTeams = signal(false);
+
   readonly availableToAdd = computed(() => {
     const memberIds = new Set(this.groupMembers().map(m => m.userId));
     return this.myContacts().filter(c => !memberIds.has(c.id));
@@ -60,6 +67,25 @@ export class ContactsComponent implements OnInit, OnDestroy {
 
   setTab(tab: ActiveTab): void {
     this.activeTab.set(tab);
+    if (tab === 'teams' && this.myTeams().length === 0 && !this.loadingTeams()) {
+      this.loadTeams();
+    }
+  }
+
+  private loadTeams(): void {
+    this.loadingTeams.set(true);
+    this.teamsSvc.findMine().subscribe({
+      next: teams => {
+        this.myTeams.set(teams);
+        this.loadingTeams.set(false);
+        teams.forEach(t => {
+          this.teamsSvc.getPublicTeam(t.id).subscribe({
+            next: detail => this.teamDetails.update(map => ({ ...map, [t.id]: detail })),
+          });
+        });
+      },
+      error: () => this.loadingTeams.set(false),
+    });
   }
 
   // ── Search ──────────────────────────────────────────────────
