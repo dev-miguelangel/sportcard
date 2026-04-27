@@ -96,6 +96,26 @@ export class ContactsComponent implements OnInit, OnDestroy {
     return this.myContacts().filter(c => !memberIds.has(c.id));
   });
 
+  readonly selectedTeam = computed(() => {
+    const teamId = this.selectedTeamId();
+    return this.myTeams().find(t => t.id === teamId) || null;
+  });
+
+  readonly selectedTeamDetail = computed(() => {
+    const teamId = this.selectedTeamId();
+    return (teamId && this.teamDetails()[teamId]) || null;
+  });
+
+  readonly membershipStatus = computed(() => {
+    const detail = this.selectedTeamDetail();
+    const userId = this.inviteSearchResults();
+    if (!detail) return new Map<string, boolean>();
+    const memberIds = new Set(detail.members.map(m => m.userId));
+    const status = new Map<string, boolean>();
+    userId.forEach(u => status.set(u.id, memberIds.has(u.id)));
+    return status;
+  });
+
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
@@ -491,5 +511,34 @@ export class ContactsComponent implements OnInit, OnDestroy {
 
   getInitials(name: string): string {
     return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+  }
+
+  isMemberOfSelectedTeam(userId: string): boolean {
+    const detail = this.selectedTeamDetail();
+    if (!detail) return false;
+    return detail.members.some(m => m.userId === userId);
+  }
+
+  isCoachOfMember(memberId: string): boolean {
+    const detail = this.selectedTeamDetail();
+    if (!detail) return false;
+    return detail.coach.id === memberId;
+  }
+
+  isCurrentUser(userId: string): boolean {
+    return this.currentUserId()?.id === userId;
+  }
+
+  canRemoveMember(memberId: string): boolean {
+    const detail = this.selectedTeamDetail();
+    const team = this.selectedTeam();
+    if (!detail || !team) return false;
+    const isCoach = this.isCoachOfMember(memberId);
+    const isSelf = this.isCurrentUser(memberId);
+    return !isCoach && (isSelf || team.isCoach);
+  }
+
+  getRemovalKey(teamId: string, userId: string): string {
+    return `${teamId}:${userId}`;
   }
 }

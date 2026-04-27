@@ -687,10 +687,10 @@
 
       <!-- ── Vista: DETALLES DEL EQUIPO ─────────────────────── -->
       @if (teamsView() === 'detail' && selectedTeamId()) {
-        @let team = myTeams().find(t => t.id === selectedTeamId());
-        @let detail = teamDetails()[selectedTeamId() || ''];
-
-        @if (team && detail) {
+        @if (selectedTeam()) {
+          @let team = selectedTeam()!;
+          @if (selectedTeamDetail()) {
+            @let detail = selectedTeamDetail()!;
           <!-- Header -->
           <div class="flex items-center gap-3 mb-4">
             <button (click)="backToTeamList()"
@@ -767,7 +767,7 @@
               @if (inviteSearchResults().length > 0) {
                 <div class="flex flex-col gap-2 max-h-48 overflow-y-auto">
                   @for (user of inviteSearchResults(); track user.id) {
-                    @let isMember = detail.members.some(m => m.userId === user.id);
+                    @let isMember = isMemberOfSelectedTeam(user.id);
                     <div class="flex items-center gap-3 bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2">
                       @if (user.avatar) {
                         <img [src]="user.avatar" [alt]="user.name"
@@ -827,10 +827,10 @@
 
             <div class="flex flex-col gap-2">
               @for (member of detail.members; track member.userId) {
-                @let isCoach = member.userId === detail.coach.id;
-                @let isSelf = member.userId === currentUserId()?.id;
-                @let canRemove = !isCoach && (isSelf || team.isCoach);
-                @let removeKey = team.id + ':' + member.userId;
+                @let isCoach = isCoachOfMember(member.userId);
+                @let isSelf = isCurrentUser(member.userId);
+                @let canRemove = canRemoveMember(member.userId);
+                @let removeKey = getRemovalKey(team.id, member.userId);
 
                 <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3"
                      [class]="isCoach ? 'border-brand/30 bg-brand/5' : ''">
@@ -890,6 +890,7 @@
               }
             </div>
           </div>
+          }
         }
       }
 
