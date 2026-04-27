@@ -31,6 +31,12 @@ export class ContactsController {
     return this.contactsSvc.searchUsers(user.id, q);
   }
 
+  @Get('followers')
+  getFollowers(@Req() req: Request) {
+    const user = req.user as JwtUser;
+    return this.contactsSvc.getFollowers(user.id);
+  }
+
   @Get()
   getContacts(@Req() req: Request) {
     const user = req.user as JwtUser;

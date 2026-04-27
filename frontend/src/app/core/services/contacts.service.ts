@@ -40,6 +40,10 @@ export class ContactsService {
     return this.http.get<ContactUser[]>(`${environment.apiUrl}/contacts`);
   }
 
+  getFollowers(): Observable<ContactUser[]> {
+    return this.http.get<ContactUser[]>(`${environment.apiUrl}/contacts/followers`);
+  }
+
   addContact(userId: string): Observable<ContactUser> {
     return this.http.post<ContactUser>(`${environment.apiUrl}/contacts/${userId}`, {});
   }

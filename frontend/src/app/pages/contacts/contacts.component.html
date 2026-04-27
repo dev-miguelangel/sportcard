@@ -221,6 +221,75 @@
         }
       </div>
 
+      <!-- ── Personas que me agregaron ──────────────────────── -->
+      <div class="flex flex-col gap-3">
+        <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-500 px-0.5">Personas que me agregaron</p>
+
+        @if (loadingList()) {
+          <div class="flex flex-col gap-2">
+            @for (i of [1, 2]; track i) {
+              <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3 animate-pulse">
+                <div class="w-10 h-10 rounded-full bg-neutral-800 flex-shrink-0"></div>
+                <div class="flex-1 flex flex-col gap-1.5">
+                  <div class="h-3.5 bg-neutral-800 rounded-md w-1/2"></div>
+                  <div class="h-2.5 bg-neutral-800 rounded-md w-1/3"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        @if (!loadingList() && followers().length > 0) {
+          <div class="flex flex-col gap-2">
+            @for (follower of followers(); track follower.id) {
+              <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-700 rounded-2xl px-4 py-3 opacity-80">
+
+                @if (follower.avatar) {
+                  <img [src]="follower.avatar" [alt]="follower.name"
+                       class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                } @else {
+                  <div class="w-10 h-10 rounded-full bg-neutral-800/80 flex items-center justify-center flex-shrink-0">
+                    <span class="text-sm font-black text-neutral-500">{{ getInitials(follower.name) }}</span>
+                  </div>
+                }
+
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold truncate text-neutral-300">{{ follower.name }}</p>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="text-[0.65rem] font-mono text-neutral-600">{{ follower.stringId }}</span>
+                    @if (follower.sports.length > 0) {
+                      <span class="text-neutral-700">·</span>
+                      <span class="text-[0.65rem] text-neutral-600 truncate">{{ follower.sports.slice(0, 2).join(', ') }}</span>
+                    }
+                  </div>
+                </div>
+
+                <button (click)="addContact(follower)"
+                        [disabled]="loadingAction() === follower.id"
+                        class="flex items-center gap-1.5 bg-brand/20 text-brand border border-brand/30
+                               text-[0.72rem] font-bold px-3 py-2 rounded-xl min-h-[36px] flex-shrink-0
+                               transition-opacity disabled:opacity-40">
+                  @if (loadingAction() === follower.id) {
+                    <span class="material-symbols-outlined animate-spin" style="font-size:15px">progress_activity</span>
+                  } @else {
+                    <span class="material-symbols-outlined" style="font-size:15px">person_add</span>
+                  }
+                  Agregar
+                </button>
+
+              </div>
+            }
+          </div>
+        }
+
+        @if (!loadingList() && followers().length === 0) {
+          <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 text-center opacity-60">
+            <span class="material-symbols-outlined text-neutral-700 mb-2 block" style="font-size:32px">person_add</span>
+            <p class="text-xs text-neutral-500">Nadie te ha agregado aún</p>
+          </div>
+        }
+      </div>
+
     }
 
     <!-- ═══════════════════════════════════════════════════ -->

@@ -26,6 +26,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
   readonly searchQuery = signal('');
   readonly searchResults = signal<ContactUser[]>([]);
   readonly myContacts = signal<ContactUser[]>([]);
+  readonly followers = signal<ContactUser[]>([]);
   readonly loadingSearch = signal(false);
   readonly loadingAction = signal<string | null>(null);
   readonly loadingList = signal(true);
@@ -142,7 +143,17 @@ export class ContactsComponent implements OnInit, OnDestroy {
   private loadContacts(): void {
     this.loadingList.set(true);
     this.contactsSvc.getContacts().subscribe({
-      next: contacts => { this.myContacts.set(contacts); this.loadingList.set(false); },
+      next: contacts => {
+        this.myContacts.set(contacts);
+        this.loadFollowers();
+      },
+      error: () => this.loadingList.set(false),
+    });
+  }
+
+  private loadFollowers(): void {
+    this.contactsSvc.getFollowers().subscribe({
+      next: followers => { this.followers.set(followers); this.loadingList.set(false); },
       error: () => this.loadingList.set(false),
     });
   }
@@ -374,9 +385,8 @@ export class ContactsComponent implements OnInit, OnDestroy {
   }
 
   inviteViaWhatsApp(): void {
-    const url = window.location.origin;
     const text = encodeURIComponent(
-      `¡SportCard! El deporte se juega mejor en equipo. Encuentra el tuyo https://dev.sportcard.miguelangeljaimen.cl/ `,
+      `¡SportCard! El deporte se juega mejor en equipo. Encuentra el tuyo https://dev.sportcard.miguelangeljaimen.cl/, Buscame en contactos como ${this.currentUserId}`,
     );
     window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener');
   }

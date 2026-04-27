@@ -72,6 +72,23 @@ export class ContactsService {
     }));
   }
 
+  async getFollowers(userId: string): Promise<ContactUserDto[]> {
+    const rows = await this.contactRepo.find({
+      where: { contactId: userId },
+      relations: ['user'],
+      order: { createdAt: 'ASC' },
+    });
+
+    return rows.map(r => ({
+      id:        r.user.id,
+      stringId:  r.user.stringId,
+      name:      r.user.name,
+      avatar:    r.user.avatar,
+      sports:    r.user.sports ?? [],
+      isContact: false,
+    }));
+  }
+
   async addContact(userId: string, contactId: string): Promise<ContactUserDto> {
     if (userId === contactId) {
       throw new BadRequestException('No puedes agregarte a ti mismo como contacto.');
