@@ -14,42 +14,42 @@ type ActiveTab = 'contacts' | 'groups' | 'teams';
   templateUrl: './contacts.component.html',
 })
 export class ContactsComponent implements OnInit, OnDestroy {
-  private readonly router      = inject(Router);
+  private readonly router = inject(Router);
   private readonly contactsSvc = inject(ContactsService);
-  private readonly teamsSvc    = inject(TeamsService);
-  private readonly authSvc     = inject(AuthService);
+  private readonly teamsSvc = inject(TeamsService);
+  private readonly authSvc = inject(AuthService);
 
   readonly currentUserId = this.authSvc.currentUser;
 
   // ── Contacts tab ────────────────────────────────────────────
-  readonly activeTab      = signal<ActiveTab>('contacts');
-  readonly searchQuery    = signal('');
-  readonly searchResults  = signal<ContactUser[]>([]);
-  readonly myContacts     = signal<ContactUser[]>([]);
-  readonly loadingSearch  = signal(false);
-  readonly loadingAction  = signal<string | null>(null);
-  readonly loadingList    = signal(true);
+  readonly activeTab = signal<ActiveTab>('contacts');
+  readonly searchQuery = signal('');
+  readonly searchResults = signal<ContactUser[]>([]);
+  readonly myContacts = signal<ContactUser[]>([]);
+  readonly loadingSearch = signal(false);
+  readonly loadingAction = signal<string | null>(null);
+  readonly loadingList = signal(true);
 
   // ── Groups tab ──────────────────────────────────────────────
-  readonly groups           = signal<ContactGroup[]>([]);
-  readonly loadingGroups    = signal(false);
-  readonly selectedGroup    = signal<ContactGroup | null>(null);
-  readonly groupMembers     = signal<GroupMember[]>([]);
-  readonly loadingMembers   = signal(false);
-  readonly showCreateGroup  = signal(false);
-  readonly newGroupName     = signal('');
-  readonly savingGroup      = signal(false);
+  readonly groups = signal<ContactGroup[]>([]);
+  readonly loadingGroups = signal(false);
+  readonly selectedGroup = signal<ContactGroup | null>(null);
+  readonly groupMembers = signal<GroupMember[]>([]);
+  readonly loadingMembers = signal(false);
+  readonly showCreateGroup = signal(false);
+  readonly newGroupName = signal('');
+  readonly savingGroup = signal(false);
   readonly groupActionError = signal<string | null>(null);
-  readonly addMemberUserId  = signal('');
-  readonly addingMember     = signal(false);
-  readonly memberActionId   = signal<string | null>(null);
+  readonly addMemberUserId = signal('');
+  readonly addingMember = signal(false);
+  readonly memberActionId = signal<string | null>(null);
 
   // ── Teams tab ───────────────────────────────────────────────
-  readonly myTeams           = signal<TeamSummary[]>([]);
-  readonly teamDetails       = signal<Record<string, TeamPublicDto>>({});
-  readonly loadingTeams      = signal(false);
-  readonly deletingTeamId    = signal<string | null>(null);
-  readonly removingMemberId  = signal<string | null>(null);
+  readonly myTeams = signal<TeamSummary[]>([]);
+  readonly teamDetails = signal<Record<string, TeamPublicDto>>({});
+  readonly loadingTeams = signal(false);
+  readonly deletingTeamId = signal<string | null>(null);
+  readonly removingMemberId = signal<string | null>(null);
 
   readonly availableToAdd = computed(() => {
     const memberIds = new Set(this.groupMembers().map(m => m.userId));
@@ -110,7 +110,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
     this.loadingSearch.set(true);
     this.contactsSvc.search(q).subscribe({
       next: results => { this.searchResults.set(results); this.loadingSearch.set(false); },
-      error: ()      => this.loadingSearch.set(false),
+      error: () => this.loadingSearch.set(false),
     });
   }
 
@@ -118,7 +118,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
     this.loadingList.set(true);
     this.contactsSvc.getContacts().subscribe({
       next: contacts => { this.myContacts.set(contacts); this.loadingList.set(false); },
-      error: ()       => this.loadingList.set(false),
+      error: () => this.loadingList.set(false),
     });
   }
 
@@ -158,7 +158,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
     this.loadingGroups.set(true);
     this.contactsSvc.getGroups().subscribe({
       next: gs => { this.groups.set(gs); this.loadingGroups.set(false); },
-      error: ()  => this.loadingGroups.set(false),
+      error: () => this.loadingGroups.set(false),
     });
   }
 
@@ -179,7 +179,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
     this.loadingMembers.set(true);
     this.contactsSvc.getGroupMembers(groupId).subscribe({
       next: ms => { this.groupMembers.set(ms); this.loadingMembers.set(false); },
-      error: ()  => this.loadingMembers.set(false),
+      error: () => this.loadingMembers.set(false),
     });
   }
 
@@ -304,6 +304,14 @@ export class ContactsComponent implements OnInit, OnDestroy {
       },
       error: () => this.removingMemberId.set(null),
     });
+  }
+
+  inviteViaWhatsApp(): void {
+    const url = window.location.origin;
+    const text = encodeURIComponent(
+      `¡SportCard! El deporte se juega mejor en equipo. Encuentra el tuyo https://dev.sportcard.miguelangeljaimen.cl/ `,
+    );
+    window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener');
   }
 
   getInitials(name: string): string {
