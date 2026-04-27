@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { ContactsService, ContactUser, ContactGroup, GroupMember } from '../../core/services/contacts.service';
 import { TeamsService, TeamSummary, TeamPublicDto, TeamMemberItem } from '../../core/services/teams.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -12,7 +13,7 @@ type ActiveTab = 'contacts' | 'groups' | 'teams';
 @Component({
   selector: 'app-contacts',
   standalone: true,
-  imports: [BottomNavComponent],
+  imports: [BottomNavComponent, FormsModule],
   templateUrl: './contacts.component.html',
 })
 export class ContactsComponent implements OnInit, OnDestroy {
@@ -73,6 +74,14 @@ export class ContactsComponent implements OnInit, OnDestroy {
   readonly inviteSearchLoading = signal(false);
   readonly invitingMemberId = signal<string | null>(null);
   readonly inviteError = signal<string | null>(null);
+
+  // Join team modal
+  readonly showJoinTeamModal = signal(false);
+  readonly availableTeams = signal<TeamSummary[]>([]);
+  readonly loadingAvailableTeams = signal(false);
+  readonly joinSearchQuery = signal('');
+  readonly joinSearchResults = signal<TeamSummary[]>([]);
+  readonly applyingTeamId = signal<string | null>(null);
 
   readonly TEAM_ICONS = [
     'shield', 'sports_soccer', 'sports_basketball', 'sports_tennis',
@@ -488,6 +497,55 @@ export class ContactsComponent implements OnInit, OnDestroy {
 
     const text = encodeURIComponent(this.generateTeamInviteWhatsAppText(teamName));
     window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener');
+  }
+
+  openJoinTeamModal(): void {
+    this.showJoinTeamModal.set(true);
+    this.loadingAvailableTeams.set(true);
+    this.teamsSvc.getAvailableTeams().subscribe({
+      next: teams => {
+        this.availableTeams.set(teams);
+        this.loadingAvailableTeams.set(false);
+      },
+      error: () => {
+        this.loadingAvailableTeams.set(false);
+      },
+    });
+  }
+
+  closeJoinTeamModal(): void {
+    this.showJoinTeamModal.set(false);
+    this.joinSearchQuery.set('');
+    this.joinSearchResults.set([]);
+  }
+
+  searchTeamsToJoin(): void {
+    const query = this.joinSearchQuery().trim();
+    if (query.length < 2) {
+      this.joinSearchResults.set([]);
+      return;
+    }
+    this.teamsSvc.searchForTeam(query).subscribe({
+      next: teams => this.joinSearchResults.set(teams),
+    });
+  }
+
+  applyToTeam(teamId: string): void {
+    this.applyingTeamId.set(teamId);
+    this.teamsSvc.applyToTeam(teamId).subscribe({
+      next: () => {
+        this.applyingTeamId.set(null);
+        // Recargar equipos disponibles
+        this.teamsSvc.getAvailableTeams().subscribe({
+          next: teams => this.availableTeams.set(teams),
+        });
+        // Recargar mis equipos
+        this.loadTeams();
+      },
+      error: () => {
+        this.applyingTeamId.set(null);
+      },
+    });
   }
 
   removeMemberFromTeam(teamId: string, member: TeamMemberItem): void {
