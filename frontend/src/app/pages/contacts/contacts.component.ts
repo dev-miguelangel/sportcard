@@ -477,9 +477,8 @@ export class ContactsComponent implements OnInit, OnDestroy {
     const teamId = this.selectedTeamId();
     if (!user || !teamId) return '';
 
-    // Link al endpoint de preview que genera meta tags para WhatsApp
-    const apiUrl = environment.apiUrl.replace('/api', ''); // Remueve /api para obtener la URL base
-    const inviteUrl = `${apiUrl}/teams/invite/${teamId}`;
+    // Link a la ruta del frontend (nginx proxy a /api/teams/invite/:id)
+    const inviteUrl = `${environment.appUrl}/teams/invite/${teamId}`;
     return `${user.name} te está invitando a ser parte del equipo ${teamName}. Únete aquí ${inviteUrl} para confirmar tu participación y empezar a jugar.`;
   }
 
