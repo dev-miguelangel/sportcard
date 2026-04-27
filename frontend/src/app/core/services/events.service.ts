@@ -14,6 +14,8 @@ export interface CreateEventPayload {
   maxParticipants?: number;
   isPublic?: boolean;
   requiresApproval?: boolean;
+  challengerTeamId?: string;
+  challengedTeamId?: string;
 }
 
 export type ParticipantStatus = 'approved' | 'pending' | 'waiting' | 'rejected';

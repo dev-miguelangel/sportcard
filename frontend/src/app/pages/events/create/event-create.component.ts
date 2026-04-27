@@ -2,11 +2,13 @@ import { Component, inject, signal, computed, AfterViewInit, OnInit, ViewChild, 
 import { Router } from '@angular/router';
 import { EventsService } from '../../../core/services/events.service';
 import { SportsService } from '../../../core/services/sports.service';
+import { TeamsService, TeamSummary } from '../../../core/services/teams.service';
 
 export const EVENT_TYPES: { value: string; label: string; icon: string }[] = [
   { value: 'friendly',   label: 'Partido amistoso', icon: 'sports' },
   { value: 'training',   label: 'Entrenamiento',    icon: 'fitness_center' },
   { value: 'tournament', label: 'Torneo',            icon: 'emoji_events' },
+  { value: 'desafio',    label: 'Desafío',           icon: 'sports_kabaddi' },
   { value: 'trekking',   label: 'Trekking',          icon: 'hiking' },
   { value: 'running',    label: 'Running',            icon: 'directions_run' },
   { value: 'other',      label: 'Otro',               icon: 'more_horiz' },
@@ -22,6 +24,7 @@ export class EventCreateComponent implements AfterViewInit, OnInit {
   private readonly router = inject(Router);
   private readonly eventsService = inject(EventsService);
   readonly sportsSvc = inject(SportsService);
+  private readonly teamsService = inject(TeamsService);
 
   @ViewChild('titleInput') titleInput!: ElementRef<HTMLInputElement>;
 
@@ -41,6 +44,15 @@ export class EventCreateComponent implements AfterViewInit, OnInit {
   readonly description     = signal('');
   readonly maxParticipants = signal<number | null>(null);
   readonly isPublic        = signal(true);
+
+  // ── Challenge state ───────────────────────────────────────
+  readonly myTeams               = signal<TeamSummary[]>([]);
+  readonly challengerTeamId      = signal('');
+  readonly challengedTeamId      = signal('');
+  readonly challengedTeamIdInput = signal('');
+  readonly challengedTeamFound   = signal<{ id: string; teamId: string; name: string; sport: string; iconName: string; backgroundColor: string; iconColor: string } | null>(null);
+  readonly searchingChallenged   = signal(false);
+  readonly challengedSearchError = signal('');
 
   // ── UI state ─────────────────────────────────────────────
   readonly showSportPanel = signal(false);
@@ -72,6 +84,18 @@ export class EventCreateComponent implements AfterViewInit, OnInit {
     });
   });
 
+  readonly amateurTeams = computed(() => this.myTeams().filter(t => t.isAmateur));
+
+  readonly selectedChallengerTeam = computed(() =>
+    this.myTeams().find(t => t.id === this.challengerTeamId()) ?? null
+  );
+
+  readonly challengedSportMismatch = computed(() => {
+    const found = this.challengedTeamFound();
+    const challenger = this.selectedChallengerTeam();
+    return !!found && !!challenger && found.sport !== challenger.sport;
+  });
+
   readonly requiredCompleted = computed(() =>
     [
       !!this.selectedSport(),
@@ -83,10 +107,15 @@ export class EventCreateComponent implements AfterViewInit, OnInit {
     ].filter(Boolean).length,
   );
 
-  readonly canPublish = computed(() => this.requiredCompleted() === 6);
+  readonly canPublish = computed(() =>
+    this.requiredCompleted() === 6 &&
+    (this.selectedType() !== 'desafio' ||
+      (this.challengerTeamId() !== '' && this.challengedTeamId() !== ''))
+  );
 
   ngOnInit(): void {
     this.sportsSvc.load();
+    this.teamsService.findMine().subscribe(teams => this.myTeams.set(teams));
   }
 
   ngAfterViewInit(): void {
@@ -103,6 +132,49 @@ export class EventCreateComponent implements AfterViewInit, OnInit {
   selectType(value: string): void {
     this.selectedType.set(value);
     this.showTypePanel.set(false);
+    if (value !== 'desafio') {
+      this.challengerTeamId.set('');
+      this.challengedTeamId.set('');
+      this.challengedTeamIdInput.set('');
+      this.challengedTeamFound.set(null);
+      this.challengedSearchError.set('');
+    } else {
+      this.selectedSport.set(null);
+      this.showSportPanel.set(false);
+    }
+  }
+
+  selectChallengerTeam(team: TeamSummary): void {
+    this.challengerTeamId.set(team.id);
+    this.selectedSport.set(team.sport);
+    this.challengedTeamFound.set(null);
+    this.challengedTeamId.set('');
+    this.challengedTeamIdInput.set('');
+    this.challengedSearchError.set('');
+  }
+
+  searchChallengedTeam(): void {
+    const input = this.challengedTeamIdInput().trim();
+    if (!input.startsWith('team_') || input.length !== 10) {
+      this.challengedSearchError.set('El ID debe tener el formato team_XXXXXX (10 caracteres)');
+      return;
+    }
+    this.searchingChallenged.set(true);
+    this.challengedSearchError.set('');
+    this.teamsService.findByTeamId(input).subscribe({
+      next: (result) => {
+        this.challengedTeamFound.set(result);
+        this.challengedTeamId.set(result.id);
+        this.challengedSearchError.set('');
+        this.searchingChallenged.set(false);
+      },
+      error: () => {
+        this.challengedTeamFound.set(null);
+        this.challengedTeamId.set('');
+        this.challengedSearchError.set('Equipo no encontrado');
+        this.searchingChallenged.set(false);
+      },
+    });
   }
 
   toggleSportPanel(): void {
@@ -137,6 +209,7 @@ export class EventCreateComponent implements AfterViewInit, OnInit {
 
     this.error.set(null);
     this.loading.set(true);
+    const isDesafio = this.selectedType() === 'desafio';
 
     const payload = {
       sport: this.selectedSport()!,
@@ -148,6 +221,10 @@ export class EventCreateComponent implements AfterViewInit, OnInit {
       ...(this.description().trim() && { description: this.description().trim() }),
       ...(this.maxParticipants() !== null && { maxParticipants: this.maxParticipants()! }),
       isPublic: this.isPublic(),
+      ...(isDesafio && {
+        challengerTeamId: this.challengerTeamId(),
+        challengedTeamId: this.challengedTeamId(),
+      }),
     };
 
     this.eventsService.create(payload).subscribe({
