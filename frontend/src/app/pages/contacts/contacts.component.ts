@@ -5,6 +5,7 @@ import { TeamsService, TeamSummary, TeamPublicDto, TeamMemberItem } from '../../
 import { AuthService } from '../../core/services/auth.service';
 import { SportsService } from '../../core/services/sports.service';
 import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
+import { environment } from '../../../environments/environment';
 
 type ActiveTab = 'contacts' | 'groups' | 'teams';
 
@@ -473,8 +474,11 @@ export class ContactsComponent implements OnInit, OnDestroy {
 
   generateTeamInviteWhatsAppText(teamName: string): string {
     const user = this.currentUserId();
-    if (!user) return '';
-    return `${user.name} te está invitando a ser parte del equipo ${teamName}. Únete a SportCard para confirmar tu participación y empezar a jugar.`;
+    const teamId = this.selectedTeamId();
+    if (!user || !teamId) return '';
+
+    const inviteUrl = `${environment.appUrl}/login?return_url=%2Fteams%2F${teamId}`;
+    return `${user.name} te está invitando a ser parte del equipo ${teamName}. Únete aquí ${inviteUrl} para confirmar tu participación y empezar a jugar.`;
   }
 
   inviteTeamMemberViaWhatsApp(teamName: string): void {
