@@ -51,6 +51,31 @@ export class ContactsComponent implements OnInit, OnDestroy {
   readonly deletingTeamId = signal<string | null>(null);
   readonly removingMemberId = signal<string | null>(null);
 
+  readonly showCreateTeamForm = signal(false);
+  readonly newTeamName = signal('');
+  readonly newTeamSport = signal('');
+  readonly newTeamIconName = signal('shield');
+  readonly newTeamBackgroundColor = signal('#1e1e1e');
+  readonly newTeamIconColor = signal('#00e87a');
+  readonly showIconPicker = signal(false);
+  readonly iconFilter = signal('');
+  readonly creatingTeam = signal(false);
+  readonly createTeamError = signal<string | null>(null);
+
+  readonly TEAM_ICONS = [
+    'shield', 'sports_soccer', 'sports_basketball', 'sports_tennis',
+    'sports_volleyball', 'sports_baseball', 'sports_football', 'sports_hockey',
+    'sports_golf', 'directions_run', 'fitness_center', 'star', 'bolt',
+    'local_fire_department', 'emoji_events', 'military_tech', 'workspace_premium',
+    'diamond', 'public', 'groups', 'handshake', 'rocket_launch', 'favorite',
+    'whatshot', 'flash_on', 'grade', 'psychology', 'ac_unit', 'sports_martial_arts',
+    'sports_kabaddi', 'self_improvement', 'directions_bike', 'pool', 'sports_esports',
+  ];
+
+  readonly filteredIcons = computed(() =>
+    this.TEAM_ICONS.filter(i => i.includes(this.iconFilter())),
+  );
+
   readonly availableToAdd = computed(() => {
     const memberIds = new Set(this.groupMembers().map(m => m.userId));
     return this.myContacts().filter(c => !memberIds.has(c.id));
@@ -78,7 +103,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private loadTeams(): void {
+  loadTeams(): void {
     this.loadingTeams.set(true);
     this.teamsSvc.findMine().subscribe({
       next: teams => {
@@ -262,6 +287,48 @@ export class ContactsComponent implements OnInit, OnDestroy {
       error: err => {
         this.groupActionError.set(err?.error?.message ?? 'No se pudo quitar el miembro');
         this.memberActionId.set(null);
+      },
+    });
+  }
+
+  openCreateTeamForm(): void {
+    this.newTeamName.set('');
+    this.newTeamSport.set('');
+    this.newTeamIconName.set('shield');
+    this.newTeamBackgroundColor.set('#1e1e1e');
+    this.newTeamIconColor.set('#00e87a');
+    this.showIconPicker.set(false);
+    this.iconFilter.set('');
+    this.createTeamError.set(null);
+    this.showCreateTeamForm.set(true);
+  }
+
+  cancelCreateTeam(): void {
+    this.showCreateTeamForm.set(false);
+    this.createTeamError.set(null);
+  }
+
+  createTeam(): void {
+    const name = this.newTeamName().trim();
+    const sport = this.newTeamSport().trim();
+    if (!name || !sport || this.creatingTeam()) return;
+    this.creatingTeam.set(true);
+    this.createTeamError.set(null);
+    this.teamsSvc.createTeam({
+      name,
+      sport,
+      iconName: this.newTeamIconName(),
+      backgroundColor: this.newTeamBackgroundColor(),
+      iconColor: this.newTeamIconColor(),
+    }).subscribe({
+      next: () => {
+        this.showCreateTeamForm.set(false);
+        this.creatingTeam.set(false);
+        this.loadTeams();
+      },
+      error: err => {
+        this.createTeamError.set(err?.error?.message ?? 'No se pudo crear el equipo');
+        this.creatingTeam.set(false);
       },
     });
   }

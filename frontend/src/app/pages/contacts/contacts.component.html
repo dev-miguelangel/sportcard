@@ -433,6 +433,129 @@
     <!-- ═══════════════════════════════════════════════════ -->
     @if (activeTab() === 'teams') {
 
+      <!-- ── Formulario crear equipo / botón ─────────────── -->
+      @if (showCreateTeamForm()) {
+        <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 flex flex-col gap-4">
+          <p class="text-[0.65rem] font-bold uppercase tracking-wider text-neutral-500">Nuevo equipo</p>
+
+          <!-- Preview del ícono -->
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+                 [style]="'background:' + newTeamBackgroundColor()">
+              <span class="material-symbols-outlined" [style]="'color:' + newTeamIconColor() + ';font-size:28px'">{{ newTeamIconName() }}</span>
+            </div>
+            <button (click)="showIconPicker.set(!showIconPicker())"
+                    class="flex items-center gap-1.5 bg-neutral-800 border border-neutral-700 text-neutral-300
+                           text-[0.75rem] font-bold px-3 py-2 rounded-xl min-h-[36px] transition-colors">
+              <span class="material-symbols-outlined" style="font-size:15px">grid_view</span>
+              Cambiar ícono
+            </button>
+          </div>
+
+          <!-- Picker de íconos -->
+          @if (showIconPicker()) {
+            <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3 flex flex-col gap-2">
+              <input type="text"
+                     placeholder="Filtrar..."
+                     [value]="iconFilter()"
+                     (input)="iconFilter.set($any($event.target).value)"
+                     class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2
+                            text-sm placeholder:text-neutral-600 focus:outline-none focus:border-neutral-600
+                            transition-colors min-h-[40px]" />
+              <div class="grid grid-cols-6 gap-1.5 max-h-40 overflow-y-auto">
+                @for (icon of filteredIcons(); track icon) {
+                  <button (click)="newTeamIconName.set(icon); showIconPicker.set(false)"
+                          class="w-full aspect-square flex items-center justify-center rounded-xl transition-colors
+                                 hover:bg-neutral-800"
+                          [class]="newTeamIconName() === icon ? 'bg-brand/20 border border-brand/40' : 'border border-transparent'">
+                    <span class="material-symbols-outlined text-neutral-300" style="font-size:20px">{{ icon }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Colores -->
+          <div class="flex gap-3">
+            <label class="flex-1 flex flex-col gap-1.5">
+              <span class="text-[0.65rem] font-bold uppercase tracking-wider text-neutral-500">Fondo</span>
+              <div class="flex items-center gap-2 bg-neutral-950 border border-neutral-700 rounded-xl px-3 min-h-[44px]">
+                <input type="color"
+                       [value]="newTeamBackgroundColor()"
+                       (input)="newTeamBackgroundColor.set($any($event.target).value)"
+                       class="w-7 h-7 rounded-lg border-0 bg-transparent cursor-pointer" />
+                <span class="text-xs font-mono text-neutral-400">{{ newTeamBackgroundColor() }}</span>
+              </div>
+            </label>
+            <label class="flex-1 flex flex-col gap-1.5">
+              <span class="text-[0.65rem] font-bold uppercase tracking-wider text-neutral-500">Ícono</span>
+              <div class="flex items-center gap-2 bg-neutral-950 border border-neutral-700 rounded-xl px-3 min-h-[44px]">
+                <input type="color"
+                       [value]="newTeamIconColor()"
+                       (input)="newTeamIconColor.set($any($event.target).value)"
+                       class="w-7 h-7 rounded-lg border-0 bg-transparent cursor-pointer" />
+                <span class="text-xs font-mono text-neutral-400">{{ newTeamIconColor() }}</span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Nombre -->
+          <input type="text"
+                 placeholder="Nombre del equipo..."
+                 [value]="newTeamName()"
+                 (input)="newTeamName.set($any($event.target).value)"
+                 class="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-3
+                        text-sm placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500
+                        transition-colors min-h-[44px]" />
+
+          <!-- Deporte -->
+          <div class="grid grid-cols-3 gap-2">
+            @for (sport of ['futbol','basquet','tenis','volleyball','rugby','otro']; track sport) {
+              <button (click)="newTeamSport.set(sport)"
+                      class="py-2.5 rounded-xl text-[0.75rem] font-bold border transition-colors min-h-[40px]"
+                      [class]="newTeamSport() === sport
+                        ? 'bg-brand text-neutral-950 border-brand'
+                        : 'bg-neutral-950 text-neutral-400 border-neutral-700 hover:border-neutral-500'">
+                {{ sport }}
+              </button>
+            }
+          </div>
+
+          @if (createTeamError()) {
+            <p class="text-xs text-red-400 flex items-center gap-1.5">
+              <span class="material-symbols-outlined" style="font-size:14px">error</span>
+              {{ createTeamError() }}
+            </p>
+          }
+
+          <div class="flex gap-2">
+            <button (click)="cancelCreateTeam()"
+                    class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 text-neutral-300 font-bold
+                           rounded-xl min-h-[44px] text-sm border border-neutral-700">
+              Cancelar
+            </button>
+            <button (click)="createTeam()"
+                    [disabled]="!newTeamName().trim() || !newTeamSport() || creatingTeam()"
+                    class="flex-1 flex items-center justify-center gap-1.5 bg-brand text-neutral-950 font-black
+                           rounded-xl min-h-[44px] text-sm transition-opacity disabled:opacity-50">
+              @if (creatingTeam()) {
+                <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+              } @else {
+                <span class="material-symbols-outlined" style="font-size:18px">check</span>
+              }
+              Crear equipo
+            </button>
+          </div>
+        </div>
+      } @else {
+        <button (click)="openCreateTeamForm()"
+                class="w-full flex items-center justify-center gap-2 bg-brand text-neutral-950 font-black
+                       rounded-2xl min-h-[48px] text-sm transition-opacity">
+          <span class="material-symbols-outlined" style="font-size:20px">add</span>
+          Crear equipo
+        </button>
+      }
+
       @if (loadingTeams()) {
         <div class="flex flex-col gap-3">
           @for (i of [1, 2]; track i) {
@@ -468,19 +591,19 @@
 
               <!-- Team header -->
               <div class="flex items-center gap-3 px-4 py-3 border-b border-neutral-800">
-                @if (team.logoUrl) {
-                  <img [src]="team.logoUrl" [alt]="team.name"
-                       class="w-10 h-10 rounded-xl object-cover flex-shrink-0 border border-neutral-700" />
-                } @else {
-                  <div class="w-10 h-10 rounded-xl bg-brand/15 flex items-center justify-center flex-shrink-0">
-                    <span class="material-symbols-outlined text-brand" style="font-size:22px">groups</span>
-                  </div>
-                }
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                     [style]="'background:' + (team.backgroundColor || '#1e1e1e')">
+                  <span class="material-symbols-outlined" [style]="'color:' + (team.iconColor || '#00e87a') + ';font-size:22px'">{{ team.iconName || 'groups' }}</span>
+                </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-black truncate">{{ team.name }}</p>
-                  <p class="text-[0.65rem] text-neutral-500 mt-0.5">
-                    {{ team.sport }} · {{ team.memberCount }} miembro{{ team.memberCount !== 1 ? 's' : '' }}
-                  </p>
+                  <div class="flex items-center gap-1.5 mt-0.5">
+                    <span class="text-[0.65rem] text-neutral-500">{{ team.sport }} · {{ team.memberCount }} miembro{{ team.memberCount !== 1 ? 's' : '' }}</span>
+                    @if (team.teamId) {
+                      <span class="text-neutral-700">·</span>
+                      <span class="text-[0.62rem] font-mono text-neutral-500">{{ team.teamId }}</span>
+                    }
+                  </div>
                 </div>
                 @if (team.isCoach) {
                   <span class="w-5 h-5 bg-brand rounded flex items-center justify-center text-[10px] font-black text-neutral-950 flex-shrink-0">C</span>

@@ -12,6 +12,11 @@ export interface TeamSummary {
   isCoach: boolean;
   minAge?: number | null;
   maxAge?: number | null;
+  isAmateur: boolean;
+  teamId: string;
+  iconName: string;
+  backgroundColor: string;
+  iconColor: string;
 }
 
 export interface TeamMemberItem {
@@ -30,6 +35,11 @@ export interface TeamPublicDto {
   sport: string;
   logoUrl: string | null;
   createdAt: string;
+  isAmateur: boolean;
+  teamId: string;
+  iconName: string;
+  backgroundColor: string;
+  iconColor: string;
   coach: { id: string; stringId: string; name: string; avatar: string | null };
   members: TeamMemberItem[];
   activeTournaments: { id: string; name: string; sport: string; format: string; status: string }[];
@@ -57,5 +67,17 @@ export class TeamsService {
 
   deleteTeam(teamId: string): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/teams/${teamId}`);
+  }
+
+  createTeam(dto: { name: string; sport: string; iconName: string; backgroundColor: string; iconColor: string }): Observable<TeamSummary> {
+    return this.http.post<TeamSummary>(`${environment.apiUrl}/teams`, dto);
+  }
+
+  addMember(teamId: string, userId: string): Observable<void> {
+    return this.http.post<void>(`${environment.apiUrl}/teams/${teamId}/members`, { userId });
+  }
+
+  findByTeamId(teamId: string): Observable<{ id: string; teamId: string; name: string; sport: string; iconName: string; backgroundColor: string; iconColor: string }> {
+    return this.http.get<{ id: string; teamId: string; name: string; sport: string; iconName: string; backgroundColor: string; iconColor: string }>(`${environment.apiUrl}/teams/find?teamId=${teamId}`);
   }
 }
