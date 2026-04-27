@@ -90,6 +90,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
   readonly profileLoading = signal(false);
   readonly profileQr = signal('');
   readonly showEmergencyData = signal(false);
+  readonly showEmergencyConfirmation = signal(false);
 
   readonly TEAM_ICONS = [
     'shield', 'sports_soccer', 'sports_basketball', 'sports_tennis',
@@ -642,7 +643,16 @@ export class ContactsComponent implements OnInit, OnDestroy {
   }
 
   openEmergencyData(): void {
+    this.showEmergencyConfirmation.set(true);
+  }
+
+  confirmEmergencyData(): void {
+    this.showEmergencyConfirmation.set(false);
     this.showEmergencyData.set(true);
+  }
+
+  cancelEmergencyData(): void {
+    this.showEmergencyConfirmation.set(false);
   }
 
   openWhatsApp(phone: string): void {

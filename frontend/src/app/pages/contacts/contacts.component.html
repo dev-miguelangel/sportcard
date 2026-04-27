@@ -1178,6 +1178,58 @@
     </div>
     }
 
+    <!-- Modal: Emergency Data Confirmation -->
+    @if (showEmergencyConfirmation()) {
+    <div class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <!-- Backdrop -->
+      <div class="absolute inset-0 bg-black/60" (click)="cancelEmergencyData()"></div>
+
+      <!-- Dialog -->
+      <div class="relative bg-neutral-900 border border-neutral-800 rounded-2xl max-w-sm w-full p-6 flex flex-col gap-4">
+
+        <!-- Icon -->
+        <div class="flex justify-center">
+          <div class="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center">
+            <span class="material-symbols-outlined text-yellow-500" style="font-size:24px">warning</span>
+          </div>
+        </div>
+
+        <!-- Title -->
+        <h2 class="text-center text-lg font-black text-white">Datos Confidenciales</h2>
+
+        <!-- Message -->
+        <div class="text-center space-y-2">
+          <p class="text-sm text-neutral-300">Estás a punto de acceder a información médica y de emergencia confidencial.</p>
+          <p class="text-xs text-neutral-500">Esta acción será registrada y notificada al usuario. Úsalo solo en caso de emergencia real.</p>
+        </div>
+
+        <!-- Divider -->
+        <div class="h-px bg-neutral-800"></div>
+
+        <!-- Privacy reminder -->
+        <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3">
+          <p class="text-xs text-neutral-400 text-center">
+            <span class="font-semibold">Recuerda:</span> Respeta la privacidad del usuario. Accede a esta información solo en situaciones de emergencia.
+          </p>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-3">
+          <button (click)="cancelEmergencyData()"
+            class="flex-1 bg-neutral-800 border border-neutral-700 text-neutral-300 font-semibold py-2.5 rounded-lg hover:bg-neutral-700 transition-colors min-h-[44px]">
+            Cancelar
+          </button>
+          <button (click)="confirmEmergencyData()"
+            class="flex-1 bg-yellow-600 text-white font-semibold py-2.5 rounded-lg hover:bg-yellow-700 transition-colors min-h-[44px] flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-sm">visibility</span>
+            <span>Ver información</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+    }
+
   </main>
 
   <app-bottom-nav activeTab="contacts" />
