@@ -26,6 +26,27 @@ export interface GroupMember {
   stringId: string;
 }
 
+export interface UserProfile {
+  id: string;
+  stringId: string;
+  name: string;
+  email: string;
+  avatar: string | null;
+  phone: string | null;
+  birthDate: string | null;
+  gender: string | null;
+  city: string | null;
+  sports: string[];
+  bloodType: string | null;
+  allergies: string | null;
+  medicalConditions: string | null;
+  medications: string | null;
+  emergencyName: string | null;
+  emergencyPhone: string | null;
+  emergencyRelation: string | null;
+  createdAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ContactsService {
   private readonly http = inject(HttpClient);
@@ -74,5 +95,9 @@ export class ContactsService {
 
   removeGroupMember(groupId: string, userId: string): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/contacts/groups/${groupId}/members/${userId}`);
+  }
+
+  getUserProfile(userId: string): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`${environment.apiUrl}/users/${userId}/profile`);
   }
 }

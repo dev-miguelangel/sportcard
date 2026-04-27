@@ -1,7 +1,8 @@
 import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ContactsService, ContactUser, ContactGroup, GroupMember } from '../../core/services/contacts.service';
+import { ContactsService, ContactUser, ContactGroup, GroupMember, UserProfile } from '../../core/services/contacts.service';
+import { qrSvgDataUrl } from '../../core/utils/qr';
 import { TeamsService, TeamSummary, TeamPublicDto, TeamMemberItem } from '../../core/services/teams.service';
 import { AuthService } from '../../core/services/auth.service';
 import { SportsService } from '../../core/services/sports.service';
@@ -83,6 +84,12 @@ export class ContactsComponent implements OnInit, OnDestroy {
   readonly joinSearchQuery = signal('');
   readonly joinSearchResults = signal<TeamSummary[]>([]);
   readonly applyingTeamId = signal<string | null>(null);
+
+  // Contact profile modal
+  readonly profileUser = signal<UserProfile | null>(null);
+  readonly profileLoading = signal(false);
+  readonly profileQr = signal('');
+  readonly showEmergencyData = signal(false);
 
   readonly TEAM_ICONS = [
     'shield', 'sports_soccer', 'sports_basketball', 'sports_tennis',
@@ -612,5 +619,38 @@ export class ContactsComponent implements OnInit, OnDestroy {
 
   getRemovalKey(teamId: string, userId: string): string {
     return `${teamId}:${userId}`;
+  }
+
+  openProfile(userId: string): void {
+    this.profileLoading.set(true);
+    this.contactsSvc.getUserProfile(userId).subscribe({
+      next: user => {
+        this.profileUser.set(user);
+        this.profileQr.set(qrSvgDataUrl(`SC:${user.stringId}`, { dark: '#0a0a0a', light: '#f9fafb' }));
+        this.profileLoading.set(false);
+      },
+      error: () => {
+        this.profileLoading.set(false);
+      },
+    });
+  }
+
+  closeProfile(): void {
+    this.profileUser.set(null);
+    this.profileQr.set('');
+    this.showEmergencyData.set(false);
+  }
+
+  openEmergencyData(): void {
+    this.showEmergencyData.set(true);
+  }
+
+  openWhatsApp(phone: string): void {
+    const cleanPhone = phone.replace(/\D/g, '');
+    window.open(`https://wa.me/${cleanPhone}`, '_blank', 'noopener');
+  }
+
+  callPhone(phone: string): void {
+    window.open(`tel:${phone}`, '_self');
   }
 }

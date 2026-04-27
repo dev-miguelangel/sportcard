@@ -17,6 +17,27 @@ export interface CreateUserDto {
   avatar?: string;
 }
 
+export interface UserProfileDto {
+  id: string;
+  stringId: string;
+  name: string;
+  email: string;
+  avatar: string | null;
+  phone: string | null;
+  birthDate: string | null;
+  gender: string | null;
+  city: string | null;
+  sports: string[];
+  bloodType: string | null;
+  allergies: string | null;
+  medicalConditions: string | null;
+  medications: string | null;
+  emergencyName: string | null;
+  emergencyPhone: string | null;
+  emergencyRelation: string | null;
+  createdAt: Date;
+}
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -72,6 +93,32 @@ export class UsersService {
 
   async findByStringId(stringId: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { stringId } });
+  }
+
+  async getPublicProfile(id: string): Promise<UserProfileDto> {
+    const user = await this.findById(id);
+    if (!user) throw new NotFoundException('Usuario no encontrado.');
+
+    return {
+      id: user.id,
+      stringId: user.stringId,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      phone: user.phone,
+      birthDate: user.birthDate,
+      gender: user.gender,
+      city: user.city,
+      sports: user.sports,
+      bloodType: user.bloodType,
+      allergies: user.allergies,
+      medicalConditions: user.medicalConditions,
+      medications: user.medications,
+      emergencyName: user.emergencyName,
+      emergencyPhone: user.emergencyPhone,
+      emergencyRelation: user.emergencyRelation,
+      createdAt: user.createdAt,
+    };
   }
 
   async update(id: string, data: Partial<User>): Promise<User | null> {

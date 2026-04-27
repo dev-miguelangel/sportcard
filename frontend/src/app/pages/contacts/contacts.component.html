@@ -94,6 +94,12 @@
                   </div>
                 </div>
 
+                <button (click)="openProfile(user.id)"
+                        class="w-9 h-9 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
+                               hover:border-neutral-500 transition-colors flex-shrink-0">
+                  <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">person</span>
+                </button>
+
                 @if (user.isContact) {
                   <button (click)="removeContact(user)"
                           [disabled]="loadingAction() === user.id"
@@ -195,6 +201,12 @@
                   </div>
                 </div>
 
+                <button (click)="openProfile(contact.id)"
+                        class="w-9 h-9 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
+                               hover:border-neutral-500 transition-colors flex-shrink-0">
+                  <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">person</span>
+                </button>
+
                 <button (click)="removeContact(contact)"
                         [disabled]="loadingAction() === contact.id"
                         class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-800 border border-neutral-700
@@ -263,6 +275,12 @@
                     }
                   </div>
                 </div>
+
+                <button (click)="openProfile(follower.id)"
+                        class="w-9 h-9 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
+                               hover:border-neutral-500 transition-colors flex-shrink-0">
+                  <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">person</span>
+                </button>
 
                 <button (click)="addContact(follower)"
                         [disabled]="loadingAction() === follower.id"
@@ -390,6 +408,11 @@
                     <p class="text-sm font-semibold truncate">{{ member.name }}</p>
                     <span class="text-[0.65rem] font-mono text-neutral-500">{{ member.stringId }}</span>
                   </div>
+                  <button (click)="openProfile(member.userId)"
+                          class="w-9 h-9 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
+                                 hover:border-neutral-500 transition-colors flex-shrink-0">
+                    <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">person</span>
+                  </button>
                   <button (click)="removeMemberFromGroup(member)"
                           [disabled]="memberActionId() === member.userId"
                           class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-800 border border-neutral-700
@@ -877,6 +900,13 @@
                     <span class="w-5 h-5 bg-brand rounded flex items-center justify-center text-[10px] font-black text-neutral-950 flex-shrink-0">C</span>
                   }
 
+                  <!-- View profile button -->
+                  <button (click)="openProfile(member.userId)"
+                          class="w-8 h-8 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
+                                 hover:border-neutral-500 transition-colors flex-shrink-0">
+                    <span class="material-symbols-outlined text-neutral-400" style="font-size:16px">person</span>
+                  </button>
+
                   <!-- Remove button -->
                   @if (canRemove) {
                     <button (click)="removeMemberFromTeam(team.id, member)"
@@ -990,6 +1020,153 @@
                 </div>
                 }
               </div>
+            </div>
+            }
+          </div>
+          }
+
+        </div>
+
+      </div>
+    </div>
+    }
+
+    <!-- Modal: Contact Profile -->
+    @if (profileUser()) {
+    <div class="fixed inset-0 z-50 flex items-end">
+      <!-- Backdrop -->
+      <div class="absolute inset-0 bg-black/40" (click)="closeProfile()"></div>
+
+      <!-- Bottom Sheet -->
+      <div class="relative w-full bg-neutral-900 border-t border-neutral-800 rounded-t-3xl max-h-[90vh] overflow-y-auto"
+        style="padding-bottom: env(safe-area-inset-bottom)">
+
+        <!-- Header -->
+        <div class="sticky top-0 z-10 bg-neutral-900 border-b border-neutral-800 px-4 py-3 flex items-center justify-between">
+          <h2 class="font-bold text-sm">Perfil</h2>
+          <button (click)="closeProfile()"
+            class="p-1 hover:bg-neutral-800 rounded-lg transition-colors">
+            <span class="material-symbols-outlined text-neutral-400">close</span>
+          </button>
+        </div>
+
+        <!-- Content -->
+        <div class="px-4 py-6 flex flex-col items-center text-center gap-4">
+          @let user = profileUser()!;
+
+          <!-- Avatar or initials -->
+          @if (user.avatar) {
+            <img [src]="user.avatar" [alt]="user.name"
+                 class="w-16 h-16 rounded-2xl object-cover ring-2 ring-neutral-700" />
+          } @else {
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand to-emerald-600 flex items-center justify-center ring-2 ring-neutral-700">
+              <span class="text-xl font-black text-neutral-950">{{ getInitials(user.name) }}</span>
+            </div>
+          }
+
+          <!-- Name and email -->
+          <div>
+            <h1 class="text-xl font-black tracking-tight">{{ user.name }}</h1>
+            <p class="text-sm text-neutral-400 mt-0.5">{{ user.email }}</p>
+          </div>
+
+          <!-- QR Code -->
+          <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3">
+            @if (profileQr()) {
+              <img [src]="profileQr()" alt="QR Sport Card" class="w-40 h-40 rounded-lg" />
+            } @else {
+              <div class="w-40 h-40 rounded-lg bg-neutral-900 flex items-center justify-center">
+                <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:28px">progress_activity</span>
+              </div>
+            }
+            <p class="text-[10px] text-neutral-600 text-center mt-2 uppercase tracking-widest">Sport Card ID</p>
+          </div>
+
+          <!-- ID badge -->
+          <div class="flex items-center gap-2 bg-neutral-800/60 rounded-xl px-4 py-2.5 border border-neutral-700">
+            <span class="material-symbols-outlined text-brand" style="font-size:16px">badge</span>
+            <span class="font-mono font-black text-white tracking-widest text-lg leading-none">{{ user.stringId }}</span>
+          </div>
+
+          <!-- Ver datos de emergencia button -->
+          <button (click)="openEmergencyData()"
+            class="flex items-center gap-2 text-sm text-neutral-400 hover:text-white border border-neutral-700 hover:border-neutral-500 rounded-xl px-4 py-2.5 transition-colors min-h-[44px] w-full justify-center">
+            <span class="material-symbols-outlined" style="font-size:16px">emergency</span>
+            Ver datos de emergencia
+          </button>
+
+          <!-- Emergency data section -->
+          @if (showEmergencyData()) {
+          <div class="w-full border-t border-neutral-700 pt-4 mt-2">
+            <!-- Medical data -->
+            @if (user.bloodType || user.allergies || user.medicalConditions || user.medications) {
+            <div class="mb-4">
+              <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-3">Datos médicos</p>
+              <div class="bg-neutral-950 border border-neutral-800 rounded-xl overflow-hidden divide-y divide-neutral-800">
+                @if (user.bloodType) {
+                  <div class="flex items-center gap-3 px-4 py-3">
+                    <span class="material-symbols-outlined text-red-400 flex-shrink-0" style="font-size:18px">blood_pressure</span>
+                    <div>
+                      <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Tipo de sangre</p>
+                      <p class="text-sm font-bold text-red-400">{{ user.bloodType }}</p>
+                    </div>
+                  </div>
+                }
+                @if (user.allergies) {
+                  <div class="flex items-start gap-3 px-4 py-3">
+                    <span class="material-symbols-outlined text-yellow-500 flex-shrink-0 mt-0.5" style="font-size:18px">warning</span>
+                    <div>
+                      <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Alergias</p>
+                      <p class="text-sm text-neutral-200">{{ user.allergies }}</p>
+                    </div>
+                  </div>
+                }
+                @if (user.medicalConditions) {
+                  <div class="flex items-start gap-3 px-4 py-3">
+                    <span class="material-symbols-outlined text-neutral-400 flex-shrink-0 mt-0.5" style="font-size:18px">medical_information</span>
+                    <div>
+                      <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Condiciones médicas</p>
+                      <p class="text-sm text-neutral-200">{{ user.medicalConditions }}</p>
+                    </div>
+                  </div>
+                }
+                @if (user.medications) {
+                  <div class="flex items-start gap-3 px-4 py-3">
+                    <span class="material-symbols-outlined text-neutral-400 flex-shrink-0 mt-0.5" style="font-size:18px">medication</span>
+                    <div>
+                      <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Medicamentos</p>
+                      <p class="text-sm text-neutral-200">{{ user.medications }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+            }
+
+            <!-- Emergency contact -->
+            @if (user.emergencyName || user.emergencyPhone) {
+            <div>
+              <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-3">Contacto de emergencia</p>
+              <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-4 mb-3">
+                <p class="text-sm font-semibold text-white mb-1">{{ user.emergencyName }}</p>
+                @if (user.emergencyRelation) {
+                  <p class="text-xs text-neutral-500">{{ user.emergencyRelation }}</p>
+                }
+              </div>
+              @if (user.emergencyPhone) {
+              <div class="flex gap-2">
+                <button (click)="openWhatsApp(user.emergencyPhone!)"
+                  class="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity min-h-[44px]">
+                  <span class="material-symbols-outlined text-sm">message</span>
+                  <span>WhatsApp</span>
+                </button>
+                <button (click)="callPhone(user.emergencyPhone!)"
+                  class="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity min-h-[44px]">
+                  <span class="material-symbols-outlined text-sm">phone</span>
+                  <span>Llamar</span>
+                </button>
+              </div>
+              }
             </div>
             }
           </div>

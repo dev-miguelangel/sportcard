@@ -12,7 +12,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { UsersService } from './users.service';
+import { UsersService, UserProfileDto } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateOnboardingDto } from './dto/update-onboarding.dto';
 
@@ -66,5 +66,11 @@ export class UsersController {
   @Get(':id/stats')
   getStats(@Param('id') userId: string) {
     return this.usersService.getStats(userId);
+  }
+
+  @Get(':id/profile')
+  @UseGuards(JwtAuthGuard)
+  getProfile(@Param('id') userId: string): Promise<UserProfileDto> {
+    return this.usersService.getPublicProfile(userId);
   }
 }
