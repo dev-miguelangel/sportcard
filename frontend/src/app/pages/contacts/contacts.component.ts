@@ -65,6 +65,14 @@ export class ContactsComponent implements OnInit, OnDestroy {
   readonly creatingTeam = signal(false);
   readonly createTeamError = signal<string | null>(null);
 
+  readonly teamsView = signal<'list' | 'detail'>('list');
+  readonly selectedTeamId = signal<string | null>(null);
+  readonly inviteSearchQuery = signal('');
+  readonly inviteSearchResults = signal<ContactUser[]>([]);
+  readonly inviteSearchLoading = signal(false);
+  readonly invitingMemberId = signal<string | null>(null);
+  readonly inviteError = signal<string | null>(null);
+
   readonly TEAM_ICONS = [
     'shield', 'sports_soccer', 'sports_basketball', 'sports_tennis',
     'sports_volleyball', 'sports_baseball', 'sports_football', 'sports_hockey',
@@ -372,6 +380,92 @@ export class ContactsComponent implements OnInit, OnDestroy {
   }
 
   removeMember(teamId: string, member: TeamMemberItem): void {
+    this.removeMemberFromTeam(teamId, member);
+  }
+
+  inviteViaWhatsApp(): void {
+    const user = this.currentUserId();
+    if (!user) return;
+
+    const text = encodeURIComponent(
+      `${user.name} te está invitando a SportCard\n\nUn lugar increíble para organizar eventos deportivos, encontrar equipos y conocer gente que comparte tus pasiones.\n\n1. Inicia sesión: https://dev.sportcard.miguelangeljaimen.cl/\n2. Búscame en contactos como: ${user.stringId}\n\n¡Vamos a jugar!`,
+    );
+    window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener');
+  }
+
+  // ── Team Detail View ────────────────────────────────────────
+
+  openTeamDetail(team: TeamSummary): void {
+    this.selectedTeamId.set(team.id);
+    this.teamsView.set('detail');
+    this.inviteSearchQuery.set('');
+    this.inviteSearchResults.set([]);
+    this.inviteError.set(null);
+  }
+
+  backToTeamList(): void {
+    this.selectedTeamId.set(null);
+    this.teamsView.set('list');
+    this.inviteSearchQuery.set('');
+    this.inviteSearchResults.set([]);
+    this.inviteSearchLoading.set(false);
+    this.inviteError.set(null);
+  }
+
+  searchInviteUsers(query: string): void {
+    this.inviteSearchQuery.set(query);
+    if (query.trim().length < 2) {
+      this.inviteSearchResults.set([]);
+      return;
+    }
+    this.inviteSearchLoading.set(true);
+    this.contactsSvc.search(query.trim()).subscribe({
+      next: results => {
+        this.inviteSearchResults.set(results);
+        this.inviteSearchLoading.set(false);
+      },
+      error: () => this.inviteSearchLoading.set(false),
+    });
+  }
+
+  inviteMemberToTeam(userId: string): void {
+    const teamId = this.selectedTeamId();
+    if (!teamId || this.invitingMemberId()) return;
+
+    this.invitingMemberId.set(userId);
+    this.inviteError.set(null);
+
+    this.teamsSvc.inviteMember(teamId, userId).subscribe({
+      next: () => {
+        this.inviteSearchQuery.set('');
+        this.inviteSearchResults.set([]);
+        this.teamsSvc.getPublicTeam(teamId).subscribe(detail => {
+          this.teamDetails.update(map => ({ ...map, [teamId]: detail }));
+        });
+        this.invitingMemberId.set(null);
+      },
+      error: err => {
+        this.inviteError.set(err?.error?.message ?? 'No se pudo enviar la invitación');
+        this.invitingMemberId.set(null);
+      },
+    });
+  }
+
+  generateTeamInviteWhatsAppText(teamName: string): string {
+    const user = this.currentUserId();
+    if (!user) return '';
+    return `${user.name} te está invitando a ser parte del equipo ${teamName}. Únete a SportCard para confirmar tu participación y empezar a jugar.`;
+  }
+
+  inviteTeamMemberViaWhatsApp(teamName: string): void {
+    const user = this.currentUserId();
+    if (!user) return;
+
+    const text = encodeURIComponent(this.generateTeamInviteWhatsAppText(teamName));
+    window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener');
+  }
+
+  removeMemberFromTeam(teamId: string, member: TeamMemberItem): void {
     const key = `${teamId}:${member.userId}`;
     if (this.removingMemberId()) return;
     this.removingMemberId.set(key);
@@ -381,6 +475,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
         if (me === member.userId) {
           this.myTeams.update(ts => ts.filter(t => t.id !== teamId));
           this.teamDetails.update(map => { const n = { ...map }; delete n[teamId]; return n; });
+          this.backToTeamList();
         } else {
           this.teamDetails.update(map => ({
             ...map,
@@ -392,16 +487,6 @@ export class ContactsComponent implements OnInit, OnDestroy {
       },
       error: () => this.removingMemberId.set(null),
     });
-  }
-
-  inviteViaWhatsApp(): void {
-    const user = this.currentUserId();
-    if (!user) return;
-
-    const text = encodeURIComponent(
-      `${user.name} te está invitando a SportCard\n\nUn lugar increíble para organizar eventos deportivos, encontrar equipos y conocer gente que comparte tus pasiones.\n\n1. Inicia sesión: https://dev.sportcard.miguelangeljaimen.cl/\n2. Búscame en contactos como: ${user.stringId}\n\n¡Vamos a jugar!`,
-    );
-    window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener');
   }
 
   getInitials(name: string): string {

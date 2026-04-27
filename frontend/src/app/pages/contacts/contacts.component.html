@@ -625,143 +625,272 @@
         </button>
       }
 
-      @if (loadingTeams()) {
-        <div class="flex flex-col gap-3">
-          @for (i of [1, 2]; track i) {
-            <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 animate-pulse">
-              <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-xl bg-neutral-800 flex-shrink-0"></div>
-                <div class="flex flex-col gap-1.5 flex-1">
-                  <div class="h-3.5 bg-neutral-800 rounded-md w-1/3"></div>
-                  <div class="h-2.5 bg-neutral-800 rounded-md w-1/5"></div>
-                </div>
-              </div>
-              @for (j of [1, 2, 3]; track j) {
-                <div class="flex items-center gap-3 py-2.5 border-t border-neutral-800">
-                  <div class="w-9 h-9 rounded-full bg-neutral-800 flex-shrink-0"></div>
-                  <div class="h-3 bg-neutral-800 rounded-md flex-1"></div>
-                </div>
-              }
-            </div>
-          }
-        </div>
-      } @else if (myTeams().length === 0) {
-        <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center">
-          <span class="material-symbols-outlined text-neutral-700 mb-3 block" style="font-size:40px">groups</span>
-          <p class="text-sm font-semibold text-neutral-400 mb-1">Sin equipos</p>
-          <p class="text-xs text-neutral-600">Cuando formes parte de un equipo aparecerá aquí.</p>
-        </div>
-      } @else {
-        <div class="flex flex-col gap-4">
-          @for (team of myTeams(); track team.id) {
-            @let detail = teamDetails()[team.id];
-
-            <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
-
-              <!-- Team header -->
-              <div class="flex items-center gap-3 px-4 py-3 border-b border-neutral-800">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                     [style]="'background:' + (team.backgroundColor || '#1e1e1e')">
-                  <span class="material-symbols-outlined" [style]="'color:' + (team.iconColor || '#00e87a') + ';font-size:22px'">{{ team.iconName || 'groups' }}</span>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-black truncate">{{ team.name }}</p>
-                  <div class="flex items-center gap-1.5 mt-0.5">
-                    <span class="text-[0.65rem] text-neutral-500">{{ team.sport }} · {{ team.memberCount }} miembro{{ team.memberCount !== 1 ? 's' : '' }}</span>
-                    @if (team.teamId) {
-                      <span class="text-neutral-700">·</span>
-                      <span class="text-[0.62rem] font-mono text-neutral-500">{{ team.teamId }}</span>
-                    }
+      <!-- ── Vista: LISTA DE EQUIPOS ────────────────────────── -->
+      @if (teamsView() === 'list') {
+        @if (loadingTeams()) {
+          <div class="flex flex-col gap-3">
+            @for (i of [1, 2]; track i) {
+              <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 animate-pulse">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-xl bg-neutral-800 flex-shrink-0"></div>
+                  <div class="flex flex-col gap-1.5 flex-1">
+                    <div class="h-3.5 bg-neutral-800 rounded-md w-1/2"></div>
+                    <div class="h-2.5 bg-neutral-800 rounded-md w-1/3"></div>
                   </div>
                 </div>
-                @if (team.isCoach) {
-                  <span class="w-5 h-5 bg-brand rounded flex items-center justify-center text-[10px] font-black text-neutral-950 flex-shrink-0">C</span>
-                  <!-- Eliminar equipo (solo coach/creador) -->
-                  <button (click)="deleteTeam(team)"
-                          [disabled]="deletingTeamId() === team.id"
-                          class="w-8 h-8 flex items-center justify-center rounded-xl bg-red-500/10 border border-red-500/20
-                                 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40 flex-shrink-0">
-                    @if (deletingTeamId() === team.id) {
-                      <span class="material-symbols-outlined animate-spin" style="font-size:15px">progress_activity</span>
-                    } @else {
-                      <span class="material-symbols-outlined" style="font-size:15px">delete</span>
+              </div>
+            }
+          </div>
+        } @else if (myTeams().length === 0) {
+          <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center">
+            <span class="material-symbols-outlined text-neutral-700 mb-3 block" style="font-size:40px">groups</span>
+            <p class="text-sm font-semibold text-neutral-400 mb-1">Sin equipos</p>
+            <p class="text-xs text-neutral-600">Cuando formes parte de un equipo aparecerá aquí.</p>
+          </div>
+        } @else {
+          <div class="flex flex-col gap-3">
+            @for (team of myTeams(); track team.id) {
+              <button (click)="openTeamDetail(team)"
+                      class="w-full text-left flex items-start gap-4 bg-neutral-900 border border-neutral-800 rounded-2xl
+                             p-4 transition-colors hover:border-neutral-600 min-h-[100px]">
+
+                <!-- Logo/Icon -->
+                <div class="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+                     [style]="'background:' + (team.backgroundColor || '#1e1e1e')">
+                  <span class="material-symbols-outlined" [style]="'color:' + (team.iconColor || '#00e87a') + ';font-size:28px'">{{ team.iconName || 'groups' }}</span>
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1 min-w-0 flex flex-col justify-center">
+                  <div class="flex items-center gap-2">
+                    <p class="text-sm font-black truncate">{{ team.name }}</p>
+                    @if (team.isAmateur) {
+                      <span class="text-[0.6rem] font-bold bg-brand/20 text-brand px-2 py-0.5 rounded-full flex-shrink-0">AMATEUR</span>
                     }
-                  </button>
+                  </div>
+                  <p class="text-[0.75rem] text-neutral-500 mt-1">{{ team.sport }} · {{ team.memberCount }} miembro{{ team.memberCount !== 1 ? 's' : '' }}</p>
+                  @if (team.isCoach) {
+                    <div class="flex items-center gap-1 mt-2">
+                      <span class="w-4 h-4 bg-brand rounded flex items-center justify-center text-[8px] font-black text-neutral-950">C</span>
+                      <span class="text-[0.65rem] text-brand font-bold">Eres el creador</span>
+                    </div>
+                  }
+                </div>
+
+                <!-- Chevron -->
+                <span class="material-symbols-outlined text-neutral-600 flex-shrink-0">chevron_right</span>
+              </button>
+            }
+          </div>
+        }
+      }
+
+      <!-- ── Vista: DETALLES DEL EQUIPO ─────────────────────── -->
+      @if (teamsView() === 'detail' && selectedTeamId()) {
+        @let team = myTeams().find(t => t.id === selectedTeamId());
+        @let detail = teamDetails()[selectedTeamId() || ''];
+
+        @if (team && detail) {
+          <!-- Header -->
+          <div class="flex items-center gap-3 mb-4">
+            <button (click)="backToTeamList()"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 flex-shrink-0">
+              <span class="material-symbols-outlined text-neutral-400" style="font-size:20px">arrow_back</span>
+            </button>
+            <div class="flex-1 min-w-0">
+              <p class="text-lg font-black truncate">{{ team.name }}</p>
+              <p class="text-[0.75rem] text-neutral-500">{{ team.sport }} · {{ team.memberCount }} miembro{{ team.memberCount !== 1 ? 's' : '' }}</p>
+            </div>
+            @if (team.isCoach) {
+              <button (click)="deleteTeam(team)"
+                      [disabled]="deletingTeamId() === team.id"
+                      class="w-9 h-9 flex items-center justify-center rounded-xl bg-red-500/10 border border-red-500/20
+                             text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40 flex-shrink-0">
+                @if (deletingTeamId() === team.id) {
+                  <span class="material-symbols-outlined animate-spin" style="font-size:15px">progress_activity</span>
+                } @else {
+                  <span class="material-symbols-outlined" style="font-size:15px">delete</span>
+                }
+              </button>
+            }
+          </div>
+
+          <!-- Info del equipo -->
+          <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 mb-4 flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+              <span class="text-[0.75rem] font-bold text-neutral-500">DEPORTE</span>
+              <span class="text-sm font-semibold">{{ team.sport }}</span>
+            </div>
+            @if (team.teamId) {
+              <div class="flex items-center justify-between">
+                <span class="text-[0.75rem] font-bold text-neutral-500">ID DEL EQUIPO</span>
+                <span class="text-sm font-mono text-brand">{{ team.teamId }}</span>
+              </div>
+            }
+            <div class="flex items-center justify-between">
+              <span class="text-[0.75rem] font-bold text-neutral-500">MIEMBROS</span>
+              <span class="text-sm font-semibold">{{ team.memberCount }}</span>
+            </div>
+          </div>
+
+          <!-- Sección: Agregar miembro (si soy coach) -->
+          @if (team.isCoach && team.isAmateur) {
+            <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 mb-4 flex flex-col gap-3">
+              <p class="text-[0.75rem] font-bold uppercase tracking-wider text-neutral-500">Buscar miembro para invitar</p>
+
+              <!-- Buscador -->
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-600"
+                      style="font-size:18px">search</span>
+                <input type="text"
+                       placeholder="Nombre, correo o ID..."
+                       [value]="inviteSearchQuery()"
+                       (input)="searchInviteUsers($any($event.target).value)"
+                       class="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-10 pr-10 py-3
+                              text-[0.85rem] placeholder:text-neutral-600 focus:outline-none focus:border-neutral-600
+                              transition-colors min-h-[44px]" />
+                @if (inviteSearchLoading()) {
+                  <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-neutral-600 animate-spin"
+                        style="font-size:18px">progress_activity</span>
                 }
               </div>
 
-              <!-- Members list -->
-              @if (!detail) {
-                <div class="flex items-center justify-center py-6">
-                  <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:20px">progress_activity</span>
-                </div>
-              } @else {
-                <div class="divide-y divide-neutral-800">
-                  @for (member of detail.members; track member.userId) {
-                    @let isCoach = member.userId === detail.coach.id;
-                    @let isSelf  = member.userId === currentUserId()?.id;
-                    @let canRemove = !isCoach && (isSelf || team.isCoach);
-                    @let removeKey = team.id + ':' + member.userId;
-                    <div class="flex items-center gap-3 px-4 py-3"
-                         [class]="isCoach ? 'bg-brand/5' : ''">
+              <!-- Error -->
+              @if (inviteError()) {
+                <p class="text-xs text-red-400 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined" style="font-size:14px">error</span>
+                  {{ inviteError() }}
+                </p>
+              }
 
-                      <!-- Avatar -->
-                      @if (member.avatar) {
-                        <img [src]="member.avatar" [alt]="member.name"
-                             class="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+              <!-- Resultados de búsqueda -->
+              @if (inviteSearchResults().length > 0) {
+                <div class="flex flex-col gap-2 max-h-48 overflow-y-auto">
+                  @for (user of inviteSearchResults(); track user.id) {
+                    @let isMember = detail.members.some(m => m.userId === user.id);
+                    <div class="flex items-center gap-3 bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2">
+                      @if (user.avatar) {
+                        <img [src]="user.avatar" [alt]="user.name"
+                             class="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                       } @else {
-                        <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                             [class]="isCoach ? 'bg-brand/25' : 'bg-neutral-800'">
-                          <span class="text-sm font-black"
-                                [class]="isCoach ? 'text-brand' : 'text-neutral-400'">
-                            {{ getInitials(member.name) }}
-                          </span>
+                        <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
+                          <span class="text-xs font-black text-brand">{{ getInitials(user.name) }}</span>
                         </div>
                       }
 
-                      <!-- Name + ID -->
                       <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold truncate"
-                           [class]="isCoach ? 'text-white' : 'text-neutral-200'">
-                          {{ member.name }}
-                          @if (isSelf) {
-                            <span class="text-[0.6rem] font-bold text-neutral-500 ml-1">(tú)</span>
-                          }
-                        </p>
-                        <span class="text-[0.62rem] font-mono text-neutral-500">{{ member.stringId }}</span>
+                        <p class="text-xs font-semibold truncate">{{ user.name }}</p>
+                        <span class="text-[0.6rem] font-mono text-neutral-600">{{ user.stringId }}</span>
                       </div>
 
-                      <!-- Coach badge -->
-                      @if (isCoach) {
-                        <span class="w-5 h-5 bg-brand rounded flex items-center justify-center text-[10px] font-black text-neutral-950 flex-shrink-0">C</span>
-                      }
-
-                      <!-- Remove / leave button -->
-                      @if (canRemove) {
-                        <button (click)="removeMember(team.id, member)"
-                                [disabled]="removingMemberId() === removeKey"
-                                class="w-8 h-8 flex items-center justify-center rounded-xl border transition-colors disabled:opacity-40 flex-shrink-0"
-                                [class]="isSelf
-                                  ? 'bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-red-400 hover:border-red-400/30'
-                                  : 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20'">
-                          @if (removingMemberId() === removeKey) {
+                      @if (!isMember) {
+                        <button (click)="inviteMemberToTeam(user.id)"
+                                [disabled]="invitingMemberId() === user.id"
+                                class="flex items-center gap-1 bg-brand text-neutral-950 text-[0.7rem] font-black
+                                       px-3 py-1.5 rounded-lg min-h-[32px] flex-shrink-0 transition-opacity disabled:opacity-40">
+                          @if (invitingMemberId() === user.id) {
                             <span class="material-symbols-outlined animate-spin" style="font-size:14px">progress_activity</span>
                           } @else {
-                            <span class="material-symbols-outlined" style="font-size:14px">
-                              {{ isSelf ? 'logout' : 'person_remove' }}
-                            </span>
+                            <span class="material-symbols-outlined" style="font-size:14px">person_add</span>
                           }
+                          Invitar
                         </button>
+                      } @else {
+                        <span class="text-[0.7rem] text-neutral-600 font-bold">Miembro</span>
                       }
-
                     </div>
                   }
                 </div>
               }
-
             </div>
+
+            <!-- Invitar por WhatsApp -->
+            <button (click)="inviteTeamMemberViaWhatsApp(team.name)"
+                    class="w-full flex items-center gap-3 bg-[#25D366]/10 border border-[#25D366]/25
+                           rounded-2xl px-4 py-3 min-h-[44px] hover:bg-[#25D366]/20 transition-colors mb-4">
+              <div class="w-7 h-7 rounded-lg bg-[#25D366] flex items-center justify-center flex-shrink-0">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 fill-white" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+              </div>
+              <div class="flex-1 text-left">
+                <p class="text-sm font-bold text-[#25D366]">Invitar por WhatsApp</p>
+                <p class="text-[0.65rem] text-neutral-500">Envía invitaciones personalizadas</p>
+              </div>
+              <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">chevron_right</span>
+            </button>
           }
-        </div>
+
+          <!-- Miembros confirmados -->
+          <div class="flex flex-col gap-3">
+            <p class="text-[0.75rem] font-bold uppercase tracking-wider text-neutral-500">Miembros</p>
+
+            <div class="flex flex-col gap-2">
+              @for (member of detail.members; track member.userId) {
+                @let isCoach = member.userId === detail.coach.id;
+                @let isSelf = member.userId === currentUserId()?.id;
+                @let canRemove = !isCoach && (isSelf || team.isCoach);
+                @let removeKey = team.id + ':' + member.userId;
+
+                <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3"
+                     [class]="isCoach ? 'border-brand/30 bg-brand/5' : ''">
+
+                  <!-- Avatar -->
+                  @if (member.avatar) {
+                    <img [src]="member.avatar" [alt]="member.name"
+                         class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                  } @else {
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                         [class]="isCoach ? 'bg-brand/25' : 'bg-neutral-800'">
+                      <span class="text-sm font-black"
+                            [class]="isCoach ? 'text-brand' : 'text-neutral-400'">
+                        {{ getInitials(member.name) }}
+                      </span>
+                    </div>
+                  }
+
+                  <!-- Name + ID -->
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold truncate"
+                       [class]="isCoach ? 'text-white' : 'text-neutral-200'">
+                      {{ member.name }}
+                      @if (isSelf) {
+                        <span class="text-[0.6rem] font-bold text-neutral-500 ml-1">(tú)</span>
+                      }
+                      @if (member.status === 'invited') {
+                        <span class="text-[0.6rem] font-bold text-yellow-500 ml-1">(pendiente)</span>
+                      }
+                    </p>
+                    <span class="text-[0.62rem] font-mono text-neutral-500">{{ member.stringId }}</span>
+                  </div>
+
+                  <!-- Coach badge -->
+                  @if (isCoach) {
+                    <span class="w-5 h-5 bg-brand rounded flex items-center justify-center text-[10px] font-black text-neutral-950 flex-shrink-0">C</span>
+                  }
+
+                  <!-- Remove button -->
+                  @if (canRemove) {
+                    <button (click)="removeMemberFromTeam(team.id, member)"
+                            [disabled]="removingMemberId() === removeKey"
+                            class="w-8 h-8 flex items-center justify-center rounded-lg border transition-colors disabled:opacity-40 flex-shrink-0"
+                            [class]="isSelf
+                              ? 'bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-red-400 hover:border-red-400/30'
+                              : 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20'">
+                      @if (removingMemberId() === removeKey) {
+                        <span class="material-symbols-outlined animate-spin" style="font-size:14px">progress_activity</span>
+                      } @else {
+                        <span class="material-symbols-outlined" style="font-size:14px">
+                          {{ isSelf ? 'logout' : 'person_remove' }}
+                        </span>
+                      }
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
       }
 
     }

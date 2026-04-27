@@ -23,6 +23,7 @@ export interface TeamMemberDto {
   sports: string[];
   position: string | null;
   joinedAt: Date;
+  status: 'invited' | 'confirmed' | 'rejected';
 }
 
 export interface TeamDto {
@@ -197,6 +198,7 @@ export class TeamsService {
         sports:   m.user.sports ?? [],
         position: m.position,
         joinedAt: m.joinedAt,
+        status:   m.status,
       })),
     };
   }
@@ -246,6 +248,7 @@ export class TeamsService {
       sports:   target.sports ?? [],
       position: member.position,
       joinedAt: member.joinedAt,
+      status:   member.status,
     };
   }
 
@@ -270,6 +273,7 @@ export class TeamsService {
       sports:   member.user.sports ?? [],
       position: member.position,
       joinedAt: member.joinedAt,
+      status:   member.status,
     };
   }
 

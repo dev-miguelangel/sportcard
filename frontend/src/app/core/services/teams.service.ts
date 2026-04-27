@@ -27,6 +27,7 @@ export interface TeamMemberItem {
   sports: string[];
   position: string | null;
   joinedAt: string;
+  status: 'invited' | 'confirmed' | 'rejected';
 }
 
 export interface TeamPublicDto {
@@ -75,6 +76,10 @@ export class TeamsService {
 
   addMember(teamId: string, userId: string): Observable<void> {
     return this.http.post<void>(`${environment.apiUrl}/teams/${teamId}/members`, { userId });
+  }
+
+  inviteMember(teamId: string, userId: string): Observable<void> {
+    return this.addMember(teamId, userId);
   }
 
   findByTeamId(teamId: string): Observable<{ id: string; teamId: string; name: string; sport: string; iconName: string; backgroundColor: string; iconColor: string }> {
