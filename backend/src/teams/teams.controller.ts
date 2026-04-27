@@ -41,6 +41,11 @@ export class TeamsController {
     return this.teamsSvc.searchForTeam(q);
   }
 
+  @Get('find')
+  findByTeamId(@Query('teamId') teamId: string) {
+    return this.teamsSvc.findByTeamId(teamId);
+  }
+
   @Get(':id')
   getTeamById(@Param('id') teamId: string) {
     return this.teamsSvc.getTeamById(teamId);

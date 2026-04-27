@@ -23,4 +23,16 @@ export class CreateTeamDto {
   @IsInt()
   @Min(0)
   maxAge?: number;
+
+  @IsOptional()
+  @IsString()
+  iconName?: string;
+
+  @IsOptional()
+  @IsString()
+  backgroundColor?: string;
+
+  @IsOptional()
+  @IsString()
+  iconColor?: string;
 }

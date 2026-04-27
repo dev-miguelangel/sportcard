@@ -30,6 +30,11 @@ export interface TeamDto {
   name: string;
   sport: string;
   logoUrl: string | null;
+  isAmateur: boolean;
+  teamId: string;
+  iconName: string;
+  backgroundColor: string;
+  iconColor: string;
   createdAt: Date;
   coach: { id: string; stringId: string; name: string; avatar: string | null };
   members: TeamMemberDto[];
@@ -40,6 +45,11 @@ export interface TeamSummaryDto {
   name: string;
   sport: string;
   logoUrl: string | null;
+  isAmateur: boolean;
+  teamId: string;
+  iconName: string;
+  backgroundColor: string;
+  iconColor: string;
   memberCount: number;
   isCoach: boolean;
 }
@@ -56,6 +66,9 @@ export interface TeamPublicDto extends TeamDto {
   activeTournaments: TeamActiveTournamentDto[];
 }
 
+const TEAM_ID_CHARS = '123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const TEAM_ID_LENGTH = 6;
+
 @Injectable()
 export class TeamsService {
   constructor(
@@ -67,12 +80,42 @@ export class TeamsService {
     private readonly notifSvc: NotificationsService,
   ) {}
 
+  private generateTeamIdCandidate(): string {
+    let result = '';
+    for (let i = 0; i < TEAM_ID_LENGTH; i++) {
+      result += TEAM_ID_CHARS[Math.floor(Math.random() * TEAM_ID_CHARS.length)];
+    }
+    return 'team_' + result;
+  }
+
+  private async generateUniqueTeamId(): Promise<string> {
+    let candidate: string;
+    let exists: Team | null;
+    do {
+      candidate = this.generateTeamIdCandidate();
+      exists = await this.teamRepo.findOne({ where: { teamId: candidate } });
+    } while (exists);
+    return candidate;
+  }
+
   async createTeam(coachId: string, dto: CreateTeamDto): Promise<TeamDto> {
     const coach = await this.usersRepo.findOne({ where: { id: coachId } });
     if (!coach) throw new NotFoundException('Usuario no encontrado.');
 
+    const teamId = await this.generateUniqueTeamId();
+
     const team = await this.teamRepo.save(
-      this.teamRepo.create({ name: dto.name, sport: dto.sport, coachId, logoUrl: dto.logoUrl ?? null }),
+      this.teamRepo.create({
+        name:            dto.name,
+        sport:           dto.sport,
+        coachId,
+        logoUrl:         dto.logoUrl ?? null,
+        isAmateur:       true,
+        teamId,
+        iconName:        dto.iconName        ?? 'shield',
+        backgroundColor: dto.backgroundColor ?? '#1e1e1e',
+        iconColor:       dto.iconColor       ?? '#00e87a',
+      }),
     );
 
     await this.memberRepo.save(
@@ -102,12 +145,17 @@ export class TeamsService {
     const countMap = new Map(counts.map(r => [r.teamId, parseInt(r.count)]));
 
     return memberships.map(m => ({
-      id:          m.team.id,
-      name:        m.team.name,
-      sport:       m.team.sport,
-      logoUrl:     m.team.logoUrl,
-      memberCount: countMap.get(m.teamId) ?? 1,
-      isCoach:     m.team.coachId === userId,
+      id:              m.team.id,
+      name:            m.team.name,
+      sport:           m.team.sport,
+      logoUrl:         m.team.logoUrl,
+      isAmateur:       m.team.isAmateur,
+      teamId:          m.team.teamId,
+      iconName:        m.team.iconName,
+      backgroundColor: m.team.backgroundColor,
+      iconColor:       m.team.iconColor,
+      memberCount:     countMap.get(m.teamId) ?? 1,
+      isCoach:         m.team.coachId === userId,
     }));
   }
 
@@ -125,11 +173,16 @@ export class TeamsService {
     });
 
     return {
-      id:      team.id,
-      name:    team.name,
-      sport:   team.sport,
-      logoUrl: team.logoUrl,
-      createdAt: team.createdAt,
+      id:              team.id,
+      name:            team.name,
+      sport:           team.sport,
+      logoUrl:         team.logoUrl,
+      isAmateur:       team.isAmateur,
+      teamId:          team.teamId,
+      iconName:        team.iconName,
+      backgroundColor: team.backgroundColor,
+      iconColor:       team.iconColor,
+      createdAt:       team.createdAt,
       coach: {
         id:       team.coach.id,
         stringId: team.coach.stringId,
@@ -294,13 +347,32 @@ export class TeamsService {
     const countMap = new Map(counts.map(r => [r.teamId, parseInt(r.count)]));
 
     return teams.map(t => ({
-      id:          t.id,
-      name:        t.name,
-      sport:       t.sport,
-      logoUrl:     t.logoUrl,
-      memberCount: countMap.get(t.id) ?? 0,
-      isCoach:     false,
+      id:              t.id,
+      name:            t.name,
+      sport:           t.sport,
+      logoUrl:         t.logoUrl,
+      isAmateur:       t.isAmateur,
+      teamId:          t.teamId,
+      iconName:        t.iconName,
+      backgroundColor: t.backgroundColor,
+      iconColor:       t.iconColor,
+      memberCount:     countMap.get(t.id) ?? 0,
+      isCoach:         false,
     }));
+  }
+
+  async findByTeamId(teamId: string): Promise<{ id: string; teamId: string; name: string; sport: string; iconName: string; backgroundColor: string; iconColor: string }> {
+    const team = await this.teamRepo.findOne({ where: { teamId, isAmateur: true } });
+    if (!team) throw new NotFoundException('Equipo no encontrado.');
+    return {
+      id:              team.id,
+      teamId:          team.teamId,
+      name:            team.name,
+      sport:           team.sport,
+      iconName:        team.iconName,
+      backgroundColor: team.backgroundColor,
+      iconColor:       team.iconColor,
+    };
   }
 
   private async assertCoach(teamId: string, userId: string): Promise<Team> {

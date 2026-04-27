@@ -35,6 +35,21 @@ export class Team {
   @Column({ name: 'max_age', type: 'int', nullable: true })
   maxAge: number | null;
 
+  @Column({ name: 'is_amateur', default: false })
+  isAmateur: boolean;
+
+  @Column({ name: 'team_id', unique: true, length: 10, default: '' })
+  teamId: string;
+
+  @Column({ name: 'icon_name', default: 'shield' })
+  iconName: string;
+
+  @Column({ name: 'background_color', length: 7, default: '#1e1e1e' })
+  backgroundColor: string;
+
+  @Column({ name: 'icon_color', length: 7, default: '#00e87a' })
+  iconColor: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }
