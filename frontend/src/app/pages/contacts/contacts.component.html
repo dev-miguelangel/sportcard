@@ -2,311 +2,296 @@
 
   <!-- ── Header ─────────────────────────────────────────── -->
   <header class="sticky top-0 z-10 bg-neutral-950/95 backdrop-blur-sm border-b border-neutral-800"
-          style="padding-top: env(safe-area-inset-top)">
+    style="padding-top: env(safe-area-inset-top)">
     <div class="max-w-lg mx-auto flex items-center gap-3 px-4 h-14">
       <button (click)="goBack()"
-              class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 flex-shrink-0">
+        class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 flex-shrink-0">
         <span class="material-symbols-outlined text-neutral-400" style="font-size:20px">arrow_back</span>
       </button>
       <h1 class="font-black tracking-tight flex-1">Contactos</h1>
       @if (activeTab() === 'contacts' && myContacts().length > 0) {
-        <span class="text-[0.7rem] font-bold text-neutral-500">{{ myContacts().length }} contacto{{ myContacts().length !== 1 ? 's' : '' }}</span>
+      <span class="text-[0.7rem] font-bold text-neutral-500">{{ myContacts().length }} contacto{{ myContacts().length
+        !== 1 ? 's' : '' }}</span>
       }
     </div>
 
     <!-- ── Tabs ────────────────────────────────────────────── -->
     <div class="max-w-lg mx-auto flex border-b border-neutral-800">
-      <button (click)="setTab('contacts')"
-              class="flex-1 py-3 text-sm font-bold transition-colors"
-              [class]="activeTab() === 'contacts' ? 'text-brand border-b-2 border-brand' : 'text-neutral-500'">
+      <button (click)="setTab('contacts')" class="flex-1 py-3 text-sm font-bold transition-colors"
+        [class]="activeTab() === 'contacts' ? 'text-brand border-b-2 border-brand' : 'text-neutral-500'">
         Contactos
       </button>
-      <button (click)="setTab('groups')"
-              class="flex-1 py-3 text-sm font-bold transition-colors"
-              [class]="activeTab() === 'groups' ? 'text-brand border-b-2 border-brand' : 'text-neutral-500'">
+      <button (click)="setTab('groups')" class="flex-1 py-3 text-sm font-bold transition-colors"
+        [class]="activeTab() === 'groups' ? 'text-brand border-b-2 border-brand' : 'text-neutral-500'">
         Grupos
       </button>
-      <button (click)="setTab('teams')"
-              class="flex-1 py-3 text-sm font-bold transition-colors"
-              [class]="activeTab() === 'teams' ? 'text-brand border-b-2 border-brand' : 'text-neutral-500'">
+      <button (click)="setTab('teams')" class="flex-1 py-3 text-sm font-bold transition-colors"
+        [class]="activeTab() === 'teams' ? 'text-brand border-b-2 border-brand' : 'text-neutral-500'">
         Equipos
       </button>
     </div>
   </header>
 
   <!-- ── Content ─────────────────────────────────────────── -->
-  <main class="flex-1 max-w-lg mx-auto w-full px-4 py-4 pb-[calc(5rem+env(safe-area-inset-bottom))] flex flex-col gap-5">
+  <main
+    class="flex-1 max-w-lg mx-auto w-full px-4 py-4 pb-[calc(5rem+env(safe-area-inset-bottom))] flex flex-col gap-5">
 
     <!-- ═══════════════════════════════════════════════════ -->
     <!-- TAB: CONTACTOS                                      -->
     <!-- ═══════════════════════════════════════════════════ -->
     @if (activeTab() === 'contacts') {
 
-      <!-- ── Buscar personas ────────────────────────────── -->
-      <div class="flex flex-col gap-3">
-        <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-500 px-0.5">Buscar personas</p>
+    <!-- ── Buscar personas ────────────────────────────── -->
+    <div class="flex flex-col gap-3">
+      <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-500 px-0.5">Buscar personas</p>
 
-        <!-- Input -->
-        <div class="relative">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-600"
-                style="font-size:20px">search</span>
-          <input type="search"
-                 placeholder="Nombre, correo o ID..."
-                 [value]="searchQuery()"
-                 (input)="onSearchInput($any($event.target).value)"
-                 class="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-10 py-3
+      <!-- Input -->
+      <div class="relative">
+        <span
+          class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-600"
+          style="font-size:20px">search</span>
+        <input type="search" placeholder="Nombre, correo o ID..." [value]="searchQuery()"
+          (input)="onSearchInput($any($event.target).value)" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-10 py-3
                         text-[0.85rem] placeholder:text-neutral-600 focus:outline-none
                         focus:border-neutral-600 transition-colors min-h-[52px]" />
-          @if (loadingSearch()) {
-            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-neutral-600 animate-spin"
-                  style="font-size:18px">progress_activity</span>
-          } @else if (searchQuery()) {
-            <button (click)="onSearchInput('')"
-                    class="absolute right-3 top-1/2 -translate-y-1/2">
-              <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">close</span>
-            </button>
+        @if (loadingSearch()) {
+        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-neutral-600 animate-spin"
+          style="font-size:18px">progress_activity</span>
+        } @else if (searchQuery()) {
+        <button (click)="onSearchInput('')" class="absolute right-3 top-1/2 -translate-y-1/2">
+          <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">close</span>
+        </button>
+        }
+      </div>
+
+      <!-- Resultados de búsqueda -->
+      @if (searchResults().length > 0) {
+      <div class="flex flex-col gap-2">
+        @for (user of searchResults(); track user.id) {
+        <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3">
+
+          @if (user.avatar) {
+          <img [src]="user.avatar" [alt]="user.name" class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+          } @else {
+          <div class="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
+            <span class="text-sm font-black text-brand">{{ getInitials(user.name) }}</span>
+          </div>
           }
-        </div>
 
-        <!-- Resultados de búsqueda -->
-        @if (searchResults().length > 0) {
-          <div class="flex flex-col gap-2">
-            @for (user of searchResults(); track user.id) {
-              <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold truncate">{{ user.name }}</p>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-[0.65rem] font-mono text-neutral-500">{{ user.stringId }}</span>
+              @if (user.sports.length > 0) {
+              <span class="text-neutral-700">·</span>
+              <span class="text-[0.65rem] text-neutral-500 truncate">{{ user.sports.slice(0, 2).join(', ') }}</span>
+              }
+            </div>
+          </div>
 
-                @if (user.avatar) {
-                  <img [src]="user.avatar" [alt]="user.name"
-                       class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-                } @else {
-                  <div class="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
-                    <span class="text-sm font-black text-brand">{{ getInitials(user.name) }}</span>
-                  </div>
-                }
-
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-semibold truncate">{{ user.name }}</p>
-                  <div class="flex items-center gap-2 mt-0.5">
-                    <span class="text-[0.65rem] font-mono text-neutral-500">{{ user.stringId }}</span>
-                    @if (user.sports.length > 0) {
-                      <span class="text-neutral-700">·</span>
-                      <span class="text-[0.65rem] text-neutral-500 truncate">{{ user.sports.slice(0, 2).join(', ') }}</span>
-                    }
-                  </div>
-                </div>
-
-                <button (click)="openProfile(user.id)"
-                        class="w-9 h-9 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
+          <button (click)="openProfile(user.id)" class="w-9 h-9 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
                                hover:border-neutral-500 transition-colors flex-shrink-0">
-                  <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">person</span>
-                </button>
+            <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">person</span>
+          </button>
 
-                @if (user.isContact) {
-                  <button (click)="removeContact(user)"
-                          [disabled]="loadingAction() === user.id"
-                          class="flex items-center gap-1.5 bg-neutral-800 text-red-400 border border-neutral-700
+          @if (user.isContact) {
+          <button (click)="removeContact(user)" [disabled]="loadingAction() === user.id" class="flex items-center gap-1.5 bg-neutral-800 text-red-400 border border-neutral-700
                                  text-[0.72rem] font-bold px-3 py-2 rounded-xl min-h-[36px] flex-shrink-0
                                  transition-opacity disabled:opacity-40">
-                    @if (loadingAction() === user.id) {
-                      <span class="material-symbols-outlined animate-spin" style="font-size:15px">progress_activity</span>
-                    } @else {
-                      <span class="material-symbols-outlined" style="font-size:15px">person_remove</span>
-                    }
-                    Quitar
-                  </button>
-                } @else {
-                  <button (click)="addContact(user)"
-                          [disabled]="loadingAction() === user.id"
-                          class="flex items-center gap-1.5 bg-brand text-neutral-950 text-[0.72rem] font-black
+            @if (loadingAction() === user.id) {
+            <span class="material-symbols-outlined animate-spin" style="font-size:15px">progress_activity</span>
+            } @else {
+            <span class="material-symbols-outlined" style="font-size:15px">person_remove</span>
+            }
+            Quitar
+          </button>
+          } @else {
+          <button (click)="addContact(user)" [disabled]="loadingAction() === user.id" class="flex items-center gap-1.5 bg-brand text-neutral-950 text-[0.72rem] font-black
                                  px-3 py-2 rounded-xl min-h-[36px] flex-shrink-0
                                  transition-opacity disabled:opacity-40">
-                    @if (loadingAction() === user.id) {
-                      <span class="material-symbols-outlined animate-spin" style="font-size:15px">progress_activity</span>
-                    } @else {
-                      <span class="material-symbols-outlined" style="font-size:15px">person_add</span>
-                    }
-                    Agregar
-                  </button>
-                }
-
-              </div>
+            @if (loadingAction() === user.id) {
+            <span class="material-symbols-outlined animate-spin" style="font-size:15px">progress_activity</span>
+            } @else {
+            <span class="material-symbols-outlined" style="font-size:15px">person_add</span>
             }
-          </div>
-        }
+            Agregar
+          </button>
+          }
 
-        @if (searchQuery().trim().length >= 2 && !loadingSearch() && searchResults().length === 0) {
-          <p class="text-sm text-neutral-600 text-center py-4">Sin resultados para "{{ searchQuery() }}"</p>
-        }
-
-        @if (searchQuery().trim().length > 0 && searchQuery().trim().length < 2) {
-          <p class="text-xs text-neutral-600 px-0.5">Escribe al menos 2 caracteres para buscar.</p>
+        </div>
         }
       </div>
+      }
 
-      <!-- ── Invitar por WhatsApp ─────────────────────── -->
-      <button (click)="inviteViaWhatsApp()"
-              class="w-full flex items-center gap-3 bg-[#25D366]/10 border border-[#25D366]/25
-                     rounded-2xl px-4 py-3.5 min-h-[52px] hover:bg-[#25D366]/20 transition-colors">
-        <div class="w-9 h-9 rounded-xl bg-[#25D366] flex items-center justify-center flex-shrink-0">
-          <svg viewBox="0 0 24 24" class="w-5 h-5 fill-white" xmlns="http://www.w3.org/2000/svg">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-          </svg>
-        </div>
-        <div class="flex-1 text-left">
-          <p class="text-sm font-bold text-[#25D366]">Invitar a unirse</p>
-          <p class="text-[0.65rem] text-neutral-500">Comparte SportCard por WhatsApp</p>
-        </div>
-        <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">chevron_right</span>
-      </button>
+      @if (searchQuery().trim().length >= 2 && !loadingSearch() && searchResults().length === 0) {
+      <p class="text-sm text-neutral-600 text-center py-4">Sin resultados para "{{ searchQuery() }}"</p>
+      }
 
-      <!-- ── Mis contactos ──────────────────────────────── -->
-      <div class="flex flex-col gap-3">
-        <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-500 px-0.5">Mis contactos</p>
-
-        @if (loadingList()) {
-          <div class="flex flex-col gap-2">
-            @for (i of [1, 2, 3]; track i) {
-              <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3 animate-pulse">
-                <div class="w-10 h-10 rounded-full bg-neutral-800 flex-shrink-0"></div>
-                <div class="flex-1 flex flex-col gap-1.5">
-                  <div class="h-3.5 bg-neutral-800 rounded-md w-1/2"></div>
-                  <div class="h-2.5 bg-neutral-800 rounded-md w-1/3"></div>
-                </div>
-              </div>
-            }
-          </div>
+      @if (searchQuery().trim().length > 0 && searchQuery().trim().length < 2) { <p
+        class="text-xs text-neutral-600 px-0.5">Escribe al menos 2 caracteres para buscar.</p>
         }
+    </div>
 
-        @if (!loadingList() && myContacts().length > 0) {
-          <div class="flex flex-col gap-2">
-            @for (contact of myContacts(); track contact.id) {
-              <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3">
+    <!-- ── Invitar por WhatsApp ─────────────────────── -->
+    <button (click)="inviteViaWhatsApp()" class="w-full flex items-center gap-3 bg-[#25D366]/10 border border-[#25D366]/25
+                     rounded-2xl px-4 py-3.5 min-h-[52px] hover:bg-[#25D366]/20 transition-colors">
+      <div class="w-9 h-9 rounded-xl bg-[#25D366] flex items-center justify-center flex-shrink-0">
+        <svg viewBox="0 0 24 24" class="w-5 h-5 fill-white" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+        </svg>
+      </div>
+      <div class="flex-1 text-left">
+        <p class="text-sm font-bold text-[#25D366]">Invitar a unirse</p>
+        <p class="text-[0.65rem] text-neutral-500">Comparte SportCard por WhatsApp</p>
+      </div>
+      <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">chevron_right</span>
+    </button>
 
-                @if (contact.avatar) {
-                  <img [src]="contact.avatar" [alt]="contact.name"
-                       class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-                } @else {
-                  <div class="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
-                    <span class="text-sm font-black text-brand">{{ getInitials(contact.name) }}</span>
-                  </div>
-                }
+    <!-- ── Mis contactos ──────────────────────────────── -->
+    <div class="flex flex-col gap-3">
+      <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-500 px-0.5">Mis contactos</p>
 
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-semibold truncate">{{ contact.name }}</p>
-                  <div class="flex items-center gap-2 mt-0.5">
-                    <span class="text-[0.65rem] font-mono text-neutral-500">{{ contact.stringId }}</span>
-                    @if (contact.sports.length > 0) {
-                      <span class="text-neutral-700">·</span>
-                      <span class="text-[0.65rem] text-neutral-500 truncate">{{ contact.sports.slice(0, 2).join(', ') }}</span>
-                    }
-                  </div>
-                </div>
+      @if (loadingList()) {
+      <div class="flex flex-col gap-2">
+        @for (i of [1, 2, 3]; track i) {
+        <div
+          class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3 animate-pulse">
+          <div class="w-10 h-10 rounded-full bg-neutral-800 flex-shrink-0"></div>
+          <div class="flex-1 flex flex-col gap-1.5">
+            <div class="h-3.5 bg-neutral-800 rounded-md w-1/2"></div>
+            <div class="h-2.5 bg-neutral-800 rounded-md w-1/3"></div>
+          </div>
+        </div>
+        }
+      </div>
+      }
 
-                <button (click)="openProfile(contact.id)"
-                        class="w-9 h-9 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
+      @if (!loadingList() && myContacts().length > 0) {
+      <div class="flex flex-col gap-2">
+        @for (contact of myContacts(); track contact.id) {
+        <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3">
+
+          @if (contact.avatar) {
+          <img [src]="contact.avatar" [alt]="contact.name" class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+          } @else {
+          <div class="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
+            <span class="text-sm font-black text-brand">{{ getInitials(contact.name) }}</span>
+          </div>
+          }
+
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold truncate">{{ contact.name }}</p>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-[0.65rem] font-mono text-neutral-500">{{ contact.stringId }}</span>
+              @if (contact.sports.length > 0) {
+              <span class="text-neutral-700">·</span>
+              <span class="text-[0.65rem] text-neutral-500 truncate">{{ contact.sports.slice(0, 2).join(', ') }}</span>
+              }
+            </div>
+          </div>
+
+          <button (click)="openProfile(contact.id)" class="w-9 h-9 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
                                hover:border-neutral-500 transition-colors flex-shrink-0">
-                  <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">person</span>
-                </button>
+            <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">person</span>
+          </button>
 
-                <button (click)="removeContact(contact)"
-                        [disabled]="loadingAction() === contact.id"
-                        class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-800 border border-neutral-700
+          <button (click)="removeContact(contact)" [disabled]="loadingAction() === contact.id" class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-800 border border-neutral-700
                                text-neutral-500 hover:text-red-400 hover:border-red-400/30 transition-colors
                                flex-shrink-0 disabled:opacity-40">
-                  @if (loadingAction() === contact.id) {
-                    <span class="material-symbols-outlined animate-spin" style="font-size:16px">progress_activity</span>
-                  } @else {
-                    <span class="material-symbols-outlined" style="font-size:16px">person_remove</span>
-                  }
-                </button>
-
-              </div>
+            @if (loadingAction() === contact.id) {
+            <span class="material-symbols-outlined animate-spin" style="font-size:16px">progress_activity</span>
+            } @else {
+            <span class="material-symbols-outlined" style="font-size:16px">person_remove</span>
             }
-          </div>
-        }
+          </button>
 
-        @if (!loadingList() && myContacts().length === 0) {
-          <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center">
-            <span class="material-symbols-outlined text-neutral-700 mb-3 block" style="font-size:40px">group</span>
-            <p class="text-sm font-semibold text-neutral-400 mb-1">Sin contactos aún</p>
-            <p class="text-xs text-neutral-600">Busca personas por nombre, correo o ID para agregarlas.</p>
-          </div>
+        </div>
         }
       </div>
+      }
 
-      <!-- ── Personas que me agregaron ──────────────────────── -->
-      <div class="flex flex-col gap-3">
-        <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-500 px-0.5">Personas que me agregaron</p>
+      @if (!loadingList() && myContacts().length === 0) {
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center">
+        <span class="material-symbols-outlined text-neutral-700 mb-3 block" style="font-size:40px">group</span>
+        <p class="text-sm font-semibold text-neutral-400 mb-1">Sin contactos aún</p>
+        <p class="text-xs text-neutral-600">Busca personas por nombre, correo o ID para agregarlas.</p>
+      </div>
+      }
+    </div>
 
-        @if (loadingList()) {
-          <div class="flex flex-col gap-2">
-            @for (i of [1, 2]; track i) {
-              <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3 animate-pulse">
-                <div class="w-10 h-10 rounded-full bg-neutral-800 flex-shrink-0"></div>
-                <div class="flex-1 flex flex-col gap-1.5">
-                  <div class="h-3.5 bg-neutral-800 rounded-md w-1/2"></div>
-                  <div class="h-2.5 bg-neutral-800 rounded-md w-1/3"></div>
-                </div>
-              </div>
-            }
+    <!-- ── Personas que me agregaron ──────────────────────── -->
+    <div class="flex flex-col gap-3">
+      <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-500 px-0.5">Sugerencias</p>
+
+      @if (loadingList()) {
+      <div class="flex flex-col gap-2">
+        @for (i of [1, 2]; track i) {
+        <div
+          class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3 animate-pulse">
+          <div class="w-10 h-10 rounded-full bg-neutral-800 flex-shrink-0"></div>
+          <div class="flex-1 flex flex-col gap-1.5">
+            <div class="h-3.5 bg-neutral-800 rounded-md w-1/2"></div>
+            <div class="h-2.5 bg-neutral-800 rounded-md w-1/3"></div>
           </div>
+        </div>
         }
+      </div>
+      }
 
-        @if (!loadingList() && followers().length > 0) {
-          <div class="flex flex-col gap-2">
-            @for (follower of followers(); track follower.id) {
-              <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-700 rounded-2xl px-4 py-3 opacity-80">
+      @if (!loadingList() && followers().length > 0) {
+      <div class="flex flex-col gap-2">
+        @for (follower of followers(); track follower.id) {
+        <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-700 rounded-2xl px-4 py-3 opacity-80">
 
-                @if (follower.avatar) {
-                  <img [src]="follower.avatar" [alt]="follower.name"
-                       class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-                } @else {
-                  <div class="w-10 h-10 rounded-full bg-neutral-800/80 flex items-center justify-center flex-shrink-0">
-                    <span class="text-sm font-black text-neutral-500">{{ getInitials(follower.name) }}</span>
-                  </div>
-                }
+          @if (follower.avatar) {
+          <img [src]="follower.avatar" [alt]="follower.name"
+            class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+          } @else {
+          <div class="w-10 h-10 rounded-full bg-neutral-800/80 flex items-center justify-center flex-shrink-0">
+            <span class="text-sm font-black text-neutral-500">{{ getInitials(follower.name) }}</span>
+          </div>
+          }
 
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-semibold truncate text-neutral-300">{{ follower.name }}</p>
-                  <div class="flex items-center gap-2 mt-0.5">
-                    <span class="text-[0.65rem] font-mono text-neutral-600">{{ follower.stringId }}</span>
-                    @if (follower.sports.length > 0) {
-                      <span class="text-neutral-700">·</span>
-                      <span class="text-[0.65rem] text-neutral-600 truncate">{{ follower.sports.slice(0, 2).join(', ') }}</span>
-                    }
-                  </div>
-                </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold truncate text-neutral-300">{{ follower.name }}</p>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-[0.65rem] font-mono text-neutral-600">{{ follower.stringId }}</span>
+              @if (follower.sports.length > 0) {
+              <span class="text-neutral-700">·</span>
+              <span class="text-[0.65rem] text-neutral-600 truncate">{{ follower.sports.slice(0, 2).join(', ') }}</span>
+              }
+            </div>
+          </div>
 
-                <button (click)="openProfile(follower.id)"
-                        class="w-9 h-9 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
+          <button (click)="openProfile(follower.id)" class="w-9 h-9 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
                                hover:border-neutral-500 transition-colors flex-shrink-0">
-                  <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">person</span>
-                </button>
+            <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">person</span>
+          </button>
 
-                <button (click)="addContact(follower)"
-                        [disabled]="loadingAction() === follower.id"
-                        class="flex items-center gap-1.5 bg-brand/20 text-brand border border-brand/30
+          <button (click)="addContact(follower)" [disabled]="loadingAction() === follower.id" class="flex items-center gap-1.5 bg-brand/20 text-brand border border-brand/30
                                text-[0.72rem] font-bold px-3 py-2 rounded-xl min-h-[36px] flex-shrink-0
                                transition-opacity disabled:opacity-40">
-                  @if (loadingAction() === follower.id) {
-                    <span class="material-symbols-outlined animate-spin" style="font-size:15px">progress_activity</span>
-                  } @else {
-                    <span class="material-symbols-outlined" style="font-size:15px">person_add</span>
-                  }
-                  Agregar
-                </button>
-
-              </div>
+            @if (loadingAction() === follower.id) {
+            <span class="material-symbols-outlined animate-spin" style="font-size:15px">progress_activity</span>
+            } @else {
+            <span class="material-symbols-outlined" style="font-size:15px">person_add</span>
             }
-          </div>
-        }
+            Agregar
+          </button>
 
-        @if (!loadingList() && followers().length === 0) {
-          <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 text-center opacity-60">
-            <span class="material-symbols-outlined text-neutral-700 mb-2 block" style="font-size:32px">person_add</span>
-            <p class="text-xs text-neutral-500">Nadie te ha agregado aún</p>
-          </div>
+        </div>
         }
       </div>
+      }
+
+      @if (!loadingList() && followers().length === 0) {
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 text-center opacity-60">
+        <span class="material-symbols-outlined text-neutral-700 mb-2 block" style="font-size:32px">person_add</span>
+        <p class="text-xs text-neutral-500">No hay sugerencias por ahora</p>
+      </div>
+      }
+    </div>
 
     }
 
@@ -315,209 +300,198 @@
     <!-- ═══════════════════════════════════════════════════ -->
     @if (activeTab() === 'groups') {
 
-      <!-- ── Vista detalle de grupo ─────────────────────── -->
-      @if (selectedGroup()) {
+    <!-- ── Vista detalle de grupo ─────────────────────── -->
+    @if (selectedGroup()) {
 
-        <!-- Sub-header del grupo -->
-        <div class="flex items-center gap-3">
-          <button (click)="backToGroupList()"
-                  class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 flex-shrink-0">
-            <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">arrow_back</span>
-          </button>
-          <div class="flex-1 min-w-0">
-            <p class="font-black truncate">{{ selectedGroup()!.name }}</p>
-            <p class="text-[0.65rem] text-neutral-500">{{ selectedGroup()!.memberCount }} miembro{{ selectedGroup()!.memberCount !== 1 ? 's' : '' }}</p>
-          </div>
-          <button (click)="deleteGroup(selectedGroup()!)"
-                  class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 text-red-400 flex-shrink-0">
-            <span class="material-symbols-outlined" style="font-size:18px">delete</span>
-          </button>
-        </div>
+    <!-- Sub-header del grupo -->
+    <div class="flex items-center gap-3">
+      <button (click)="backToGroupList()"
+        class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 flex-shrink-0">
+        <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">arrow_back</span>
+      </button>
+      <div class="flex-1 min-w-0">
+        <p class="font-black truncate">{{ selectedGroup()!.name }}</p>
+        <p class="text-[0.65rem] text-neutral-500">{{ selectedGroup()!.memberCount }} miembro{{
+          selectedGroup()!.memberCount !== 1 ? 's' : '' }}</p>
+      </div>
+      <button (click)="deleteGroup(selectedGroup()!)"
+        class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 text-red-400 flex-shrink-0">
+        <span class="material-symbols-outlined" style="font-size:18px">delete</span>
+      </button>
+    </div>
 
-        <!-- Error -->
-        @if (groupActionError()) {
-          <p class="text-xs text-red-400 flex items-center gap-1.5">
-            <span class="material-symbols-outlined" style="font-size:14px">error</span>
-            {{ groupActionError() }}
-          </p>
-        }
+    <!-- Error -->
+    @if (groupActionError()) {
+    <p class="text-xs text-red-400 flex items-center gap-1.5">
+      <span class="material-symbols-outlined" style="font-size:14px">error</span>
+      {{ groupActionError() }}
+    </p>
+    }
 
-        <!-- Añadir miembro -->
-        @if (availableToAdd().length > 0) {
-          <div class="flex flex-col gap-2">
-            <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-500">Agregar miembro</p>
-            <div class="flex flex-col gap-1.5">
-              @for (contact of availableToAdd(); track contact.id) {
-                <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-2.5">
-                  @if (contact.avatar) {
-                    <img [src]="contact.avatar" [alt]="contact.name"
-                         class="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-                  } @else {
-                    <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
-                      <span class="text-xs font-black text-brand">{{ getInitials(contact.name) }}</span>
-                    </div>
-                  }
-                  <span class="text-sm font-semibold flex-1 truncate">{{ contact.name }}</span>
-                  <button (click)="addMemberToGroup(contact.id)"
-                          [disabled]="addingMember()"
-                          class="flex items-center gap-1 bg-brand text-neutral-950 text-[0.7rem] font-black
-                                 px-3 py-1.5 rounded-xl min-h-[36px] flex-shrink-0 transition-opacity disabled:opacity-40">
-                    @if (addingMember()) {
-                      <span class="material-symbols-outlined animate-spin" style="font-size:14px">progress_activity</span>
-                    } @else {
-                      <span class="material-symbols-outlined" style="font-size:14px">add</span>
-                    }
-                    Agregar
-                  </button>
-                </div>
-              }
-            </div>
-          </div>
-        }
-
-        <!-- Miembros del grupo -->
-        <div class="flex flex-col gap-2">
-          <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-500">Miembros</p>
-
-          @if (loadingMembers()) {
-            <div class="flex flex-col gap-2">
-              @for (i of [1, 2]; track i) {
-                <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3 animate-pulse">
-                  <div class="w-9 h-9 rounded-full bg-neutral-800 flex-shrink-0"></div>
-                  <div class="flex-1 h-3.5 bg-neutral-800 rounded-md"></div>
-                </div>
-              }
-            </div>
-          } @else if (groupMembers().length === 0) {
-            <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 text-center">
-              <p class="text-sm text-neutral-600">Este grupo no tiene miembros aún.</p>
-            </div>
+    <!-- Añadir miembro -->
+    @if (availableToAdd().length > 0) {
+    <div class="flex flex-col gap-2">
+      <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-500">Agregar miembro</p>
+      <div class="flex flex-col gap-1.5">
+        @for (contact of availableToAdd(); track contact.id) {
+        <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-2.5">
+          @if (contact.avatar) {
+          <img [src]="contact.avatar" [alt]="contact.name" class="w-8 h-8 rounded-full object-cover flex-shrink-0" />
           } @else {
-            <div class="flex flex-col gap-2">
-              @for (member of groupMembers(); track member.userId) {
-                <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3">
-                  @if (member.avatar) {
-                    <img [src]="member.avatar" [alt]="member.name"
-                         class="w-9 h-9 rounded-full object-cover flex-shrink-0" />
-                  } @else {
-                    <div class="w-9 h-9 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
-                      <span class="text-sm font-black text-brand">{{ getInitials(member.name) }}</span>
-                    </div>
-                  }
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold truncate">{{ member.name }}</p>
-                    <span class="text-[0.65rem] font-mono text-neutral-500">{{ member.stringId }}</span>
-                  </div>
-                  <button (click)="openProfile(member.userId)"
-                          class="w-9 h-9 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
-                                 hover:border-neutral-500 transition-colors flex-shrink-0">
-                    <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">person</span>
-                  </button>
-                  <button (click)="removeMemberFromGroup(member)"
-                          [disabled]="memberActionId() === member.userId"
-                          class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-800 border border-neutral-700
-                                 text-neutral-500 hover:text-red-400 transition-colors flex-shrink-0 disabled:opacity-40">
-                    @if (memberActionId() === member.userId) {
-                      <span class="material-symbols-outlined animate-spin" style="font-size:16px">progress_activity</span>
-                    } @else {
-                      <span class="material-symbols-outlined" style="font-size:16px">person_remove</span>
-                    }
-                  </button>
-                </div>
-              }
-            </div>
+          <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
+            <span class="text-xs font-black text-brand">{{ getInitials(contact.name) }}</span>
+          </div>
           }
+          <span class="text-sm font-semibold flex-1 truncate">{{ contact.name }}</span>
+          <button (click)="addMemberToGroup(contact.id)" [disabled]="addingMember()"
+            class="flex items-center gap-1 bg-brand text-neutral-950 text-[0.7rem] font-black
+                                 px-3 py-1.5 rounded-xl min-h-[36px] flex-shrink-0 transition-opacity disabled:opacity-40">
+            @if (addingMember()) {
+            <span class="material-symbols-outlined animate-spin" style="font-size:14px">progress_activity</span>
+            } @else {
+            <span class="material-symbols-outlined" style="font-size:14px">add</span>
+            }
+            Agregar
+          </button>
         </div>
+        }
+      </div>
+    </div>
+    }
 
+    <!-- Miembros del grupo -->
+    <div class="flex flex-col gap-2">
+      <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-500">Miembros</p>
+
+      @if (loadingMembers()) {
+      <div class="flex flex-col gap-2">
+        @for (i of [1, 2]; track i) {
+        <div
+          class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3 animate-pulse">
+          <div class="w-9 h-9 rounded-full bg-neutral-800 flex-shrink-0"></div>
+          <div class="flex-1 h-3.5 bg-neutral-800 rounded-md"></div>
+        </div>
+        }
+      </div>
+      } @else if (groupMembers().length === 0) {
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 text-center">
+        <p class="text-sm text-neutral-600">Este grupo no tiene miembros aún.</p>
+      </div>
       } @else {
+      <div class="flex flex-col gap-2">
+        @for (member of groupMembers(); track member.userId) {
+        <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3">
+          @if (member.avatar) {
+          <img [src]="member.avatar" [alt]="member.name" class="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+          } @else {
+          <div class="w-9 h-9 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
+            <span class="text-sm font-black text-brand">{{ getInitials(member.name) }}</span>
+          </div>
+          }
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold truncate">{{ member.name }}</p>
+            <span class="text-[0.65rem] font-mono text-neutral-500">{{ member.stringId }}</span>
+          </div>
+          <button (click)="openProfile(member.userId)" class="w-9 h-9 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
+                                 hover:border-neutral-500 transition-colors flex-shrink-0">
+            <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">person</span>
+          </button>
+          <button (click)="removeMemberFromGroup(member)" [disabled]="memberActionId() === member.userId"
+            class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-800 border border-neutral-700
+                                 text-neutral-500 hover:text-red-400 transition-colors flex-shrink-0 disabled:opacity-40">
+            @if (memberActionId() === member.userId) {
+            <span class="material-symbols-outlined animate-spin" style="font-size:16px">progress_activity</span>
+            } @else {
+            <span class="material-symbols-outlined" style="font-size:16px">person_remove</span>
+            }
+          </button>
+        </div>
+        }
+      </div>
+      }
+    </div>
 
-        <!-- ── Lista de grupos ─────────────────────────── -->
+    } @else {
 
-        <!-- Botón crear / formulario inline -->
-        @if (showCreateGroup()) {
-          <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 flex flex-col gap-3">
-            <p class="text-[0.65rem] font-bold uppercase tracking-wider text-neutral-500">Nuevo grupo</p>
-            <input type="text"
-                   placeholder="Nombre del grupo..."
-                   [value]="newGroupName()"
-                   (input)="newGroupName.set($any($event.target).value)"
-                   (keydown.enter)="saveGroup()"
-                   class="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-3
+    <!-- ── Lista de grupos ─────────────────────────── -->
+
+    <!-- Botón crear / formulario inline -->
+    @if (showCreateGroup()) {
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 flex flex-col gap-3">
+      <p class="text-[0.65rem] font-bold uppercase tracking-wider text-neutral-500">Nuevo grupo</p>
+      <input type="text" placeholder="Nombre del grupo..." [value]="newGroupName()"
+        (input)="newGroupName.set($any($event.target).value)" (keydown.enter)="saveGroup()" class="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-3
                           text-sm placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500
                           transition-colors min-h-[44px]" />
-            @if (groupActionError()) {
-              <p class="text-xs text-red-400 flex items-center gap-1.5">
-                <span class="material-symbols-outlined" style="font-size:14px">error</span>
-                {{ groupActionError() }}
-              </p>
-            }
-            <div class="flex gap-2">
-              <button (click)="cancelCreateGroup()"
-                      class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 text-neutral-300 font-bold
-                             rounded-xl min-h-[44px] text-sm border border-neutral-700 transition-opacity">
-                Cancelar
-              </button>
-              <button (click)="saveGroup()"
-                      [disabled]="!newGroupName().trim() || savingGroup()"
-                      class="flex-1 flex items-center justify-center gap-1.5 bg-brand text-neutral-950 font-black
-                             rounded-xl min-h-[44px] text-sm transition-opacity disabled:opacity-50">
-                @if (savingGroup()) {
-                  <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
-                } @else {
-                  <span class="material-symbols-outlined" style="font-size:18px">check</span>
-                }
-                Crear
-              </button>
-            </div>
-          </div>
-        } @else {
-          <button (click)="openCreateGroup()"
-                  class="w-full flex items-center justify-center gap-2 bg-brand text-neutral-950 font-black
-                         rounded-2xl min-h-[48px] text-sm transition-opacity">
-            <span class="material-symbols-outlined" style="font-size:20px">add</span>
-            Nuevo grupo
-          </button>
-        }
-
-        <!-- Lista de grupos -->
-        @if (loadingGroups()) {
-          <div class="flex flex-col gap-2">
-            @for (i of [1, 2]; track i) {
-              <div class="bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-4 animate-pulse flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-neutral-800 flex-shrink-0"></div>
-                <div class="flex-1 flex flex-col gap-1.5">
-                  <div class="h-3.5 bg-neutral-800 rounded-md w-1/2"></div>
-                  <div class="h-2.5 bg-neutral-800 rounded-md w-1/3"></div>
-                </div>
-              </div>
-            }
-          </div>
-        } @else if (groups().length === 0) {
-          <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center">
-            <span class="material-symbols-outlined text-neutral-700 mb-3 block" style="font-size:40px">group_work</span>
-            <p class="text-sm font-semibold text-neutral-400 mb-1">Sin grupos aún</p>
-            <p class="text-xs text-neutral-600">Crea un grupo para invitar a varios contactos de una vez.</p>
-          </div>
-        } @else {
-          <div class="flex flex-col gap-2">
-            @for (group of groups(); track group.id) {
-              <button (click)="selectGroup(group)"
-                      class="w-full flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl
-                             px-4 py-4 text-left transition-colors hover:border-neutral-600 min-h-[68px]">
-                <div class="w-10 h-10 rounded-xl bg-brand/15 flex items-center justify-center flex-shrink-0">
-                  <span class="material-symbols-outlined text-brand" style="font-size:22px">group</span>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-bold truncate">{{ group.name }}</p>
-                  <p class="text-[0.65rem] text-neutral-500 mt-0.5">{{ group.memberCount }} miembro{{ group.memberCount !== 1 ? 's' : '' }}</p>
-                </div>
-                <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">chevron_right</span>
-              </button>
-            }
-          </div>
-        }
-
+      @if (groupActionError()) {
+      <p class="text-xs text-red-400 flex items-center gap-1.5">
+        <span class="material-symbols-outlined" style="font-size:14px">error</span>
+        {{ groupActionError() }}
+      </p>
       }
+      <div class="flex gap-2">
+        <button (click)="cancelCreateGroup()" class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 text-neutral-300 font-bold
+                             rounded-xl min-h-[44px] text-sm border border-neutral-700 transition-opacity">
+          Cancelar
+        </button>
+        <button (click)="saveGroup()" [disabled]="!newGroupName().trim() || savingGroup()" class="flex-1 flex items-center justify-center gap-1.5 bg-brand text-neutral-950 font-black
+                             rounded-xl min-h-[44px] text-sm transition-opacity disabled:opacity-50">
+          @if (savingGroup()) {
+          <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+          } @else {
+          <span class="material-symbols-outlined" style="font-size:18px">check</span>
+          }
+          Crear
+        </button>
+      </div>
+    </div>
+    } @else {
+    <button (click)="openCreateGroup()" class="w-full flex items-center justify-center gap-2 bg-brand text-neutral-950 font-black
+                         rounded-2xl min-h-[48px] text-sm transition-opacity">
+      <span class="material-symbols-outlined" style="font-size:20px">add</span>
+      Nuevo grupo
+    </button>
+    }
+
+    <!-- Lista de grupos -->
+    @if (loadingGroups()) {
+    <div class="flex flex-col gap-2">
+      @for (i of [1, 2]; track i) {
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-4 animate-pulse flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-neutral-800 flex-shrink-0"></div>
+        <div class="flex-1 flex flex-col gap-1.5">
+          <div class="h-3.5 bg-neutral-800 rounded-md w-1/2"></div>
+          <div class="h-2.5 bg-neutral-800 rounded-md w-1/3"></div>
+        </div>
+      </div>
+      }
+    </div>
+    } @else if (groups().length === 0) {
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center">
+      <span class="material-symbols-outlined text-neutral-700 mb-3 block" style="font-size:40px">group_work</span>
+      <p class="text-sm font-semibold text-neutral-400 mb-1">Sin grupos aún</p>
+      <p class="text-xs text-neutral-600">Crea un grupo para invitar a varios contactos de una vez.</p>
+    </div>
+    } @else {
+    <div class="flex flex-col gap-2">
+      @for (group of groups(); track group.id) {
+      <button (click)="selectGroup(group)" class="w-full flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl
+                             px-4 py-4 text-left transition-colors hover:border-neutral-600 min-h-[68px]">
+        <div class="w-10 h-10 rounded-xl bg-brand/15 flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-brand" style="font-size:22px">group</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold truncate">{{ group.name }}</p>
+          <p class="text-[0.65rem] text-neutral-500 mt-0.5">{{ group.memberCount }} miembro{{ group.memberCount !== 1 ?
+            's' : '' }}</p>
+        </div>
+        <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">chevron_right</span>
+      </button>
+      }
+    </div>
+    }
+
+    }
     }
 
     <!-- ═══════════════════════════════════════════════════ -->
@@ -525,412 +499,432 @@
     <!-- ═══════════════════════════════════════════════════ -->
     @if (activeTab() === 'teams') {
 
-      <!-- ── Formulario crear equipo / botón ─────────────── -->
-      @if (showCreateTeamForm()) {
-        <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 flex flex-col gap-4">
-          <p class="text-[0.65rem] font-bold uppercase tracking-wider text-neutral-500">Nuevo equipo</p>
+    <!-- ── Formulario crear equipo / botón ─────────────── -->
+    @if (showCreateTeamForm()) {
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 flex flex-col gap-4">
+      <p class="text-[0.65rem] font-bold uppercase tracking-wider text-neutral-500">Nuevo equipo</p>
 
-          <!-- Preview del ícono -->
-          <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
-                 [style]="'background:' + newTeamBackgroundColor()">
-              <span class="material-symbols-outlined" [style]="'color:' + newTeamIconColor() + ';font-size:28px'">{{ newTeamIconName() }}</span>
-            </div>
-            <button (click)="showIconPicker.set(!showIconPicker())"
-                    class="flex items-center gap-1.5 bg-neutral-800 border border-neutral-700 text-neutral-300
+      <!-- Preview del ícono -->
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+          [style]="'background:' + newTeamBackgroundColor()">
+          <span class="material-symbols-outlined" [style]="'color:' + newTeamIconColor() + ';font-size:28px'">{{
+            newTeamIconName() }}</span>
+        </div>
+        <button (click)="showIconPicker.set(!showIconPicker())" class="flex items-center gap-1.5 bg-neutral-800 border border-neutral-700 text-neutral-300
                            text-[0.75rem] font-bold px-3 py-2 rounded-xl min-h-[36px] transition-colors">
-              <span class="material-symbols-outlined" style="font-size:15px">grid_view</span>
-              Cambiar ícono
-            </button>
-          </div>
+          <span class="material-symbols-outlined" style="font-size:15px">grid_view</span>
+          Cambiar ícono
+        </button>
+      </div>
 
-          <!-- Picker de íconos -->
-          @if (showIconPicker()) {
-            <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3 flex flex-col gap-2">
-              <input type="text"
-                     placeholder="Filtrar..."
-                     [value]="iconFilter()"
-                     (input)="iconFilter.set($any($event.target).value)"
-                     class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2
+      <!-- Picker de íconos -->
+      @if (showIconPicker()) {
+      <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3 flex flex-col gap-2">
+        <input type="text" placeholder="Filtrar..." [value]="iconFilter()"
+          (input)="iconFilter.set($any($event.target).value)" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2
                             text-sm placeholder:text-neutral-600 focus:outline-none focus:border-neutral-600
                             transition-colors min-h-[40px]" />
-              <div class="grid grid-cols-6 gap-1.5 max-h-40 overflow-y-auto">
-                @for (icon of filteredIcons(); track icon) {
-                  <button (click)="newTeamIconName.set(icon); showIconPicker.set(false)"
-                          class="w-full aspect-square flex items-center justify-center rounded-xl transition-colors
+        <div class="grid grid-cols-6 gap-1.5 max-h-40 overflow-y-auto">
+          @for (icon of filteredIcons(); track icon) {
+          <button (click)="newTeamIconName.set(icon); showIconPicker.set(false)" class="w-full aspect-square flex items-center justify-center rounded-xl transition-colors
                                  hover:bg-neutral-800"
-                          [class]="newTeamIconName() === icon ? 'bg-brand/20 border border-brand/40' : 'border border-transparent'">
-                    <span class="material-symbols-outlined text-neutral-300" style="font-size:20px">{{ icon }}</span>
-                  </button>
-                }
-              </div>
-            </div>
+            [class]="newTeamIconName() === icon ? 'bg-brand/20 border border-brand/40' : 'border border-transparent'">
+            <span class="material-symbols-outlined text-neutral-300" style="font-size:20px">{{ icon }}</span>
+          </button>
           }
+        </div>
+      </div>
+      }
 
-          <!-- Colores -->
-          <div class="flex gap-3">
-            <label class="flex-1 flex flex-col gap-1.5">
-              <span class="text-[0.65rem] font-bold uppercase tracking-wider text-neutral-500">Fondo</span>
-              <div class="flex items-center gap-2 bg-neutral-950 border border-neutral-700 rounded-xl px-3 min-h-[44px]">
-                <input type="color"
-                       [value]="newTeamBackgroundColor()"
-                       (input)="newTeamBackgroundColor.set($any($event.target).value)"
-                       class="w-7 h-7 rounded-lg border-0 bg-transparent cursor-pointer" />
-                <span class="text-xs font-mono text-neutral-400">{{ newTeamBackgroundColor() }}</span>
-              </div>
-            </label>
-            <label class="flex-1 flex flex-col gap-1.5">
-              <span class="text-[0.65rem] font-bold uppercase tracking-wider text-neutral-500">Ícono</span>
-              <div class="flex items-center gap-2 bg-neutral-950 border border-neutral-700 rounded-xl px-3 min-h-[44px]">
-                <input type="color"
-                       [value]="newTeamIconColor()"
-                       (input)="newTeamIconColor.set($any($event.target).value)"
-                       class="w-7 h-7 rounded-lg border-0 bg-transparent cursor-pointer" />
-                <span class="text-xs font-mono text-neutral-400">{{ newTeamIconColor() }}</span>
-              </div>
-            </label>
+      <!-- Colores -->
+      <div class="flex gap-3">
+        <label class="flex-1 flex flex-col gap-1.5">
+          <span class="text-[0.65rem] font-bold uppercase tracking-wider text-neutral-500">Fondo</span>
+          <div class="flex items-center gap-2 bg-neutral-950 border border-neutral-700 rounded-xl px-3 min-h-[44px]">
+            <input type="color" [value]="newTeamBackgroundColor()"
+              (input)="newTeamBackgroundColor.set($any($event.target).value)"
+              class="w-7 h-7 rounded-lg border-0 bg-transparent cursor-pointer" />
+            <span class="text-xs font-mono text-neutral-400">{{ newTeamBackgroundColor() }}</span>
           </div>
+        </label>
+        <label class="flex-1 flex flex-col gap-1.5">
+          <span class="text-[0.65rem] font-bold uppercase tracking-wider text-neutral-500">Ícono</span>
+          <div class="flex items-center gap-2 bg-neutral-950 border border-neutral-700 rounded-xl px-3 min-h-[44px]">
+            <input type="color" [value]="newTeamIconColor()" (input)="newTeamIconColor.set($any($event.target).value)"
+              class="w-7 h-7 rounded-lg border-0 bg-transparent cursor-pointer" />
+            <span class="text-xs font-mono text-neutral-400">{{ newTeamIconColor() }}</span>
+          </div>
+        </label>
+      </div>
 
-          <!-- Nombre -->
-          <input type="text"
-                 placeholder="Nombre del equipo..."
-                 [value]="newTeamName()"
-                 (input)="newTeamName.set($any($event.target).value)"
-                 class="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-3
+      <!-- Nombre -->
+      <input type="text" placeholder="Nombre del equipo..." [value]="newTeamName()"
+        (input)="newTeamName.set($any($event.target).value)" class="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-3
                         text-sm placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500
                         transition-colors min-h-[44px]" />
 
-          <!-- Deporte -->
-          <div class="grid grid-cols-3 gap-2">
-            @for (sport of availableSports(); track sport) {
-              <button (click)="newTeamSport.set(sport)"
-                      class="py-2.5 rounded-xl text-[0.75rem] font-bold border transition-colors min-h-[40px]"
-                      [class]="newTeamSport() === sport
+      <!-- Deporte -->
+      <div class="grid grid-cols-3 gap-2">
+        @for (sport of availableSports(); track sport) {
+        <button (click)="newTeamSport.set(sport)"
+          class="py-2.5 rounded-xl text-[0.75rem] font-bold border transition-colors min-h-[40px]" [class]="newTeamSport() === sport
                         ? 'bg-brand text-neutral-950 border-brand'
                         : 'bg-neutral-950 text-neutral-400 border-neutral-700 hover:border-neutral-500'">
-                {{ sport }}
-              </button>
-            }
-          </div>
+          {{ sport }}
+        </button>
+        }
+      </div>
 
-          @if (createTeamError()) {
-            <p class="text-xs text-red-400 flex items-center gap-1.5">
-              <span class="material-symbols-outlined" style="font-size:14px">error</span>
-              {{ createTeamError() }}
-            </p>
-          }
-
-          <div class="flex gap-2">
-            <button (click)="cancelCreateTeam()"
-                    class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 text-neutral-300 font-bold
-                           rounded-xl min-h-[44px] text-sm border border-neutral-700">
-              Cancelar
-            </button>
-            <button (click)="createTeam()"
-                    [disabled]="!newTeamName().trim() || !newTeamSport() || creatingTeam()"
-                    class="flex-1 flex items-center justify-center gap-1.5 bg-brand text-neutral-950 font-black
-                           rounded-xl min-h-[44px] text-sm transition-opacity disabled:opacity-50">
-              @if (creatingTeam()) {
-                <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
-              } @else {
-                <span class="material-symbols-outlined" style="font-size:18px">check</span>
-              }
-              Crear equipo
-            </button>
-          </div>
-        </div>
-      } @else {
-        <div class="flex gap-3">
-          <button (click)="openCreateTeamForm()"
-                  class="flex-1 flex items-center justify-center gap-2 bg-brand text-neutral-950 font-black
-                         rounded-2xl min-h-[48px] text-sm transition-opacity">
-            <span class="material-symbols-outlined" style="font-size:20px">add</span>
-            Crear equipo
-          </button>
-          <button (click)="openJoinTeamModal()"
-                  class="flex-1 flex items-center justify-center gap-2 bg-brand/10 border border-brand/30 text-brand font-black
-                         rounded-2xl min-h-[48px] text-sm transition-colors hover:bg-brand/20">
-            <span class="material-symbols-outlined" style="font-size:20px">login</span>
-            Unirme
-          </button>
-        </div>
+      @if (createTeamError()) {
+      <p class="text-xs text-red-400 flex items-center gap-1.5">
+        <span class="material-symbols-outlined" style="font-size:14px">error</span>
+        {{ createTeamError() }}
+      </p>
       }
 
-      <!-- ── Vista: LISTA DE EQUIPOS ────────────────────────── -->
-      @if (teamsView() === 'list') {
-        @if (loadingTeams()) {
-          <div class="flex flex-col gap-3">
-            @for (i of [1, 2]; track i) {
-              <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 animate-pulse">
-                <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-xl bg-neutral-800 flex-shrink-0"></div>
-                  <div class="flex flex-col gap-1.5 flex-1">
-                    <div class="h-3.5 bg-neutral-800 rounded-md w-1/2"></div>
-                    <div class="h-2.5 bg-neutral-800 rounded-md w-1/3"></div>
-                  </div>
-                </div>
-              </div>
-            }
+      <div class="flex gap-2">
+        <button (click)="cancelCreateTeam()" class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 text-neutral-300 font-bold
+                           rounded-xl min-h-[44px] text-sm border border-neutral-700">
+          Cancelar
+        </button>
+        <button (click)="createTeam()" [disabled]="!newTeamName().trim() || !newTeamSport() || creatingTeam()" class="flex-1 flex items-center justify-center gap-1.5 bg-brand text-neutral-950 font-black
+                           rounded-xl min-h-[44px] text-sm transition-opacity disabled:opacity-50">
+          @if (creatingTeam()) {
+          <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+          } @else {
+          <span class="material-symbols-outlined" style="font-size:18px">check</span>
+          }
+          Crear equipo
+        </button>
+      </div>
+    </div>
+    } @else {
+    @if (teamsView() !== 'detail' && !selectedTeamId()) {
+    <div class="flex gap-3">
+      <button (click)="openCreateTeamForm()" class="flex-1 flex items-center justify-center gap-2 bg-brand text-neutral-950 font-black
+                             rounded-2xl min-h-[48px] text-sm transition-opacity">
+        <span class="material-symbols-outlined" style="font-size:20px">add</span>
+        Crear equipo
+      </button>
+      <button (click)="openJoinTeamModal()" class="flex-1 flex items-center justify-center gap-2 bg-brand/10 border border-brand/30 text-brand font-black
+                             rounded-2xl min-h-[48px] text-sm transition-colors hover:bg-brand/20">
+        <span class="material-symbols-outlined" style="font-size:20px">login</span>
+        Unirme
+      </button>
+    </div>
+    }
+    }
+
+    <!-- ── Vista: LISTA DE EQUIPOS ────────────────────────── -->
+    @if (teamsView() === 'list') {
+    @if (loadingTeams()) {
+    <div class="flex flex-col gap-3">
+      @for (i of [1, 2]; track i) {
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 animate-pulse">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-neutral-800 flex-shrink-0"></div>
+          <div class="flex flex-col gap-1.5 flex-1">
+            <div class="h-3.5 bg-neutral-800 rounded-md w-1/2"></div>
+            <div class="h-2.5 bg-neutral-800 rounded-md w-1/3"></div>
           </div>
-        } @else if (myTeams().length === 0) {
-          <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center">
-            <span class="material-symbols-outlined text-neutral-700 mb-3 block" style="font-size:40px">groups</span>
-            <p class="text-sm font-semibold text-neutral-400 mb-1">Sin equipos</p>
-            <p class="text-xs text-neutral-600">Cuando formes parte de un equipo aparecerá aquí.</p>
-          </div>
-        } @else {
-          <div class="flex flex-col gap-3">
-            @for (team of myTeams(); track team.id) {
-              <button (click)="openTeamDetail(team)"
-                      class="w-full text-left flex items-start gap-4 bg-neutral-900 border border-neutral-800 rounded-2xl
+        </div>
+      </div>
+      }
+    </div>
+    } @else if (myTeams().length === 0) {
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center">
+      <span class="material-symbols-outlined text-neutral-700 mb-3 block" style="font-size:40px">groups</span>
+      <p class="text-sm font-semibold text-neutral-400 mb-1">Sin equipos</p>
+      <p class="text-xs text-neutral-600">Cuando formes parte de un equipo aparecerá aquí.</p>
+    </div>
+    } @else {
+    <div class="flex flex-col gap-3">
+      @for (team of myTeams(); track team.id) {
+      <button (click)="openTeamDetail(team)" class="w-full text-left flex items-start gap-4 bg-neutral-900 border border-neutral-800 rounded-2xl
                              p-4 transition-colors hover:border-neutral-600 min-h-[100px]">
 
-                <!-- Logo/Icon -->
-                <div class="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
-                     [style]="'background:' + (team.backgroundColor || '#1e1e1e')">
-                  <span class="material-symbols-outlined" [style]="'color:' + (team.iconColor || '#00e87a') + ';font-size:28px'">{{ team.iconName || 'groups' }}</span>
-                </div>
+        <!-- Logo/Icon -->
+        <div class="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+          [style]="'background:' + (team.backgroundColor || '#1e1e1e')">
+          <span class="material-symbols-outlined"
+            [style]="'color:' + (team.iconColor || '#00e87a') + ';font-size:28px'">{{ team.iconName || 'groups'
+            }}</span>
+        </div>
 
-                <!-- Info -->
-                <div class="flex-1 min-w-0 flex flex-col justify-center">
-                  <div class="flex items-center gap-2">
-                    <p class="text-sm font-black truncate">{{ team.name }}</p>
-                    @if (team.isAmateur) {
-                      <span class="text-[0.6rem] font-bold bg-brand/20 text-brand px-2 py-0.5 rounded-full flex-shrink-0">AMATEUR</span>
-                    }
-                  </div>
-                  <p class="text-[0.75rem] text-neutral-500 mt-1">{{ team.sport }} · {{ team.memberCount }} miembro{{ team.memberCount !== 1 ? 's' : '' }}</p>
-                  @if (team.isCoach) {
-                    <div class="flex items-center gap-1 mt-2">
-                      <span class="w-4 h-4 bg-brand rounded flex items-center justify-center text-[8px] font-black text-neutral-950">C</span>
-                      <span class="text-[0.65rem] text-brand font-bold">Eres el creador</span>
-                    </div>
-                  }
-                </div>
-
-                <!-- Chevron -->
-                <span class="material-symbols-outlined text-neutral-600 flex-shrink-0">chevron_right</span>
-              </button>
+        <!-- Info -->
+        <div class="flex-1 min-w-0 flex flex-col justify-center">
+          <div class="flex items-center gap-2">
+            <p class="text-sm font-black truncate">{{ team.name }}</p>
+            @if (team.isAmateur) {
+            <span
+              class="text-[0.6rem] font-bold bg-brand/20 text-brand px-2 py-0.5 rounded-full flex-shrink-0">AMATEUR</span>
             }
           </div>
-        }
+          <p class="text-[0.75rem] text-neutral-500 mt-1">{{ team.sport }} · {{ team.memberCount }} miembro{{
+            team.memberCount !== 1 ? 's' : '' }}</p>
+          @if (team.isCoach) {
+          <div class="flex items-center gap-1 mt-2">
+            <span
+              class="w-4 h-4 bg-brand rounded flex items-center justify-center text-[8px] font-black text-neutral-950">C</span>
+            <span class="text-[0.65rem] text-brand font-bold">Eres el creador</span>
+          </div>
+          }
+        </div>
+
+        <!-- Chevron -->
+        <span class="material-symbols-outlined text-neutral-600 flex-shrink-0">chevron_right</span>
+      </button>
       }
+    </div>
+    }
+    }
 
-      <!-- ── Vista: DETALLES DEL EQUIPO ─────────────────────── -->
-      @if (teamsView() === 'detail' && selectedTeamId()) {
-        @if (selectedTeam()) {
-          @let team = selectedTeam()!;
-          @if (selectedTeamDetail()) {
-            @let detail = selectedTeamDetail()!;
-          <!-- Header -->
-          <div class="flex items-center gap-3 mb-4">
-            <button (click)="backToTeamList()"
-                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 flex-shrink-0">
-              <span class="material-symbols-outlined text-neutral-400" style="font-size:20px">arrow_back</span>
-            </button>
-            <div class="flex-1 min-w-0">
-              <p class="text-lg font-black truncate">{{ team.name }}</p>
-              <p class="text-[0.75rem] text-neutral-500">{{ team.sport }} · {{ team.memberCount }} miembro{{ team.memberCount !== 1 ? 's' : '' }}</p>
-            </div>
-            @if (team.isCoach) {
-              <button (click)="deleteTeam(team)"
-                      [disabled]="deletingTeamId() === team.id"
-                      class="w-9 h-9 flex items-center justify-center rounded-xl bg-red-500/10 border border-red-500/20
-                             text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40 flex-shrink-0">
-                @if (deletingTeamId() === team.id) {
-                  <span class="material-symbols-outlined animate-spin" style="font-size:15px">progress_activity</span>
-                } @else {
-                  <span class="material-symbols-outlined" style="font-size:15px">delete</span>
-                }
-              </button>
-            }
+    <!-- ── Vista: DETALLES DEL EQUIPO ─────────────────────── -->
+    @if (teamsView() === 'detail' && selectedTeamId()) {
+    @if (selectedTeam()) {
+    @let team = selectedTeam()!;
+    @if (selectedTeamDetail()) {
+    @let detail = selectedTeamDetail()!;
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-4">
+      <button (click)="backToTeamList()"
+        class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 flex-shrink-0">
+        <span class="material-symbols-outlined text-neutral-400" style="font-size:20px">arrow_back</span>
+      </button>
+      <div class="flex-1 min-w-0">
+        <p class="text-lg font-black truncate">Lista</p>
+      </div>
+    </div>
+
+    <!-- ── Tarjeta de identidad ──────────────────────────── -->
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden mb-6">
+
+      <div class="p-6 flex flex-col items-center text-center gap-4">
+
+        <!-- team image -->
+        <div class="flex flex-col items-center gap-2">
+          <div class="w-20 h-20 rounded-2xl flex items-center justify-center border border-neutral-500"
+            [style]="'background:' + (team.backgroundColor || '#1e1e1e')">
+            <span class="material-symbols-outlined"
+              [style]="'color:' + (team.iconColor || '#00e87a') + ';font-size:48px;line-height:1'">{{ team.iconName || 'groups' }}</span>
           </div>
+          <h1 class="text-xl font-black tracking-tight mt-1">{{ team.name }}</h1>
+          @if (team.isAmateur) {
+          <span class="text-[0.6rem] font-bold bg-brand/20 text-brand px-2 py-0.5 rounded-full">AMATEUR</span>
+          }
+        </div>
 
-          <!-- Info del equipo -->
-          <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 mb-4 flex flex-col gap-3">
-            <div class="flex items-center justify-between">
-              <span class="text-[0.75rem] font-bold text-neutral-500">DEPORTE</span>
-              <span class="text-sm font-semibold">{{ team.sport }}</span>
-            </div>
-            @if (team.teamId) {
-              <div class="flex items-center justify-between">
-                <span class="text-[0.75rem] font-bold text-neutral-500">ID DEL EQUIPO</span>
-                <span class="text-sm font-mono text-brand">{{ team.teamId }}</span>
-              </div>
-            }
-            <div class="flex items-center justify-between">
-              <span class="text-[0.75rem] font-bold text-neutral-500">MIEMBROS</span>
-              <span class="text-sm font-semibold">{{ team.memberCount }}</span>
-            </div>
-          </div>
+        <!-- ID badge -->
+        <div class="flex items-center gap-2 bg-neutral-800/60 rounded-xl px-4 py-2.5 border border-neutral-700">
+          <span class="material-symbols-outlined text-brand" style="font-size:16px">badge</span>
+          <span class="font-mono font-black text-white tracking-widest text-lg leading-none">{{ team.teamId }}</span>
+        </div>
 
-          <!-- Sección: Agregar miembro (si soy coach) -->
-          @if (team.isCoach && team.isAmateur) {
-            <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 mb-4 flex flex-col gap-3">
-              <p class="text-[0.75rem] font-bold uppercase tracking-wider text-neutral-500">Buscar miembro para invitar</p>
+      </div>
+    </div>
 
-              <!-- Buscador -->
-              <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-600"
-                      style="font-size:18px">search</span>
-                <input type="text"
-                       placeholder="Nombre, correo o ID..."
-                       [value]="inviteSearchQuery()"
-                       (input)="searchInviteUsers($any($event.target).value)"
-                       class="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-10 pr-10 py-3
+    <!-- Sección: Agregar miembro (si soy coach) -->
+    @if (team.isCoach && team.isAmateur) {
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 mb-4 flex flex-col gap-3">
+      <p class="text-[0.75rem] font-bold uppercase tracking-wider text-neutral-500">Buscar miembro para invitar</p>
+
+      <!-- Buscador -->
+      <div class="relative">
+        <span
+          class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-600"
+          style="font-size:18px">search</span>
+        <input type="text" placeholder="Nombre, correo o ID..." [value]="inviteSearchQuery()"
+          (input)="searchInviteUsers($any($event.target).value)" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-10 pr-10 py-3
                               text-[0.85rem] placeholder:text-neutral-600 focus:outline-none focus:border-neutral-600
                               transition-colors min-h-[44px]" />
-                @if (inviteSearchLoading()) {
-                  <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-neutral-600 animate-spin"
-                        style="font-size:18px">progress_activity</span>
-                }
-              </div>
+        @if (inviteSearchLoading()) {
+        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-neutral-600 animate-spin"
+          style="font-size:18px">progress_activity</span>
+        }
+      </div>
 
-              <!-- Error -->
-              @if (inviteError()) {
-                <p class="text-xs text-red-400 flex items-center gap-1.5">
-                  <span class="material-symbols-outlined" style="font-size:14px">error</span>
-                  {{ inviteError() }}
-                </p>
-              }
+      <!-- Error -->
+      @if (inviteError()) {
+      <p class="text-xs text-red-400 flex items-center gap-1.5">
+        <span class="material-symbols-outlined" style="font-size:14px">error</span>
+        {{ inviteError() }}
+      </p>
+      }
 
-              <!-- Resultados de búsqueda -->
-              @if (inviteSearchResults().length > 0) {
-                <div class="flex flex-col gap-2 max-h-48 overflow-y-auto">
-                  @for (user of inviteSearchResults(); track user.id) {
-                    @let isMember = isMemberOfSelectedTeam(user.id);
-                    <div class="flex items-center gap-3 bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2">
-                      @if (user.avatar) {
-                        <img [src]="user.avatar" [alt]="user.name"
-                             class="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-                      } @else {
-                        <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
-                          <span class="text-xs font-black text-brand">{{ getInitials(user.name) }}</span>
-                        </div>
-                      }
-
-                      <div class="flex-1 min-w-0">
-                        <p class="text-xs font-semibold truncate">{{ user.name }}</p>
-                        <span class="text-[0.6rem] font-mono text-neutral-600">{{ user.stringId }}</span>
-                      </div>
-
-                      @if (!isMember) {
-                        <button (click)="inviteMemberToTeam(user.id)"
-                                [disabled]="invitingMemberId() === user.id"
-                                class="flex items-center gap-1 bg-brand text-neutral-950 text-[0.7rem] font-black
-                                       px-3 py-1.5 rounded-lg min-h-[32px] flex-shrink-0 transition-opacity disabled:opacity-40">
-                          @if (invitingMemberId() === user.id) {
-                            <span class="material-symbols-outlined animate-spin" style="font-size:14px">progress_activity</span>
-                          } @else {
-                            <span class="material-symbols-outlined" style="font-size:14px">person_add</span>
-                          }
-                          Invitar
-                        </button>
-                      } @else {
-                        <span class="text-[0.7rem] text-neutral-600 font-bold">Miembro</span>
-                      }
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-
-            <!-- Invitar por WhatsApp -->
-            <button (click)="inviteTeamMemberViaWhatsApp(team.name)"
-                    class="w-full flex items-center gap-3 bg-[#25D366]/10 border border-[#25D366]/25
-                           rounded-2xl px-4 py-3 min-h-[44px] hover:bg-[#25D366]/20 transition-colors mb-4">
-              <div class="w-7 h-7 rounded-lg bg-[#25D366] flex items-center justify-center flex-shrink-0">
-                <svg viewBox="0 0 24 24" class="w-4 h-4 fill-white" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                </svg>
-              </div>
-              <div class="flex-1 text-left">
-                <p class="text-sm font-bold text-[#25D366]">Invitar por WhatsApp</p>
-                <p class="text-[0.65rem] text-neutral-500">Envía invitaciones personalizadas</p>
-              </div>
-              <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">chevron_right</span>
-            </button>
-          }
-
-          <!-- Miembros confirmados -->
-          <div class="flex flex-col gap-3">
-            <p class="text-[0.75rem] font-bold uppercase tracking-wider text-neutral-500">Miembros</p>
-
-            <div class="flex flex-col gap-2">
-              @for (member of detail.members; track member.userId) {
-                @let isCoach = isCoachOfMember(member.userId);
-                @let isSelf = isCurrentUser(member.userId);
-                @let canRemove = canRemoveMember(member.userId);
-                @let removeKey = getRemovalKey(team.id, member.userId);
-
-                <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3"
-                     [class]="isCoach ? 'border-brand/30 bg-brand/5' : ''">
-
-                  <!-- Avatar -->
-                  @if (member.avatar) {
-                    <img [src]="member.avatar" [alt]="member.name"
-                         class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-                  } @else {
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                         [class]="isCoach ? 'bg-brand/25' : 'bg-neutral-800'">
-                      <span class="text-sm font-black"
-                            [class]="isCoach ? 'text-brand' : 'text-neutral-400'">
-                        {{ getInitials(member.name) }}
-                      </span>
-                    </div>
-                  }
-
-                  <!-- Name + ID -->
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold truncate"
-                       [class]="isCoach ? 'text-white' : 'text-neutral-200'">
-                      {{ member.name }}
-                      @if (isSelf) {
-                        <span class="text-[0.6rem] font-bold text-neutral-500 ml-1">(tú)</span>
-                      }
-                      @if (member.status === 'invited') {
-                        <span class="text-[0.6rem] font-bold text-yellow-500 ml-1">(pendiente)</span>
-                      }
-                    </p>
-                    <span class="text-[0.62rem] font-mono text-neutral-500">{{ member.stringId }}</span>
-                  </div>
-
-                  <!-- Coach badge -->
-                  @if (isCoach) {
-                    <span class="w-5 h-5 bg-brand rounded flex items-center justify-center text-[10px] font-black text-neutral-950 flex-shrink-0">C</span>
-                  }
-
-                  <!-- View profile button -->
-                  <button (click)="openProfile(member.userId)"
-                          class="w-8 h-8 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
-                                 hover:border-neutral-500 transition-colors flex-shrink-0">
-                    <span class="material-symbols-outlined text-neutral-400" style="font-size:16px">person</span>
-                  </button>
-
-                  <!-- Remove button -->
-                  @if (canRemove) {
-                    <button (click)="removeMemberFromTeam(team.id, member)"
-                            [disabled]="removingMemberId() === removeKey"
-                            class="w-8 h-8 flex items-center justify-center rounded-lg border transition-colors disabled:opacity-40 flex-shrink-0"
-                            [class]="isSelf
-                              ? 'bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-red-400 hover:border-red-400/30'
-                              : 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20'">
-                      @if (removingMemberId() === removeKey) {
-                        <span class="material-symbols-outlined animate-spin" style="font-size:14px">progress_activity</span>
-                      } @else {
-                        <span class="material-symbols-outlined" style="font-size:14px">
-                          {{ isSelf ? 'logout' : 'person_remove' }}
-                        </span>
-                      }
-                    </button>
-                  }
-                </div>
-              }
-            </div>
+      <!-- Resultados de búsqueda -->
+      @if (inviteSearchResults().length > 0) {
+      <div class="flex flex-col gap-2 max-h-48 overflow-y-auto">
+        @for (user of inviteSearchResults(); track user.id) {
+        @let isMember = isMemberOfSelectedTeam(user.id);
+        <div class="flex items-center gap-3 bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2">
+          @if (user.avatar) {
+          <img [src]="user.avatar" [alt]="user.name" class="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+          } @else {
+          <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
+            <span class="text-xs font-black text-brand">{{ getInitials(user.name) }}</span>
           </div>
           }
+
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-semibold truncate">{{ user.name }}</p>
+            <span class="text-[0.6rem] font-mono text-neutral-600">{{ user.stringId }}</span>
+          </div>
+
+          @if (!isMember) {
+          <button (click)="inviteMemberToTeam(user.id)" [disabled]="invitingMemberId() === user.id"
+            class="flex items-center gap-1 bg-brand text-neutral-950 text-[0.7rem] font-black
+                                       px-3 py-1.5 rounded-lg min-h-[32px] flex-shrink-0 transition-opacity disabled:opacity-40">
+            @if (invitingMemberId() === user.id) {
+            <span class="material-symbols-outlined animate-spin" style="font-size:14px">progress_activity</span>
+            } @else {
+            <span class="material-symbols-outlined" style="font-size:14px">person_add</span>
+            }
+            Invitar
+          </button>
+          } @else {
+          <span class="text-[0.7rem] text-neutral-600 font-bold">Miembro</span>
+          }
+        </div>
         }
+      </div>
       }
+    </div>
+
+
+    }
+
+    <!-- Miembros confirmados -->
+    <div class="flex flex-col gap-3">
+      <p class="text-[0.75rem] font-bold uppercase tracking-wider text-neutral-500">Miembros</p>
+
+      <div class="flex flex-col gap-2">
+        @for (member of detail.members; track member.userId) {
+        @let isCoach = isCoachOfMember(member.userId);
+        @let isSelf = isCurrentUser(member.userId);
+        @let canRemove = canRemoveMember(member.userId);
+        @let removeKey = getRemovalKey(team.id, member.userId);
+
+        <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3"
+          [class]="isCoach ? 'border-brand/30 bg-brand/5' : ''">
+
+          <!-- Avatar -->
+          @if (member.avatar) {
+          <img [src]="member.avatar" [alt]="member.name" class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+          } @else {
+          <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+            [class]="isCoach ? 'bg-brand/25' : 'bg-neutral-800'">
+            <span class="text-sm font-black" [class]="isCoach ? 'text-brand' : 'text-neutral-400'">
+              {{ getInitials(member.name) }}
+            </span>
+          </div>
+          }
+
+          <!-- Name + ID -->
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold truncate" [class]="isCoach ? 'text-white' : 'text-neutral-200'">
+              {{ member.name }}
+              @if (isSelf) {
+              <span class="text-[0.6rem] font-bold text-neutral-500 ml-1">(tú)</span>
+              }
+              @if (member.status === 'invited') {
+              <span class="text-[0.6rem] font-bold text-yellow-500 ml-1">(pendiente)</span>
+              }
+            </p>
+            <span class="text-[0.62rem] font-mono text-neutral-500">{{ member.stringId }}</span>
+          </div>
+
+          <!-- Coach badge -->
+          @if (isCoach) {
+          <span
+            class="w-5 h-5 bg-brand rounded flex items-center justify-center text-[10px] font-black text-neutral-950 flex-shrink-0">C</span>
+          }
+
+          <!-- View profile button -->
+          <button (click)="openProfile(member.userId)" class="w-8 h-8 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
+                                 hover:border-neutral-500 transition-colors flex-shrink-0">
+            <span class="material-symbols-outlined text-neutral-400" style="font-size:16px">person</span>
+          </button>
+
+          <!-- Remove button -->
+          @if (canRemove) {
+          <button (click)="removeMemberFromTeam(team.id, member)" [disabled]="removingMemberId() === removeKey"
+            class="w-8 h-8 flex items-center justify-center rounded-lg border transition-colors disabled:opacity-40 flex-shrink-0"
+            [class]="isSelf
+                              ? 'bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-red-400 hover:border-red-400/30'
+                              : 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20'">
+            @if (removingMemberId() === removeKey) {
+            <span class="material-symbols-outlined animate-spin" style="font-size:14px">progress_activity</span>
+            } @else {
+            <span class="material-symbols-outlined" style="font-size:14px">
+              {{ isSelf ? 'logout' : 'person_remove' }}
+            </span>
+            }
+          </button>
+          }
+        </div>
+        }
+        <!-- Invitar por WhatsApp -->
+        <button (click)="inviteTeamMemberViaWhatsApp(team.name)" class="w-full flex items-center gap-3 bg-[#25D366]/10 border border-[#25D366]/25
+                           rounded-2xl px-4 py-3 min-h-[44px] hover:bg-[#25D366]/20 transition-colors">
+          <div class="w-7 h-7 rounded-lg bg-[#25D366] flex items-center justify-center flex-shrink-0">
+            <svg viewBox="0 0 24 24" class="w-4 h-4 fill-white" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+            </svg>
+          </div>
+          <div class="flex-1 text-left">
+            <p class="text-sm font-bold text-[#25D366]">Invitar por WhatsApp</p>
+            <p class="text-[0.65rem] text-neutral-500">Envía invitaciones personalizadas</p>
+          </div>
+          <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">chevron_right</span>
+        </button>
+
+        <!-- Eliminar equipo (solo coach) -->
+        @if (team.isCoach) {
+        @if (!showDeleteTeamConfirm()) {
+        <button (click)="showDeleteTeamConfirm.set(true)" class="w-full flex items-center gap-3 bg-red-500/10 border border-red-500/20
+                             rounded-2xl px-4 py-3 min-h-[44px] hover:bg-red-500/20 transition-colors mt-2">
+          <div class="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-red-400" style="font-size:16px">delete</span>
+          </div>
+          <div class="flex-1 text-left">
+            <p class="text-sm font-bold text-red-400">Eliminar equipo</p>
+            <p class="text-[0.65rem] text-neutral-500">Esta acción no se puede deshacer</p>
+          </div>
+          <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">chevron_right</span>
+        </button>
+        } @else {
+        <div class="w-full bg-red-500/10 border border-red-500/30 rounded-2xl px-4 py-4 mt-2 flex flex-col gap-3">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-red-400" style="font-size:18px">warning</span>
+            <p class="text-sm font-bold text-red-400">¿Eliminar "{{ team.name }}"?</p>
+          </div>
+          <p class="text-[0.72rem] text-neutral-400">Se eliminará el equipo y todos sus miembros serán desvinculados. Esta acción no se puede deshacer.</p>
+          <div class="flex gap-2">
+            <button (click)="showDeleteTeamConfirm.set(false)"
+              class="flex-1 py-2.5 rounded-xl bg-neutral-800 border border-neutral-700 text-sm font-bold text-neutral-300 min-h-[44px]">
+              Cancelar
+            </button>
+            <button (click)="deleteTeam(team); showDeleteTeamConfirm.set(false)" [disabled]="deletingTeamId() === team.id"
+              class="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-black min-h-[44px] flex items-center justify-center gap-1.5 disabled:opacity-50">
+              @if (deletingTeamId() === team.id) {
+              <span class="material-symbols-outlined animate-spin" style="font-size:16px">progress_activity</span>
+              } @else {
+              <span class="material-symbols-outlined" style="font-size:16px">delete</span>
+              }
+              Sí, eliminar
+            </button>
+          </div>
+        </div>
+        }
+        }
+
+      </div>
+    </div>
+    }
+    }
+    }
 
     }
 
@@ -945,18 +939,17 @@
         style="padding-bottom: env(safe-area-inset-bottom)">
 
         <!-- Header -->
-        <div class="sticky top-0 z-10 bg-neutral-900 border-b border-neutral-800 px-4 py-3 flex items-center justify-between">
+        <div
+          class="sticky top-0 z-10 bg-neutral-900 border-b border-neutral-800 px-4 py-3 flex items-center justify-between">
           <h2 class="font-bold text-sm">Unirme a un equipo</h2>
-          <button (click)="closeJoinTeamModal()"
-            class="p-1 hover:bg-neutral-800 rounded-lg transition-colors">
+          <button (click)="closeJoinTeamModal()" class="p-1 hover:bg-neutral-800 rounded-lg transition-colors">
             <span class="material-symbols-outlined text-neutral-400">close</span>
           </button>
         </div>
 
         <!-- Search bar -->
         <div class="px-4 pt-3 pb-2 sticky top-12 bg-neutral-900/95 backdrop-blur-sm z-10">
-          <input type="text" [(ngModel)]="joinSearchQuery" (input)="searchTeamsToJoin()"
-            placeholder="Buscar equipo..."
+          <input type="text" [(ngModel)]="joinSearchQuery" (input)="searchTeamsToJoin()" placeholder="Buscar equipo..."
             class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand">
         </div>
 
@@ -972,7 +965,8 @@
               <div class="bg-neutral-800 border border-neutral-700 rounded-lg p-3 flex items-center gap-3 min-h-[44px]">
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-semibold text-white truncate">{{ team.name }}</p>
-                  <p class="text-xs text-neutral-500">{{ team.memberCount }} miembro{{ team.memberCount === 1 ? '' : 's' }}</p>
+                  <p class="text-xs text-neutral-500">{{ team.memberCount }} miembro{{ team.memberCount === 1 ? '' : 's'
+                    }}</p>
                 </div>
                 <button (click)="applyToTeam(team.id)" [disabled]="applyingTeamId() === team.id"
                   class="text-[0.72rem] font-bold px-3 py-1.5 rounded-lg bg-brand text-neutral-950 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity min-h-[36px] flex items-center justify-center whitespace-nowrap">
@@ -989,8 +983,7 @@
           }
 
           <!-- Equipos disponibles recomendados -->
-          @if (joinSearchQuery().length < 2) {
-          <div>
+          @if (joinSearchQuery().length < 2) { <div>
             @if (loadingAvailableTeams()) {
             <div class="flex justify-center py-4">
               <span class="material-symbols-outlined text-neutral-600 animate-spin">progress_activity</span>
@@ -1004,10 +997,12 @@
               <h3 class="text-xs font-bold uppercase text-neutral-500 mb-2">Equipos sugeridos</h3>
               <div class="flex flex-col gap-2 mb-6">
                 @for (team of availableTeams(); track team.id) {
-                <div class="bg-neutral-800 border border-neutral-700 rounded-lg p-3 flex items-center gap-3 min-h-[44px]">
+                <div
+                  class="bg-neutral-800 border border-neutral-700 rounded-lg p-3 flex items-center gap-3 min-h-[44px]">
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-semibold text-white truncate">{{ team.name }}</p>
-                    <p class="text-xs text-neutral-500">{{ team.memberCount }} miembro{{ team.memberCount === 1 ? '' : 's' }} • {{ team.sport }}</p>
+                    <p class="text-xs text-neutral-500">{{ team.memberCount }} miembro{{ team.memberCount === 1 ? '' :
+                      's' }} • {{ team.sport }}</p>
                   </div>
                   <button (click)="applyToTeam(team.id)" [disabled]="applyingTeamId() === team.id"
                     class="text-[0.72rem] font-bold px-3 py-1.5 rounded-lg bg-brand text-neutral-950 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity min-h-[36px] flex items-center justify-center whitespace-nowrap">
@@ -1022,216 +1017,224 @@
               </div>
             </div>
             }
-          </div>
-          }
-
         </div>
+        }
 
       </div>
+
     </div>
-    }
+</div>
+}
 
-    <!-- Modal: Contact Profile -->
-    @if (profileUser()) {
-    <div class="fixed inset-0 z-50 flex items-end">
-      <!-- Backdrop -->
-      <div class="absolute inset-0 bg-black/40" (click)="closeProfile()"></div>
+<!-- Modal: Contact Profile -->
+@if (profileUser()) {
+<div class="fixed inset-0 z-50 flex items-end">
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-black/40" (click)="closeProfile()"></div>
 
-      <!-- Bottom Sheet -->
-      <div class="relative w-full bg-neutral-900 border-t border-neutral-800 rounded-t-3xl max-h-[90vh] overflow-y-auto"
-        style="padding-bottom: env(safe-area-inset-bottom)">
+  <!-- Bottom Sheet -->
+  <div class="relative w-full bg-neutral-900 border-t border-neutral-800 rounded-t-3xl max-h-[90vh] overflow-y-auto"
+    style="padding-bottom: env(safe-area-inset-bottom)">
 
-        <!-- Header -->
-        <div class="sticky top-0 z-10 bg-neutral-900 border-b border-neutral-800 px-4 py-3 flex items-center justify-between">
-          <h2 class="font-bold text-sm">Perfil</h2>
-          <button (click)="closeProfile()"
-            class="p-1 hover:bg-neutral-800 rounded-lg transition-colors">
-            <span class="material-symbols-outlined text-neutral-400">close</span>
-          </button>
+    <!-- Header -->
+    <div
+      class="sticky top-0 z-10 bg-neutral-900 border-b border-neutral-800 px-4 py-3 flex items-center justify-between">
+      <h2 class="font-bold text-sm">Perfil</h2>
+      <button (click)="closeProfile()" class="p-1 hover:bg-neutral-800 rounded-lg transition-colors">
+        <span class="material-symbols-outlined text-neutral-400">close</span>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="px-4 py-6 flex flex-col items-center text-center gap-4">
+      @let user = profileUser()!;
+
+      <!-- Avatar or initials -->
+      @if (user.avatar) {
+      <img [src]="user.avatar" [alt]="user.name" class="w-16 h-16 rounded-2xl object-cover ring-2 ring-neutral-700" />
+      } @else {
+      <div
+        class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand to-emerald-600 flex items-center justify-center ring-2 ring-neutral-700">
+        <span class="text-xl font-black text-neutral-950">{{ getInitials(user.name) }}</span>
+      </div>
+      }
+
+      <!-- Name and email -->
+      <div>
+        <h1 class="text-xl font-black tracking-tight">{{ user.name }}</h1>
+        <p class="text-sm text-neutral-400 mt-0.5">{{ user.email }}</p>
+      </div>
+
+      <!-- QR Code -->
+      <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3">
+        @if (profileQr()) {
+        <img [src]="profileQr()" alt="QR Sport Card" class="w-40 h-40 rounded-lg" />
+        } @else {
+        <div class="w-40 h-40 rounded-lg bg-neutral-900 flex items-center justify-center">
+          <span class="material-symbols-outlined text-neutral-600 animate-spin"
+            style="font-size:28px">progress_activity</span>
         </div>
+        }
+        <p class="text-[10px] text-neutral-600 text-center mt-2 uppercase tracking-widest">Sport Card ID</p>
+      </div>
 
-        <!-- Content -->
-        <div class="px-4 py-6 flex flex-col items-center text-center gap-4">
-          @let user = profileUser()!;
+      <!-- ID badge -->
+      <div class="flex items-center gap-2 bg-neutral-800/60 rounded-xl px-4 py-2.5 border border-neutral-700">
+        <span class="material-symbols-outlined text-brand" style="font-size:16px">badge</span>
+        <span class="font-mono font-black text-white tracking-widest text-lg leading-none">{{ user.stringId }}</span>
+      </div>
 
-          <!-- Avatar or initials -->
-          @if (user.avatar) {
-            <img [src]="user.avatar" [alt]="user.name"
-                 class="w-16 h-16 rounded-2xl object-cover ring-2 ring-neutral-700" />
-          } @else {
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand to-emerald-600 flex items-center justify-center ring-2 ring-neutral-700">
-              <span class="text-xl font-black text-neutral-950">{{ getInitials(user.name) }}</span>
-            </div>
-          }
+      <!-- Ver datos de emergencia button -->
+      <button (click)="openEmergencyData()"
+        class="flex items-center gap-2 text-sm text-neutral-400 hover:text-white border border-neutral-700 hover:border-neutral-500 rounded-xl px-4 py-2.5 transition-colors min-h-[44px] w-full justify-center">
+        <span class="material-symbols-outlined" style="font-size:16px">emergency</span>
+        Ver datos de emergencia
+      </button>
 
-          <!-- Name and email -->
-          <div>
-            <h1 class="text-xl font-black tracking-tight">{{ user.name }}</h1>
-            <p class="text-sm text-neutral-400 mt-0.5">{{ user.email }}</p>
-          </div>
-
-          <!-- QR Code -->
-          <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3">
-            @if (profileQr()) {
-              <img [src]="profileQr()" alt="QR Sport Card" class="w-40 h-40 rounded-lg" />
-            } @else {
-              <div class="w-40 h-40 rounded-lg bg-neutral-900 flex items-center justify-center">
-                <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:28px">progress_activity</span>
-              </div>
-            }
-            <p class="text-[10px] text-neutral-600 text-center mt-2 uppercase tracking-widest">Sport Card ID</p>
-          </div>
-
-          <!-- ID badge -->
-          <div class="flex items-center gap-2 bg-neutral-800/60 rounded-xl px-4 py-2.5 border border-neutral-700">
-            <span class="material-symbols-outlined text-brand" style="font-size:16px">badge</span>
-            <span class="font-mono font-black text-white tracking-widest text-lg leading-none">{{ user.stringId }}</span>
-          </div>
-
-          <!-- Ver datos de emergencia button -->
-          <button (click)="openEmergencyData()"
-            class="flex items-center gap-2 text-sm text-neutral-400 hover:text-white border border-neutral-700 hover:border-neutral-500 rounded-xl px-4 py-2.5 transition-colors min-h-[44px] w-full justify-center">
-            <span class="material-symbols-outlined" style="font-size:16px">emergency</span>
-            Ver datos de emergencia
-          </button>
-
-          <!-- Emergency data section -->
-          @if (showEmergencyData()) {
-          <div class="w-full border-t border-neutral-700 pt-4 mt-2">
-            <!-- Medical data -->
-            @if (user.bloodType || user.allergies || user.medicalConditions || user.medications) {
-            <div class="mb-4">
-              <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-3">Datos médicos</p>
-              <div class="bg-neutral-950 border border-neutral-800 rounded-xl overflow-hidden divide-y divide-neutral-800">
-                @if (user.bloodType) {
-                  <div class="flex items-center gap-3 px-4 py-3">
-                    <span class="material-symbols-outlined text-red-400 flex-shrink-0" style="font-size:18px">blood_pressure</span>
-                    <div>
-                      <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Tipo de sangre</p>
-                      <p class="text-sm font-bold text-red-400">{{ user.bloodType }}</p>
-                    </div>
-                  </div>
-                }
-                @if (user.allergies) {
-                  <div class="flex items-start gap-3 px-4 py-3">
-                    <span class="material-symbols-outlined text-yellow-500 flex-shrink-0 mt-0.5" style="font-size:18px">warning</span>
-                    <div>
-                      <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Alergias</p>
-                      <p class="text-sm text-neutral-200">{{ user.allergies }}</p>
-                    </div>
-                  </div>
-                }
-                @if (user.medicalConditions) {
-                  <div class="flex items-start gap-3 px-4 py-3">
-                    <span class="material-symbols-outlined text-neutral-400 flex-shrink-0 mt-0.5" style="font-size:18px">medical_information</span>
-                    <div>
-                      <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Condiciones médicas</p>
-                      <p class="text-sm text-neutral-200">{{ user.medicalConditions }}</p>
-                    </div>
-                  </div>
-                }
-                @if (user.medications) {
-                  <div class="flex items-start gap-3 px-4 py-3">
-                    <span class="material-symbols-outlined text-neutral-400 flex-shrink-0 mt-0.5" style="font-size:18px">medication</span>
-                    <div>
-                      <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Medicamentos</p>
-                      <p class="text-sm text-neutral-200">{{ user.medications }}</p>
-                    </div>
-                  </div>
-                }
+      <!-- Emergency data section -->
+      @if (showEmergencyData()) {
+      <div class="w-full border-t border-neutral-700 pt-4 mt-2">
+        <!-- Medical data -->
+        @if (user.bloodType || user.allergies || user.medicalConditions || user.medications) {
+        <div class="mb-4">
+          <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-3">Datos médicos</p>
+          <div class="bg-neutral-950 border border-neutral-800 rounded-xl overflow-hidden divide-y divide-neutral-800">
+            @if (user.bloodType) {
+            <div class="flex items-center gap-3 px-4 py-3">
+              <span class="material-symbols-outlined text-red-400 flex-shrink-0"
+                style="font-size:18px">blood_pressure</span>
+              <div>
+                <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Tipo de sangre</p>
+                <p class="text-sm font-bold text-red-400">{{ user.bloodType }}</p>
               </div>
             </div>
             }
-
-            <!-- Emergency contact -->
-            @if (user.emergencyName || user.emergencyPhone) {
-            <div>
-              <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-3">Contacto de emergencia</p>
-              <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-4 mb-3">
-                <p class="text-sm font-semibold text-white mb-1">{{ user.emergencyName }}</p>
-                @if (user.emergencyRelation) {
-                  <p class="text-xs text-neutral-500">{{ user.emergencyRelation }}</p>
-                }
+            @if (user.allergies) {
+            <div class="flex items-start gap-3 px-4 py-3">
+              <span class="material-symbols-outlined text-yellow-500 flex-shrink-0 mt-0.5"
+                style="font-size:18px">warning</span>
+              <div>
+                <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Alergias</p>
+                <p class="text-sm text-neutral-200">{{ user.allergies }}</p>
               </div>
-              @if (user.emergencyPhone) {
-              <div class="flex gap-2">
-                <button (click)="openWhatsApp(user.emergencyPhone!)"
-                  class="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity min-h-[44px]">
-                  <span class="material-symbols-outlined text-sm">message</span>
-                  <span>WhatsApp</span>
-                </button>
-                <button (click)="callPhone(user.emergencyPhone!)"
-                  class="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity min-h-[44px]">
-                  <span class="material-symbols-outlined text-sm">phone</span>
-                  <span>Llamar</span>
-                </button>
+            </div>
+            }
+            @if (user.medicalConditions) {
+            <div class="flex items-start gap-3 px-4 py-3">
+              <span class="material-symbols-outlined text-neutral-400 flex-shrink-0 mt-0.5"
+                style="font-size:18px">medical_information</span>
+              <div>
+                <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Condiciones médicas</p>
+                <p class="text-sm text-neutral-200">{{ user.medicalConditions }}</p>
               </div>
-              }
+            </div>
+            }
+            @if (user.medications) {
+            <div class="flex items-start gap-3 px-4 py-3">
+              <span class="material-symbols-outlined text-neutral-400 flex-shrink-0 mt-0.5"
+                style="font-size:18px">medication</span>
+              <div>
+                <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Medicamentos</p>
+                <p class="text-sm text-neutral-200">{{ user.medications }}</p>
+              </div>
             </div>
             }
           </div>
-          }
-
         </div>
+        }
 
-      </div>
-    </div>
-    }
-
-    <!-- Modal: Emergency Data Confirmation -->
-    @if (showEmergencyConfirmation()) {
-    <div class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <!-- Backdrop -->
-      <div class="absolute inset-0 bg-black/60" (click)="cancelEmergencyData()"></div>
-
-      <!-- Dialog -->
-      <div class="relative bg-neutral-900 border border-neutral-800 rounded-2xl max-w-sm w-full p-6 flex flex-col gap-4">
-
-        <!-- Icon -->
-        <div class="flex justify-center">
-          <div class="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center">
-            <span class="material-symbols-outlined text-yellow-500" style="font-size:24px">warning</span>
+        <!-- Emergency contact -->
+        @if (user.emergencyName || user.emergencyPhone) {
+        <div>
+          <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-3">Contacto de emergencia</p>
+          <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-4 mb-3">
+            <p class="text-sm font-semibold text-white mb-1">{{ user.emergencyName }}</p>
+            @if (user.emergencyRelation) {
+            <p class="text-xs text-neutral-500">{{ user.emergencyRelation }}</p>
+            }
           </div>
+          @if (user.emergencyPhone) {
+          <div class="flex gap-2">
+            <button (click)="openWhatsApp(user.emergencyPhone!)"
+              class="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity min-h-[44px]">
+              <span class="material-symbols-outlined text-sm">message</span>
+              <span>WhatsApp</span>
+            </button>
+            <button (click)="callPhone(user.emergencyPhone!)"
+              class="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity min-h-[44px]">
+              <span class="material-symbols-outlined text-sm">phone</span>
+              <span>Llamar</span>
+            </button>
+          </div>
+          }
         </div>
+        }
+      </div>
+      }
 
-        <!-- Title -->
-        <h2 class="text-center text-lg font-black text-white">Datos Confidenciales</h2>
+    </div>
 
-        <!-- Message -->
-        <div class="text-center space-y-2">
-          <p class="text-sm text-neutral-300">Estás a punto de acceder a información médica y de emergencia confidencial.</p>
-          <p class="text-xs text-neutral-500">Esta acción será registrada y notificada al usuario. Úsalo solo en caso de emergencia real.</p>
-        </div>
+  </div>
+</div>
+}
 
-        <!-- Divider -->
-        <div class="h-px bg-neutral-800"></div>
+<!-- Modal: Emergency Data Confirmation -->
+@if (showEmergencyConfirmation()) {
+<div class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-black/60" (click)="cancelEmergencyData()"></div>
 
-        <!-- Privacy reminder -->
-        <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3">
-          <p class="text-xs text-neutral-400 text-center">
-            <span class="font-semibold">Recuerda:</span> Respeta la privacidad del usuario. Accede a esta información solo en situaciones de emergencia.
-          </p>
-        </div>
+  <!-- Dialog -->
+  <div class="relative bg-neutral-900 border border-neutral-800 rounded-2xl max-w-sm w-full p-6 flex flex-col gap-4">
 
-        <!-- Buttons -->
-        <div class="flex gap-3">
-          <button (click)="cancelEmergencyData()"
-            class="flex-1 bg-neutral-800 border border-neutral-700 text-neutral-300 font-semibold py-2.5 rounded-lg hover:bg-neutral-700 transition-colors min-h-[44px]">
-            Cancelar
-          </button>
-          <button (click)="confirmEmergencyData()"
-            class="flex-1 bg-yellow-600 text-white font-semibold py-2.5 rounded-lg hover:bg-yellow-700 transition-colors min-h-[44px] flex items-center justify-center gap-2">
-            <span class="material-symbols-outlined text-sm">visibility</span>
-            <span>Ver información</span>
-          </button>
-        </div>
-
+    <!-- Icon -->
+    <div class="flex justify-center">
+      <div class="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center">
+        <span class="material-symbols-outlined text-yellow-500" style="font-size:24px">warning</span>
       </div>
     </div>
-    }
 
-  </main>
+    <!-- Title -->
+    <h2 class="text-center text-lg font-black text-white">Datos Confidenciales</h2>
 
-  <app-bottom-nav activeTab="contacts" />
+    <!-- Message -->
+    <div class="text-center space-y-2">
+      <p class="text-sm text-neutral-300">Estás a punto de acceder a información médica y de emergencia confidencial.
+      </p>
+      <p class="text-xs text-neutral-500">Esta acción será registrada y notificada al usuario. Úsalo solo en caso de
+        emergencia real.</p>
+    </div>
+
+    <!-- Divider -->
+    <div class="h-px bg-neutral-800"></div>
+
+    <!-- Privacy reminder -->
+    <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3">
+      <p class="text-xs text-neutral-400 text-center">
+        <span class="font-semibold">Recuerda:</span> Respeta la privacidad del usuario. Accede a esta información solo
+        en situaciones de emergencia.
+      </p>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex gap-3">
+      <button (click)="cancelEmergencyData()"
+        class="flex-1 bg-neutral-800 border border-neutral-700 text-neutral-300 font-semibold py-2.5 rounded-lg hover:bg-neutral-700 transition-colors min-h-[44px]">
+        Cancelar
+      </button>
+      <button (click)="confirmEmergencyData()"
+        class="flex-1 bg-yellow-600 text-white font-semibold py-2.5 rounded-lg hover:bg-yellow-700 transition-colors min-h-[44px] flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-sm">visibility</span>
+        <span>Ver información</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+}
+
+</main>
+
+<app-bottom-nav activeTab="contacts" />
 
 </div>

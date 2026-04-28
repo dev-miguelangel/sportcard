@@ -57,6 +57,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
   readonly loadingTeams = signal(false);
   readonly deletingTeamId = signal<string | null>(null);
   readonly removingMemberId = signal<string | null>(null);
+  readonly showDeleteTeamConfirm = signal(false);
 
   readonly showCreateTeamForm = signal(false);
   readonly newTeamName = signal('');
@@ -218,7 +219,12 @@ export class ContactsComponent implements OnInit, OnDestroy {
 
   private loadFollowers(): void {
     this.contactsSvc.getFollowers().subscribe({
-      next: followers => { this.followers.set(followers); this.loadingList.set(false); },
+      next: followers => {
+        const contactIds = new Set(this.myContacts().map(c => c.id));
+        const filtered = followers.filter(f => !contactIds.has(f.id));
+        this.followers.set(filtered);
+        this.loadingList.set(false);
+      },
       error: () => this.loadingList.set(false),
     });
   }
@@ -233,6 +239,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
           rs.map(r => r.id === user.id ? { ...r, isContact: true } : r),
         );
         this.loadingAction.set(null);
+        this.loadFollowers();
       },
       error: () => this.loadingAction.set(null),
     });
@@ -248,6 +255,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
           rs.map(r => r.id === user.id ? { ...r, isContact: false } : r),
         );
         this.loadingAction.set(null);
+        this.loadFollowers();
       },
       error: () => this.loadingAction.set(null),
     });
@@ -448,6 +456,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
     this.inviteSearchQuery.set('');
     this.inviteSearchResults.set([]);
     this.inviteError.set(null);
+    this.showDeleteTeamConfirm.set(false);
   }
 
   backToTeamList(): void {
@@ -456,6 +465,7 @@ export class ContactsComponent implements OnInit, OnDestroy {
     this.inviteSearchQuery.set('');
     this.inviteSearchResults.set([]);
     this.inviteSearchLoading.set(false);
+    this.showDeleteTeamConfirm.set(false);
     this.inviteError.set(null);
   }
 
