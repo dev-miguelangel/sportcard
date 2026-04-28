@@ -707,7 +707,8 @@
           <div class="w-20 h-20 rounded-2xl flex items-center justify-center border border-neutral-500"
             [style]="'background:' + (team.backgroundColor || '#1e1e1e')">
             <span class="material-symbols-outlined"
-              [style]="'color:' + (team.iconColor || '#00e87a') + ';font-size:48px;line-height:1'">{{ team.iconName || 'groups' }}</span>
+              [style]="'color:' + (team.iconColor || '#00e87a') + ';font-size:48px;line-height:1'">{{ team.iconName ||
+              'groups' }}</span>
           </div>
           <h1 class="text-xl font-black tracking-tight mt-1">{{ team.name }}</h1>
           @if (team.isAmateur) {
@@ -865,8 +866,9 @@
         </div>
         }
         <!-- Invitar por WhatsApp -->
+        @if (team.isCoach && team.isAmateur) {
         <button (click)="inviteTeamMemberViaWhatsApp(team.name)" class="w-full flex items-center gap-3 bg-[#25D366]/10 border border-[#25D366]/25
-                           rounded-2xl px-4 py-3 min-h-[44px] hover:bg-[#25D366]/20 transition-colors">
+                              rounded-2xl px-4 py-3 min-h-[44px] hover:bg-[#25D366]/20 transition-colors">
           <div class="w-7 h-7 rounded-lg bg-[#25D366] flex items-center justify-center flex-shrink-0">
             <svg viewBox="0 0 24 24" class="w-4 h-4 fill-white" xmlns="http://www.w3.org/2000/svg">
               <path
@@ -879,13 +881,15 @@
           </div>
           <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">chevron_right</span>
         </button>
+        }
 
         <!-- Eliminar equipo (solo coach) -->
         @if (team.isCoach) {
         @if (!showDeleteTeamConfirm()) {
         <button (click)="showDeleteTeamConfirm.set(true)" class="w-full flex items-center gap-3 bg-red-500/10 border border-red-500/20
                              rounded-2xl px-4 py-3 min-h-[44px] hover:bg-red-500/20 transition-colors mt-2">
-          <div class="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 flex items-center justify-center flex-shrink-0">
+          <div
+            class="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 flex items-center justify-center flex-shrink-0">
             <span class="material-symbols-outlined text-red-400" style="font-size:16px">delete</span>
           </div>
           <div class="flex-1 text-left">
@@ -900,13 +904,15 @@
             <span class="material-symbols-outlined text-red-400" style="font-size:18px">warning</span>
             <p class="text-sm font-bold text-red-400">¿Eliminar "{{ team.name }}"?</p>
           </div>
-          <p class="text-[0.72rem] text-neutral-400">Se eliminará el equipo y todos sus miembros serán desvinculados. Esta acción no se puede deshacer.</p>
+          <p class="text-[0.72rem] text-neutral-400">Se eliminará el equipo y todos sus miembros serán desvinculados.
+            Esta acción no se puede deshacer.</p>
           <div class="flex gap-2">
             <button (click)="showDeleteTeamConfirm.set(false)"
               class="flex-1 py-2.5 rounded-xl bg-neutral-800 border border-neutral-700 text-sm font-bold text-neutral-300 min-h-[44px]">
               Cancelar
             </button>
-            <button (click)="deleteTeam(team); showDeleteTeamConfirm.set(false)" [disabled]="deletingTeamId() === team.id"
+            <button (click)="deleteTeam(team); showDeleteTeamConfirm.set(false)"
+              [disabled]="deletingTeamId() === team.id"
               class="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-black min-h-[44px] flex items-center justify-center gap-1.5 disabled:opacity-50">
               @if (deletingTeamId() === team.id) {
               <span class="material-symbols-outlined animate-spin" style="font-size:16px">progress_activity</span>
