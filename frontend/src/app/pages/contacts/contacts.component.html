@@ -725,79 +725,79 @@
       </div>
     </div>
 
-    <!-- Sección: Agregar miembro (si soy coach) -->
-    @if (team.isCoach && team.isAmateur) {
-    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 mb-4 flex flex-col gap-3">
-      <p class="text-[0.75rem] font-bold uppercase tracking-wider text-neutral-500">Buscar miembro para invitar</p>
+    <!-- Miembros confirmados -->
+    <div class="flex flex-col gap-3">
+      <p class="text-[0.75rem] font-bold uppercase tracking-wider text-neutral-500">Miembros</p>
+      <!-- Sección: Agregar miembro (si soy coach) -->
+      @if (team.isCoach && team.isAmateur) {
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 mb-4 flex flex-col gap-3">
+        <p class="text-[0.75rem] font-bold uppercase tracking-wider text-neutral-500">Buscar miembro para invitar</p>
 
-      <!-- Buscador -->
-      <div class="relative">
-        <span
-          class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-600"
-          style="font-size:18px">search</span>
-        <input type="text" placeholder="Nombre, correo o ID..." [value]="inviteSearchQuery()"
-          (input)="searchInviteUsers($any($event.target).value)" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-10 pr-10 py-3
+        <!-- Buscador -->
+        <div class="relative">
+          <span
+            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-600"
+            style="font-size:18px">search</span>
+          <input type="text" placeholder="Nombre, correo o ID..." [value]="inviteSearchQuery()"
+            (input)="searchInviteUsers($any($event.target).value)" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-10 pr-10 py-3
                               text-[0.85rem] placeholder:text-neutral-600 focus:outline-none focus:border-neutral-600
                               transition-colors min-h-[44px]" />
-        @if (inviteSearchLoading()) {
-        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-neutral-600 animate-spin"
-          style="font-size:18px">progress_activity</span>
-        }
-      </div>
-
-      <!-- Error -->
-      @if (inviteError()) {
-      <p class="text-xs text-red-400 flex items-center gap-1.5">
-        <span class="material-symbols-outlined" style="font-size:14px">error</span>
-        {{ inviteError() }}
-      </p>
-      }
-
-      <!-- Resultados de búsqueda -->
-      @if (inviteSearchResults().length > 0) {
-      <div class="flex flex-col gap-2 max-h-48 overflow-y-auto">
-        @for (user of inviteSearchResults(); track user.id) {
-        @let isMember = isMemberOfSelectedTeam(user.id);
-        <div class="flex items-center gap-3 bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2">
-          @if (user.avatar) {
-          <img [src]="user.avatar" [alt]="user.name" class="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-          } @else {
-          <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
-            <span class="text-xs font-black text-brand">{{ getInitials(user.name) }}</span>
-          </div>
+          @if (inviteSearchLoading()) {
+          <span
+            class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-neutral-600 animate-spin"
+            style="font-size:18px">progress_activity</span>
           }
+        </div>
 
-          <div class="flex-1 min-w-0">
-            <p class="text-xs font-semibold truncate">{{ user.name }}</p>
-            <span class="text-[0.6rem] font-mono text-neutral-600">{{ user.stringId }}</span>
-          </div>
+        <!-- Error -->
+        @if (inviteError()) {
+        <p class="text-xs text-red-400 flex items-center gap-1.5">
+          <span class="material-symbols-outlined" style="font-size:14px">error</span>
+          {{ inviteError() }}
+        </p>
+        }
 
-          @if (!isMember) {
-          <button (click)="inviteMemberToTeam(user.id)" [disabled]="invitingMemberId() === user.id"
-            class="flex items-center gap-1 bg-brand text-neutral-950 text-[0.7rem] font-black
-                                       px-3 py-1.5 rounded-lg min-h-[32px] flex-shrink-0 transition-opacity disabled:opacity-40">
-            @if (invitingMemberId() === user.id) {
-            <span class="material-symbols-outlined animate-spin" style="font-size:14px">progress_activity</span>
+        <!-- Resultados de búsqueda -->
+        @if (inviteSearchResults().length > 0) {
+        <div class="flex flex-col gap-2 max-h-48 overflow-y-auto">
+          @for (user of inviteSearchResults(); track user.id) {
+          @let isMember = isMemberOfSelectedTeam(user.id);
+          <div class="flex items-center gap-3 bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2">
+            @if (user.avatar) {
+            <img [src]="user.avatar" [alt]="user.name" class="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             } @else {
-            <span class="material-symbols-outlined" style="font-size:14px">person_add</span>
+            <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
+              <span class="text-xs font-black text-brand">{{ getInitials(user.name) }}</span>
+            </div>
             }
-            Invitar
-          </button>
-          } @else {
-          <span class="text-[0.7rem] text-neutral-600 font-bold">Miembro</span>
+
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold truncate">{{ user.name }}</p>
+              <span class="text-[0.6rem] font-mono text-neutral-600">{{ user.stringId }}</span>
+            </div>
+
+            @if (!isMember) {
+            <button (click)="inviteMemberToTeam(user.id)" [disabled]="invitingMemberId() === user.id"
+              class="flex items-center gap-1 bg-brand text-neutral-950 text-[0.7rem] font-black
+                                       px-3 py-1.5 rounded-lg min-h-[32px] flex-shrink-0 transition-opacity disabled:opacity-40">
+              @if (invitingMemberId() === user.id) {
+              <span class="material-symbols-outlined animate-spin" style="font-size:14px">progress_activity</span>
+              } @else {
+              <span class="material-symbols-outlined" style="font-size:14px">person_add</span>
+              }
+              Invitar
+            </button>
+            } @else {
+            <span class="text-[0.7rem] text-neutral-600 font-bold">Miembro</span>
+            }
+          </div>
           }
         </div>
         }
       </div>
+
+
       }
-    </div>
-
-
-    }
-
-    <!-- Miembros confirmados -->
-    <div class="flex flex-col gap-3">
-      <p class="text-[0.75rem] font-bold uppercase tracking-wider text-neutral-500">Miembros</p>
 
       <div class="flex flex-col gap-2">
         @for (member of detail.members; track member.userId) {
