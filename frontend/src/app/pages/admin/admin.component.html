@@ -630,7 +630,7 @@
                 <div class="grid grid-cols-6 gap-1.5 max-h-[160px] overflow-y-auto">
                   @for (icon of filteredIcons(); track icon) {
                     <button (click)="selectIcon(icon)"
-                            class="w-10 h-10 flex items-center justify-center rounded-xl border transition-all"
+                            class="w-10 h-10 flex items-center justify-center rounded-xl border transition-all overflow-hidden"
                             [class]="sportFormIcon() === icon
                               ? 'bg-brand/15 border-brand/50'
                               : 'bg-neutral-900 border-neutral-800 hover:bg-neutral-800 hover:border-neutral-700'">

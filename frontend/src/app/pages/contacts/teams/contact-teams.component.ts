@@ -5,6 +5,7 @@ import { TeamsService, TeamSummary, TeamPublicDto, TeamMemberItem } from '../../
 import { AuthService } from '../../../core/services/auth.service';
 import { SportsService } from '../../../core/services/sports.service';
 import { environment } from '../../../../environments/environment';
+import { TEAM_ICONS } from './constants/team-icons';
 
 @Component({
   selector: 'app-contact-teams',
@@ -55,18 +56,8 @@ export class ContactTeamsComponent implements OnInit {
   readonly joinSearchResults = signal<TeamSummary[]>([]);
   readonly applyingTeamId = signal<string | null>(null);
 
-  readonly TEAM_ICONS = [
-    'shield', 'sports_soccer', 'sports_basketball', 'sports_tennis',
-    'sports_volleyball', 'sports_baseball', 'sports_football', 'sports_hockey',
-    'sports_golf', 'directions_run', 'fitness_center', 'star', 'bolt',
-    'local_fire_department', 'emoji_events', 'military_tech', 'workspace_premium',
-    'diamond', 'public', 'groups', 'handshake', 'rocket_launch', 'favorite',
-    'whatshot', 'flash_on', 'grade', 'psychology', 'ac_unit', 'sports_martial_arts',
-    'sports_kabaddi', 'self_improvement', 'directions_bike', 'pool', 'sports_esports',
-  ];
-
   readonly filteredIcons = computed(() =>
-    this.TEAM_ICONS.filter(i => i.includes(this.iconFilter())),
+    TEAM_ICONS.filter(i => i.includes(this.iconFilter())),
   );
 
   readonly availableSports = computed(() =>

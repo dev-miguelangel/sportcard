@@ -5,14 +5,10 @@ import {
   AdminService, AdminUser, AdminEvent, AdminStats, AdminNotification, AdminSport,
 } from '../../core/services/admin.service';
 import { SportsService } from '../../core/services/sports.service';
+import { SPORTS_ICONS } from './constants/sports-icons';
+import { COLOR_PRESETS } from './constants/color-presets';
 
 type AdminTab = 'users' | 'events' | 'stats' | 'notifications' | 'sports';
-
-const COLOR_PRESETS = [
-  '#00c853', '#1e88e5', '#e53935', '#fb8c00', '#8e24aa',
-  '#00897b', '#f4511e', '#3949ab', '#d81b60', '#00acc1',
-  '#43a047', '#fdd835',
-];
 
 function gradientFromColor(hex: string): string {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -27,16 +23,6 @@ function extractColorFromGradient(gradient: string): string {
   return match ? match[0].replace(/\)\s*$/, '').trim() : '#00c853';
 }
 
-const SPORTS_ICONS: string[] = [
-  'sports_soccer', 'sports_basketball', 'sports_tennis', 'sports_baseball',
-  'sports_football', 'sports_golf', 'sports_handball', 'sports_hockey',
-  'sports_rugby_football', 'sports_volleyball', 'sports_kayaking', 'sports_mma',
-  'sports_martial_arts', 'sports_motorsports', 'sports_cricket', 'sports_esports',
-  'sports_kabaddi', 'sports_score', 'directions_bike', 'directions_run',
-  'pool', 'hiking', 'fitness_center', 'self_improvement', 'skateboarding',
-  'rowing', 'surfing', 'downhill_skiing', 'snowboarding', 'paragliding',
-];
-
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -44,40 +30,40 @@ const SPORTS_ICONS: string[] = [
   templateUrl: './admin.component.html',
 })
 export class AdminComponent implements OnInit {
-  private readonly router    = inject(Router);
-  private readonly adminSvc  = inject(AdminService);
+  private readonly router = inject(Router);
+  private readonly adminSvc = inject(AdminService);
   private readonly sportsSvc = inject(SportsService);
 
   readonly activeTab = signal<AdminTab>('users');
 
   // ── Users ─────────────────────────────────────────────────
-  readonly users        = signal<AdminUser[]>([]);
-  readonly usersTotal   = signal(0);
-  readonly usersPage    = signal(1);
-  readonly usersSearch  = signal('');
+  readonly users = signal<AdminUser[]>([]);
+  readonly usersTotal = signal(0);
+  readonly usersPage = signal(1);
+  readonly usersSearch = signal('');
   readonly usersLoading = signal(false);
 
   // ── Events ────────────────────────────────────────────────
-  readonly events        = signal<AdminEvent[]>([]);
-  readonly eventsTotal   = signal(0);
-  readonly eventsPage    = signal(1);
+  readonly events = signal<AdminEvent[]>([]);
+  readonly eventsTotal = signal(0);
+  readonly eventsPage = signal(1);
   readonly eventsLoading = signal(false);
 
   // ── Stats ─────────────────────────────────────────────────
-  readonly stats        = signal<AdminStats | null>(null);
+  readonly stats = signal<AdminStats | null>(null);
   readonly statsLoading = signal(false);
 
   // ── Notifications ─────────────────────────────────────────
-  readonly recentNotifications  = signal<AdminNotification[]>([]);
-  readonly openEvents           = signal<AdminEvent[]>([]);
-  readonly broadcastTitle       = signal('');
-  readonly broadcastBody        = signal('');
-  readonly eventNotifEventId    = signal('');
-  readonly eventNotifTitle      = signal('');
-  readonly eventNotifBody       = signal('');
-  readonly notifSending         = signal(false);
-  readonly notifSuccess         = signal<string | null>(null);
-  readonly notifError           = signal<string | null>(null);
+  readonly recentNotifications = signal<AdminNotification[]>([]);
+  readonly openEvents = signal<AdminEvent[]>([]);
+  readonly broadcastTitle = signal('');
+  readonly broadcastBody = signal('');
+  readonly eventNotifEventId = signal('');
+  readonly eventNotifTitle = signal('');
+  readonly eventNotifBody = signal('');
+  readonly notifSending = signal(false);
+  readonly notifSuccess = signal<string | null>(null);
+  readonly notifError = signal<string | null>(null);
 
   readonly topSportsMax = computed(() => {
     const s = this.stats();
@@ -86,26 +72,26 @@ export class AdminComponent implements OnInit {
   });
 
   // ── Sports ────────────────────────────────────────────────
-  readonly sports          = signal<AdminSport[]>([]);
-  readonly sportsTotal     = signal(0);
-  readonly sportsPage      = signal(1);
-  readonly sportsSearch    = signal('');
-  readonly sportsLoading   = signal(false);
-  readonly showSportModal    = signal(false);
-  readonly editingSportId    = signal<number | null>(null);
-  readonly sportFormName     = signal('');
-  readonly sportFormIcon     = signal('');
-  readonly sportFormEmoji    = signal('');
-  readonly sportFormColor    = signal('#00c853');
+  readonly sports = signal<AdminSport[]>([]);
+  readonly sportsTotal = signal(0);
+  readonly sportsPage = signal(1);
+  readonly sportsSearch = signal('');
+  readonly sportsLoading = signal(false);
+  readonly showSportModal = signal(false);
+  readonly editingSportId = signal<number | null>(null);
+  readonly sportFormName = signal('');
+  readonly sportFormIcon = signal('');
+  readonly sportFormEmoji = signal('');
+  readonly sportFormColor = signal('#00c853');
   readonly sportFormGradient = computed(() => gradientFromColor(this.sportFormColor()));
   readonly sportFormIsActive = signal(true);
-  readonly sportFormOrder    = signal(0);
-  readonly colorPresets      = COLOR_PRESETS;
-  readonly iconPickerOpen    = signal(false);
-  readonly iconSearch        = signal('');
-  readonly sportSaving       = signal(false);
-  readonly sportSuccess      = signal<string | null>(null);
-  readonly sportError        = signal<string | null>(null);
+  readonly sportFormOrder = signal(0);
+  readonly colorPresets = COLOR_PRESETS;
+  readonly iconPickerOpen = signal(false);
+  readonly iconSearch = signal('');
+  readonly sportSaving = signal(false);
+  readonly sportSuccess = signal<string | null>(null);
+  readonly sportError = signal<string | null>(null);
 
   readonly filteredIcons = computed(() => {
     const q = this.iconSearch().toLowerCase();
@@ -121,13 +107,13 @@ export class AdminComponent implements OnInit {
   // ── Tab switching ─────────────────────────────────────────
   setTab(tab: AdminTab): void {
     this.activeTab.set(tab);
-    if (tab === 'users'  && this.users().length === 0)  this.loadUsers();
+    if (tab === 'users' && this.users().length === 0) this.loadUsers();
     if (tab === 'events' && this.events().length === 0) this.loadEvents();
-    if (tab === 'stats'  && !this.stats())              this.loadStats();
+    if (tab === 'stats' && !this.stats()) this.loadStats();
     if (tab === 'sports' && this.sports().length === 0) this.loadSports();
     if (tab === 'notifications') {
       if (this.recentNotifications().length === 0) this.loadRecentNotifications();
-      if (this.openEvents().length === 0)          this.loadOpenEvents();
+      if (this.openEvents().length === 0) this.loadOpenEvents();
     }
   }
 
@@ -232,7 +218,7 @@ export class AdminComponent implements OnInit {
     this.statsLoading.set(true);
     this.adminSvc.getStats().subscribe({
       next: s => { this.stats.set(s); this.statsLoading.set(false); },
-      error: ()  => this.statsLoading.set(false),
+      error: () => this.statsLoading.set(false),
     });
   }
 
@@ -420,15 +406,15 @@ export class AdminComponent implements OnInit {
   notifTypeColor(type: string): string {
     return type === 'broadcast' ? 'text-brand bg-brand/10 border-brand/30'
       : type === 'event' ? 'text-blue-400 bg-blue-400/10 border-blue-400/30'
-      : 'text-neutral-400 bg-neutral-800 border-neutral-700';
+        : 'text-neutral-400 bg-neutral-800 border-neutral-700';
   }
 
   usersHasNext(): boolean { return this.usersPage() * 20 < this.usersTotal(); }
   eventsHasNext(): boolean { return this.eventsPage() * 20 < this.eventsTotal(); }
 
   setBroadcastTitle(v: string): void { this.broadcastTitle.set(v); }
-  setBroadcastBody(v: string): void  { this.broadcastBody.set(v); }
+  setBroadcastBody(v: string): void { this.broadcastBody.set(v); }
   setEventNotifEventId(v: string): void { this.eventNotifEventId.set(v); }
-  setEventNotifTitle(v: string): void   { this.eventNotifTitle.set(v); }
-  setEventNotifBody(v: string): void    { this.eventNotifBody.set(v); }
+  setEventNotifTitle(v: string): void { this.eventNotifTitle.set(v); }
+  setEventNotifBody(v: string): void { this.eventNotifBody.set(v); }
 }
