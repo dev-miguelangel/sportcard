@@ -1,0 +1,25 @@
+@if (user().emergencyName || user().emergencyPhone) {
+<div>
+  <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-3">Contacto de emergencia</p>
+  <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-4 mb-3">
+    <p class="text-sm font-semibold text-white mb-1">{{ user().emergencyName }}</p>
+    @if (user().emergencyRelation) {
+    <p class="text-xs text-neutral-500">{{ user().emergencyRelation }}</p>
+    }
+  </div>
+  @if (user().emergencyPhone) {
+  <div class="flex gap-2">
+    <button (click)="openWhatsApp(user().emergencyPhone!)"
+      class="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity min-h-[44px]">
+      <span class="material-symbols-outlined text-sm">message</span>
+      <span>WhatsApp</span>
+    </button>
+    <button (click)="callPhone(user().emergencyPhone!)"
+      class="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity min-h-[44px]">
+      <span class="material-symbols-outlined text-sm">phone</span>
+      <span>Llamar</span>
+    </button>
+  </div>
+  }
+</div>
+}

@@ -1,0 +1,52 @@
+@if (user().bloodType || user().allergies || user().medicalConditions || user().medications) {
+<div class="mb-4">
+  <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-3">Datos médicos</p>
+  <div class="bg-neutral-950 border border-neutral-800 rounded-xl overflow-hidden divide-y divide-neutral-800">
+
+    @if (user().bloodType) {
+    <div class="flex items-center gap-3 px-4 py-3">
+      <span class="material-symbols-outlined text-red-400 flex-shrink-0"
+        style="font-size:18px">blood_pressure</span>
+      <div>
+        <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Tipo de sangre</p>
+        <p class="text-sm font-bold text-red-400">{{ user().bloodType }}</p>
+      </div>
+    </div>
+    }
+
+    @if (user().allergies) {
+    <div class="flex items-start gap-3 px-4 py-3">
+      <span class="material-symbols-outlined text-yellow-500 flex-shrink-0 mt-0.5"
+        style="font-size:18px">warning</span>
+      <div>
+        <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Alergias</p>
+        <p class="text-sm text-neutral-200">{{ user().allergies }}</p>
+      </div>
+    </div>
+    }
+
+    @if (user().medicalConditions) {
+    <div class="flex items-start gap-3 px-4 py-3">
+      <span class="material-symbols-outlined text-neutral-400 flex-shrink-0 mt-0.5"
+        style="font-size:18px">medical_information</span>
+      <div>
+        <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Condiciones médicas</p>
+        <p class="text-sm text-neutral-200">{{ user().medicalConditions }}</p>
+      </div>
+    </div>
+    }
+
+    @if (user().medications) {
+    <div class="flex items-start gap-3 px-4 py-3">
+      <span class="material-symbols-outlined text-neutral-400 flex-shrink-0 mt-0.5"
+        style="font-size:18px">medication</span>
+      <div>
+        <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Medicamentos</p>
+        <p class="text-sm text-neutral-200">{{ user().medications }}</p>
+      </div>
+    </div>
+    }
+
+  </div>
+</div>
+}
