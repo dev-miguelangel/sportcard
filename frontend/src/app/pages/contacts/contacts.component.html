@@ -10,7 +10,8 @@
       </button>
       <h1 class="font-black tracking-tight flex-1">Contactos</h1>
       @if (activeTab() === 'contacts' && contactsList().length > 0) {
-      <span class="text-[0.7rem] font-bold text-neutral-500">{{ contactsList().length }} contacto{{ contactsList().length
+      <span class="text-[0.7rem] font-bold text-neutral-500">{{ contactsList().length }} contacto{{
+        contactsList().length
         !== 1 ? 's' : '' }}</span>
       }
     </div>
@@ -40,18 +41,14 @@
     <!-- TAB: CONTACTOS                                      -->
     <!-- ═══════════════════════════════════════════════════ -->
     @if (activeTab() === 'contacts') {
-    <app-contact-people
-      (profileRequested)="openProfile($event)"
-      (contactsChange)="contactsList.set($event)" />
+    <app-contact-people (profileRequested)="openProfile($event)" (contactsChange)="contactsList.set($event)" />
     }
 
     <!-- ═══════════════════════════════════════════════════ -->
     <!-- TAB: GRUPOS                                         -->
     <!-- ═══════════════════════════════════════════════════ -->
     @if (activeTab() === 'groups') {
-    <app-contact-group
-      [contactsList]="contactsList()"
-      (profileRequested)="openProfile($event)" />
+    <app-contact-group [contactsList]="contactsList()" (profileRequested)="openProfile($event)" />
     }
 
     <!-- ═══════════════════════════════════════════════════ -->
@@ -61,215 +58,146 @@
     <app-contact-teams (profileRequested)="openProfile($event)" />
     }
 
-<!-- Modal: Contact Profile -->
-@if (profileUser()) {
-<div class="fixed inset-0 z-50 flex items-end">
-  <!-- Backdrop -->
-  <div class="absolute inset-0 bg-black/40" (click)="closeProfile()"></div>
+    <!-- Modal: Contact Profile -->
+    @if (profileUser()) {
+    <div class="fixed inset-0 z-50 flex items-end">
+      <!-- Backdrop -->
+      <div class="absolute inset-0 bg-black/40" (click)="closeProfile()"></div>
 
-  <!-- Bottom Sheet -->
-  <div class="relative w-full bg-neutral-900 border-t border-neutral-800 rounded-t-3xl max-h-[90vh] overflow-y-auto"
-    style="padding-bottom: env(safe-area-inset-bottom)">
+      <!-- Bottom Sheet -->
+      <div class="relative w-full bg-neutral-900 border-t border-neutral-800 rounded-t-3xl max-h-[90vh] overflow-y-auto"
+        style="padding-bottom: env(safe-area-inset-bottom)">
 
-    <!-- Header -->
-    <div
-      class="sticky top-0 z-10 bg-neutral-900 border-b border-neutral-800 px-4 py-3 flex items-center justify-between">
-      <h2 class="font-bold text-sm">Perfil</h2>
-      <button (click)="closeProfile()" class="p-1 hover:bg-neutral-800 rounded-lg transition-colors">
-        <span class="material-symbols-outlined text-neutral-400">close</span>
-      </button>
-    </div>
-
-    <!-- Content -->
-    <div class="px-4 py-6 flex flex-col items-center text-center gap-4">
-      @let user = profileUser()!;
-
-      <!-- Avatar or initials -->
-      @if (user.avatar) {
-      <img [src]="user.avatar" [alt]="user.name" class="w-16 h-16 rounded-2xl object-cover ring-2 ring-neutral-700" />
-      } @else {
-      <div
-        class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand to-emerald-600 flex items-center justify-center ring-2 ring-neutral-700">
-        <span class="text-xl font-black text-neutral-950">{{ getInitials(user.name) }}</span>
-      </div>
-      }
-
-      <!-- Name and email -->
-      <div>
-        <h1 class="text-xl font-black tracking-tight">{{ user.name }}</h1>
-        <p class="text-sm text-neutral-400 mt-0.5">{{ user.email }}</p>
-      </div>
-
-      <!-- QR Code -->
-      <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3">
-        @if (profileQr()) {
-        <img [src]="profileQr()" alt="QR Sport Card" class="w-40 h-40 rounded-lg" />
-        } @else {
-        <div class="w-40 h-40 rounded-lg bg-neutral-900 flex items-center justify-center">
-          <span class="material-symbols-outlined text-neutral-600 animate-spin"
-            style="font-size:28px">progress_activity</span>
+        <!-- Header -->
+        <div
+          class="sticky top-0 z-10 bg-neutral-900 border-b border-neutral-800 px-4 py-3 flex items-center justify-between">
+          <h2 class="font-bold text-sm">Perfil</h2>
+          <button (click)="closeProfile()" class="p-1 hover:bg-neutral-800 rounded-lg transition-colors">
+            <span class="material-symbols-outlined text-neutral-400">close</span>
+          </button>
         </div>
-        }
-        <p class="text-[10px] text-neutral-600 text-center mt-2 uppercase tracking-widest">Sport Card ID</p>
-      </div>
 
-      <!-- ID badge -->
-      <div class="flex items-center gap-2 bg-neutral-800/60 rounded-xl px-4 py-2.5 border border-neutral-700">
-        <span class="material-symbols-outlined text-brand" style="font-size:16px">badge</span>
-        <span class="font-mono font-black text-white tracking-widest text-lg leading-none">{{ user.stringId }}</span>
-      </div>
+        <!-- Content -->
+        <div class="px-4 py-6 flex flex-col items-center text-center gap-4">
+          @let user = profileUser()!;
 
-      <!-- Ver datos de emergencia button -->
-      <button (click)="openEmergencyData()"
-        class="flex items-center gap-2 text-sm text-neutral-400 hover:text-white border border-neutral-700 hover:border-neutral-500 rounded-xl px-4 py-2.5 transition-colors min-h-[44px] w-full justify-center">
-        <span class="material-symbols-outlined" style="font-size:16px">emergency</span>
-        Ver datos de emergencia
-      </button>
-
-      <!-- Emergency data section -->
-      @if (showEmergencyData()) {
-      <div class="w-full border-t border-neutral-700 pt-4 mt-2">
-        <!-- Medical data -->
-        @if (user.bloodType || user.allergies || user.medicalConditions || user.medications) {
-        <div class="mb-4">
-          <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-3">Datos médicos</p>
-          <div class="bg-neutral-950 border border-neutral-800 rounded-xl overflow-hidden divide-y divide-neutral-800">
-            @if (user.bloodType) {
-            <div class="flex items-center gap-3 px-4 py-3">
-              <span class="material-symbols-outlined text-red-400 flex-shrink-0"
-                style="font-size:18px">blood_pressure</span>
-              <div>
-                <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Tipo de sangre</p>
-                <p class="text-sm font-bold text-red-400">{{ user.bloodType }}</p>
-              </div>
-            </div>
-            }
-            @if (user.allergies) {
-            <div class="flex items-start gap-3 px-4 py-3">
-              <span class="material-symbols-outlined text-yellow-500 flex-shrink-0 mt-0.5"
-                style="font-size:18px">warning</span>
-              <div>
-                <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Alergias</p>
-                <p class="text-sm text-neutral-200">{{ user.allergies }}</p>
-              </div>
-            </div>
-            }
-            @if (user.medicalConditions) {
-            <div class="flex items-start gap-3 px-4 py-3">
-              <span class="material-symbols-outlined text-neutral-400 flex-shrink-0 mt-0.5"
-                style="font-size:18px">medical_information</span>
-              <div>
-                <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Condiciones médicas</p>
-                <p class="text-sm text-neutral-200">{{ user.medicalConditions }}</p>
-              </div>
-            </div>
-            }
-            @if (user.medications) {
-            <div class="flex items-start gap-3 px-4 py-3">
-              <span class="material-symbols-outlined text-neutral-400 flex-shrink-0 mt-0.5"
-                style="font-size:18px">medication</span>
-              <div>
-                <p class="text-[10px] text-neutral-500 uppercase tracking-wider">Medicamentos</p>
-                <p class="text-sm text-neutral-200">{{ user.medications }}</p>
-              </div>
-            </div>
-            }
-          </div>
-        </div>
-        }
-
-        <!-- Emergency contact -->
-        @if (user.emergencyName || user.emergencyPhone) {
-        <div>
-          <p class="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-3">Contacto de emergencia</p>
-          <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-4 mb-3">
-            <p class="text-sm font-semibold text-white mb-1">{{ user.emergencyName }}</p>
-            @if (user.emergencyRelation) {
-            <p class="text-xs text-neutral-500">{{ user.emergencyRelation }}</p>
-            }
-          </div>
-          @if (user.emergencyPhone) {
-          <div class="flex gap-2">
-            <button (click)="openWhatsApp(user.emergencyPhone!)"
-              class="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity min-h-[44px]">
-              <span class="material-symbols-outlined text-sm">message</span>
-              <span>WhatsApp</span>
-            </button>
-            <button (click)="callPhone(user.emergencyPhone!)"
-              class="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity min-h-[44px]">
-              <span class="material-symbols-outlined text-sm">phone</span>
-              <span>Llamar</span>
-            </button>
+          <!-- Avatar or initials -->
+          @if (user.avatar) {
+          <img [src]="user.avatar" [alt]="user.name"
+            class="w-16 h-16 rounded-2xl object-cover ring-2 ring-neutral-700" />
+          } @else {
+          <div
+            class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand to-emerald-600 flex items-center justify-center ring-2 ring-neutral-700">
+            <span class="text-xl font-black text-neutral-950">{{ getInitials(user.name) }}</span>
           </div>
           }
+
+          <!-- Name and email -->
+          <div>
+            <h1 class="text-xl font-black tracking-tight">{{ user.name }}</h1>
+            <p class="text-sm text-neutral-400 mt-0.5">{{ user.email }}</p>
+          </div>
+
+          <!-- QR Code -->
+          <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3">
+            @if (profileQr()) {
+            <img [src]="profileQr()" alt="QR Sport Card" class="w-40 h-40 rounded-lg" />
+            } @else {
+            <div class="w-40 h-40 rounded-lg bg-neutral-900 flex items-center justify-center">
+              <span class="material-symbols-outlined text-neutral-600 animate-spin"
+                style="font-size:28px">progress_activity</span>
+            </div>
+            }
+            <p class="text-[10px] text-neutral-600 text-center mt-2 uppercase tracking-widest">Sport Card ID</p>
+          </div>
+
+          <!-- ID badge -->
+          <div class="flex items-center gap-2 bg-neutral-800/60 rounded-xl px-4 py-2.5 border border-neutral-700">
+            <span class="material-symbols-outlined text-brand" style="font-size:16px">badge</span>
+            <span class="font-mono font-black text-white tracking-widest text-lg leading-none">{{ user.stringId
+              }}</span>
+          </div>
+
+          <!-- Ver datos de emergencia button -->
+          <button (click)="openEmergencyData()"
+            class="flex items-center gap-2 text-sm text-neutral-400 hover:text-white border border-neutral-700 hover:border-neutral-500 rounded-xl px-4 py-2.5 transition-colors min-h-[44px] w-full justify-center">
+            <span class="material-symbols-outlined" style="font-size:16px">emergency</span>
+            Ver datos de emergencia
+          </button>
+
+          <!-- Emergency data section -->
+          @if (showEmergencyData()) {
+          <div class="w-full border-t border-neutral-700 pt-4 mt-2">
+            <app-contact-emergency-data [user]="user" />
+            <app-contact-emergency-contact [user]="user" />
+          </div>
+          }
+
         </div>
-        }
-      </div>
-      }
 
-    </div>
-
-  </div>
-</div>
-}
-
-<!-- Modal: Emergency Data Confirmation -->
-@if (showEmergencyConfirmation()) {
-<div class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-  <!-- Backdrop -->
-  <div class="absolute inset-0 bg-black/60" (click)="cancelEmergencyData()"></div>
-
-  <!-- Dialog -->
-  <div class="relative bg-neutral-900 border border-neutral-800 rounded-2xl max-w-sm w-full p-6 flex flex-col gap-4">
-
-    <!-- Icon -->
-    <div class="flex justify-center">
-      <div class="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center">
-        <span class="material-symbols-outlined text-yellow-500" style="font-size:24px">warning</span>
       </div>
     </div>
+    }
 
-    <!-- Title -->
-    <h2 class="text-center text-lg font-black text-white">Datos Confidenciales</h2>
+    <!-- Modal: Emergency Data Confirmation -->
+    @if (showEmergencyConfirmation()) {
+    <div class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <!-- Backdrop -->
+      <div class="absolute inset-0 bg-black/60" (click)="cancelEmergencyData()"></div>
 
-    <!-- Message -->
-    <div class="text-center space-y-2">
-      <p class="text-sm text-neutral-300">Estás a punto de acceder a información médica y de emergencia confidencial.
-      </p>
-      <p class="text-xs text-neutral-500">Esta acción será registrada y notificada al usuario. Úsalo solo en caso de
-        emergencia real.</p>
+      <!-- Dialog -->
+      <div
+        class="relative bg-neutral-900 border border-neutral-800 rounded-2xl max-w-sm w-full p-6 flex flex-col gap-4">
+
+        <!-- Icon -->
+        <div class="flex justify-center">
+          <div class="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center">
+            <span class="material-symbols-outlined text-yellow-500" style="font-size:24px">warning</span>
+          </div>
+        </div>
+
+        <!-- Title -->
+        <h2 class="text-center text-lg font-black text-white">Datos Confidenciales</h2>
+
+        <!-- Message -->
+        <div class="text-center space-y-2">
+          <p class="text-sm text-neutral-300">Estás a punto de acceder a información médica y de emergencia
+            confidencial.
+          </p>
+          <p class="text-xs text-neutral-500">Esta acción será registrada y notificada al usuario. Úsalo solo en caso de
+            emergencia real.</p>
+        </div>
+
+        <!-- Divider -->
+        <div class="h-px bg-neutral-800"></div>
+
+        <!-- Privacy reminder -->
+        <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3">
+          <p class="text-xs text-neutral-400 text-center">
+            <span class="font-semibold">Recuerda:</span> Respeta la privacidad del usuario. Accede a esta información
+            solo
+            en situaciones de emergencia.
+          </p>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-3">
+          <button (click)="cancelEmergencyData()"
+            class="flex-1 bg-neutral-800 border border-neutral-700 text-neutral-300 font-semibold py-2.5 rounded-lg hover:bg-neutral-700 transition-colors min-h-[44px]">
+            Cancelar
+          </button>
+          <button (click)="confirmEmergencyData()"
+            class="flex-1 bg-yellow-600 text-white font-semibold py-2.5 rounded-lg hover:bg-yellow-700 transition-colors min-h-[44px] flex items-center justify-center gap-2">
+            <span>Ver información</span>
+          </button>
+        </div>
+
+      </div>
     </div>
+    }
 
-    <!-- Divider -->
-    <div class="h-px bg-neutral-800"></div>
+  </main>
 
-    <!-- Privacy reminder -->
-    <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3">
-      <p class="text-xs text-neutral-400 text-center">
-        <span class="font-semibold">Recuerda:</span> Respeta la privacidad del usuario. Accede a esta información solo
-        en situaciones de emergencia.
-      </p>
-    </div>
-
-    <!-- Buttons -->
-    <div class="flex gap-3">
-      <button (click)="cancelEmergencyData()"
-        class="flex-1 bg-neutral-800 border border-neutral-700 text-neutral-300 font-semibold py-2.5 rounded-lg hover:bg-neutral-700 transition-colors min-h-[44px]">
-        Cancelar
-      </button>
-      <button (click)="confirmEmergencyData()"
-        class="flex-1 bg-yellow-600 text-white font-semibold py-2.5 rounded-lg hover:bg-yellow-700 transition-colors min-h-[44px] flex items-center justify-center gap-2">
-        <span class="material-symbols-outlined text-sm">visibility</span>
-        <span>Ver información</span>
-      </button>
-    </div>
-
-  </div>
-</div>
-}
-
-</main>
-
-<app-bottom-nav activeTab="contacts" />
+  <app-bottom-nav activeTab="contacts" />
 
 </div>

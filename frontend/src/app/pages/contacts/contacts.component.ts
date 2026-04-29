@@ -6,13 +6,15 @@ import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component
 import { ContactPeopleComponent } from './people/contact-people.component';
 import { ContactGroupComponent } from './groups/contact-group.component';
 import { ContactTeamsComponent } from './teams/contact-teams.component';
+import { ContactEmergencyDataComponent } from './emergency-data/contact-emergency-data.component';
+import { ContactEmergencyContactComponent } from './emergency-contact/contact-emergency-contact.component';
 
 type ActiveTab = 'contacts' | 'groups' | 'teams';
 
 @Component({
   selector: 'app-contacts',
   standalone: true,
-  imports: [BottomNavComponent, ContactPeopleComponent, ContactGroupComponent, ContactTeamsComponent],
+  imports: [BottomNavComponent, ContactPeopleComponent, ContactGroupComponent, ContactTeamsComponent, ContactEmergencyDataComponent, ContactEmergencyContactComponent],
   templateUrl: './contacts.component.html',
 })
 export class ContactsComponent implements OnInit {
@@ -84,12 +86,4 @@ export class ContactsComponent implements OnInit {
     this.showEmergencyConfirmation.set(false);
   }
 
-  openWhatsApp(phone: string): void {
-    const cleanPhone = phone.replace(/\D/g, '');
-    window.open(`https://wa.me/${cleanPhone}`, '_blank', 'noopener');
-  }
-
-  callPhone(phone: string): void {
-    window.open(`tel:${phone}`, '_self');
-  }
 }
