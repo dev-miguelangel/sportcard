@@ -1,0 +1,196 @@
+<div class="flex flex-col gap-5">
+
+  <!-- ── Vista detalle de grupo ─────────────────────── -->
+  @if (selectedGroup()) {
+
+  <!-- Sub-header del grupo -->
+  <div class="flex items-center gap-3">
+    <button (click)="backToGroupList()"
+      class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 flex-shrink-0">
+      <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">arrow_back</span>
+    </button>
+    <div class="flex-1 min-w-0">
+      <p class="font-black truncate">{{ selectedGroup()!.name }}</p>
+      <p class="text-[0.65rem] text-neutral-500">{{ selectedGroup()!.memberCount }} miembro{{
+        selectedGroup()!.memberCount !== 1 ? 's' : '' }}</p>
+    </div>
+    <button (click)="deleteGroup(selectedGroup()!)"
+      class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 text-red-400 flex-shrink-0">
+      <span class="material-symbols-outlined" style="font-size:18px">delete</span>
+    </button>
+  </div>
+
+  <!-- Error -->
+  @if (groupActionError()) {
+  <p class="text-xs text-red-400 flex items-center gap-1.5">
+    <span class="material-symbols-outlined" style="font-size:14px">error</span>
+    {{ groupActionError() }}
+  </p>
+  }
+
+  <!-- Añadir miembro -->
+  @if (availableToAdd().length > 0) {
+  <div class="flex flex-col gap-2">
+    <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-500">Agregar miembro</p>
+    <div class="flex flex-col gap-1.5">
+      @for (contact of availableToAdd(); track contact.id) {
+      <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-2.5">
+        @if (contact.avatar) {
+        <img [src]="contact.avatar" [alt]="contact.name" class="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+        } @else {
+        <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
+          <span class="text-xs font-black text-brand">{{ getInitials(contact.name) }}</span>
+        </div>
+        }
+        <span class="text-sm font-semibold flex-1 truncate">{{ contact.name }}</span>
+        <button (click)="addMemberToGroup(contact.id)" [disabled]="addingMember()"
+          class="flex items-center gap-1 bg-brand text-neutral-950 text-[0.7rem] font-black
+                               px-3 py-1.5 rounded-xl min-h-[36px] flex-shrink-0 transition-opacity disabled:opacity-40">
+          @if (addingMember()) {
+          <span class="material-symbols-outlined animate-spin" style="font-size:14px">progress_activity</span>
+          } @else {
+          <span class="material-symbols-outlined" style="font-size:14px">add</span>
+          }
+          Agregar
+        </button>
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Miembros del grupo -->
+  <div class="flex flex-col gap-2">
+    <p class="text-[0.62rem] font-bold uppercase tracking-wider text-neutral-500">Miembros</p>
+
+    @if (loadingMembers()) {
+    <div class="flex flex-col gap-2">
+      @for (i of [1, 2]; track i) {
+      <div
+        class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3 animate-pulse">
+        <div class="w-9 h-9 rounded-full bg-neutral-800 flex-shrink-0"></div>
+        <div class="flex-1 h-3.5 bg-neutral-800 rounded-md"></div>
+      </div>
+      }
+    </div>
+    } @else if (groupMembers().length === 0) {
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 text-center">
+      <p class="text-sm text-neutral-600">Este grupo no tiene miembros aún.</p>
+    </div>
+    } @else {
+    <div class="flex flex-col gap-2">
+      @for (member of groupMembers(); track member.userId) {
+      <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3">
+        @if (member.avatar) {
+        <img [src]="member.avatar" [alt]="member.name" class="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+        } @else {
+        <div class="w-9 h-9 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
+          <span class="text-sm font-black text-brand">{{ getInitials(member.name) }}</span>
+        </div>
+        }
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold truncate">{{ member.name }}</p>
+          <span class="text-[0.65rem] font-mono text-neutral-500">{{ member.stringId }}</span>
+        </div>
+        <button (click)="profileRequested.emit(member.userId)" class="w-9 h-9 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700
+                               hover:border-neutral-500 transition-colors flex-shrink-0">
+          <span class="material-symbols-outlined text-neutral-400" style="font-size:18px">person</span>
+        </button>
+        <button (click)="removeMemberFromGroup(member)" [disabled]="memberActionId() === member.userId"
+          class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-800 border border-neutral-700
+                               text-neutral-500 hover:text-red-400 transition-colors flex-shrink-0 disabled:opacity-40">
+          @if (memberActionId() === member.userId) {
+          <span class="material-symbols-outlined animate-spin" style="font-size:16px">progress_activity</span>
+          } @else {
+          <span class="material-symbols-outlined" style="font-size:16px">person_remove</span>
+          }
+        </button>
+      </div>
+      }
+    </div>
+    }
+  </div>
+
+  } @else {
+
+  <!-- ── Lista de grupos ─────────────────────────── -->
+
+  <!-- Botón crear / formulario inline -->
+  @if (showCreateGroup()) {
+  <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 flex flex-col gap-3">
+    <p class="text-[0.65rem] font-bold uppercase tracking-wider text-neutral-500">Nuevo grupo</p>
+    <input type="text" placeholder="Nombre del grupo..." [value]="newGroupName()"
+      (input)="newGroupName.set($any($event.target).value)" (keydown.enter)="saveGroup()" class="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-3
+                        text-sm placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500
+                        transition-colors min-h-[44px]" />
+    @if (groupActionError()) {
+    <p class="text-xs text-red-400 flex items-center gap-1.5">
+      <span class="material-symbols-outlined" style="font-size:14px">error</span>
+      {{ groupActionError() }}
+    </p>
+    }
+    <div class="flex gap-2">
+      <button (click)="cancelCreateGroup()" class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 text-neutral-300 font-bold
+                           rounded-xl min-h-[44px] text-sm border border-neutral-700 transition-opacity">
+        Cancelar
+      </button>
+      <button (click)="saveGroup()" [disabled]="!newGroupName().trim() || savingGroup()" class="flex-1 flex items-center justify-center gap-1.5 bg-brand text-neutral-950 font-black
+                           rounded-xl min-h-[44px] text-sm transition-opacity disabled:opacity-50">
+        @if (savingGroup()) {
+        <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+        } @else {
+        <span class="material-symbols-outlined" style="font-size:18px">check</span>
+        }
+        Crear
+      </button>
+    </div>
+  </div>
+  } @else {
+  <button (click)="openCreateGroup()" class="w-full flex items-center justify-center gap-2 bg-brand text-neutral-950 font-black
+                       rounded-2xl min-h-[48px] text-sm transition-opacity">
+    <span class="material-symbols-outlined" style="font-size:20px">add</span>
+    Nuevo grupo
+  </button>
+  }
+
+  <!-- Lista de grupos -->
+  @if (loadingGroups()) {
+  <div class="flex flex-col gap-2">
+    @for (i of [1, 2]; track i) {
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-4 animate-pulse flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-neutral-800 flex-shrink-0"></div>
+      <div class="flex-1 flex flex-col gap-1.5">
+        <div class="h-3.5 bg-neutral-800 rounded-md w-1/2"></div>
+        <div class="h-2.5 bg-neutral-800 rounded-md w-1/3"></div>
+      </div>
+    </div>
+    }
+  </div>
+  } @else if (groups().length === 0) {
+  <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center">
+    <span class="material-symbols-outlined text-neutral-700 mb-3 block" style="font-size:40px">group_work</span>
+    <p class="text-sm font-semibold text-neutral-400 mb-1">Sin grupos aún</p>
+    <p class="text-xs text-neutral-600">Crea un grupo para invitar a varios contactos de una vez.</p>
+  </div>
+  } @else {
+  <div class="flex flex-col gap-2">
+    @for (group of groups(); track group.id) {
+    <button (click)="selectGroup(group)" class="w-full flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl
+                           px-4 py-4 text-left transition-colors hover:border-neutral-600 min-h-[68px]">
+      <div class="w-10 h-10 rounded-xl bg-brand/15 flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined text-brand" style="font-size:22px">group</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-bold truncate">{{ group.name }}</p>
+        <p class="text-[0.65rem] text-neutral-500 mt-0.5">{{ group.memberCount }} miembro{{ group.memberCount !== 1 ?
+          's' : '' }}</p>
+      </div>
+      <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">chevron_right</span>
+    </button>
+    }
+  </div>
+  }
+
+  }
+
+</div>
