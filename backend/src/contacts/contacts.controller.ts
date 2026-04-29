@@ -13,6 +13,7 @@ import {
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ContactsService } from './contacts.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 interface JwtUser {
   id: string;
@@ -23,7 +24,10 @@ interface JwtUser {
 @Controller('contacts')
 @UseGuards(JwtAuthGuard)
 export class ContactsController {
-  constructor(private readonly contactsSvc: ContactsService) {}
+  constructor(
+    private readonly contactsSvc: ContactsService,
+    private readonly notificationsSvc: NotificationsService,
+  ) {}
 
   @Get('search')
   search(@Query('q') q: string = '', @Req() req: Request) {
@@ -54,5 +58,12 @@ export class ContactsController {
   removeContact(@Param('userId') contactId: string, @Req() req: Request) {
     const user = req.user as JwtUser;
     return this.contactsSvc.removeContact(user.id, contactId);
+  }
+
+  @Post(':userId/emergency-viewed')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async notifyEmergencyViewed(@Param('userId') targetUserId: string, @Req() req: Request) {
+    const viewer = req.user as JwtUser;
+    await this.notificationsSvc.createEmergencyDataViewed(targetUserId, viewer.name);
   }
 }

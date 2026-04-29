@@ -80,6 +80,10 @@ export class ContactsComponent implements OnInit {
   confirmEmergencyData(): void {
     this.showEmergencyConfirmation.set(false);
     this.showEmergencyData.set(true);
+    const user = this.profileUser();
+    if (user) {
+      this.contactsSvc.notifyEmergencyViewed(user.id).subscribe();
+    }
   }
 
   cancelEmergencyData(): void {

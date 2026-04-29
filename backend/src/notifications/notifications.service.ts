@@ -143,6 +143,16 @@ export class NotificationsService {
     await this.repo.save(notifications);
   }
 
+  async createEmergencyDataViewed(targetUserId: string, viewerName: string): Promise<Notification> {
+    const n = this.repo.create({
+      userId: targetUserId,
+      type: NotificationType.SYSTEM,
+      title: 'Datos de emergencia consultados',
+      body: `${viewerName} consultó tus datos de emergencia`,
+    });
+    return this.repo.save(n);
+  }
+
   async createGuardianApproval(
     guardianId: string,
     participantId: string,
