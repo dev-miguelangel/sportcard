@@ -8,9 +8,10 @@ import { ContactsService } from './contacts.service';
 import { ContactsController } from './contacts.controller';
 import { ContactGroupsService } from './contact-groups.service';
 import { ContactGroupsController } from './contact-groups.controller';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Contact, ContactGroup, ContactGroupMember, User])],
+  imports: [TypeOrmModule.forFeature([Contact, ContactGroup, ContactGroupMember, User]), NotificationsModule],
   controllers: [ContactGroupsController, ContactsController],
   providers: [ContactsService, ContactGroupsService],
   exports: [ContactGroupsService],

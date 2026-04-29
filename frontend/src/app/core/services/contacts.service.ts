@@ -100,4 +100,8 @@ export class ContactsService {
   getUserProfile(userId: string): Observable<UserProfile> {
     return this.http.get<UserProfile>(`${environment.apiUrl}/users/${userId}/profile`);
   }
+
+  notifyEmergencyViewed(targetUserId: string): Observable<void> {
+    return this.http.post<void>(`${environment.apiUrl}/contacts/${targetUserId}/emergency-viewed`, {});
+  }
 }
