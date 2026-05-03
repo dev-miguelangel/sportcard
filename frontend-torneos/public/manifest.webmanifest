@@ -1,6 +1,6 @@
 {
-  "name": "Sport Card — Portal Torneos",
-  "short_name": "SC Torneos",
+  "name": "RocketId — Portal Torneos",
+  "short_name": "RocketId Torneos",
   "description": "Portal de entrenadores y organizadores de torneos",
   "start_url": "/",
   "display": "standalone",

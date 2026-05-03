@@ -1,6 +1,6 @@
 {
-  "name": "Sport Card",
-  "short_name": "SportCard",
+  "name": "RocketId",
+  "short_name": "RocketId",
   "description": "Gestiona tus eventos deportivos",
   "start_url": "/",
   "display": "standalone",

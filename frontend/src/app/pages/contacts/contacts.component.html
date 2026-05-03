@@ -101,14 +101,14 @@
           <!-- QR Code -->
           <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3">
             @if (profileQr()) {
-            <img [src]="profileQr()" alt="QR Sport Card" class="w-40 h-40 rounded-lg" />
+            <img [src]="profileQr()" alt="QR RocketId" class="w-40 h-40 rounded-lg" />
             } @else {
             <div class="w-40 h-40 rounded-lg bg-neutral-900 flex items-center justify-center">
               <span class="material-symbols-outlined text-neutral-600 animate-spin"
                 style="font-size:28px">progress_activity</span>
             </div>
             }
-            <p class="text-[10px] text-neutral-600 text-center mt-2 uppercase tracking-widest">Sport Card ID</p>
+            <p class="text-[10px] text-neutral-600 text-center mt-2 uppercase tracking-widest">RocketId ID</p>
           </div>
 
           <!-- ID badge -->

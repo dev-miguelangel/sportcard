@@ -114,7 +114,7 @@ export class ContactPeopleComponent implements OnInit, OnDestroy {
     const user = this.currentUser();
     if (!user) return;
     const text = encodeURIComponent(
-      `${user.name} te está invitando a SportCard\n\nUn lugar increíble para organizar eventos deportivos, encontrar equipos y conocer gente que comparte tus pasiones.\n\n1. Inicia sesión: https://dev.sportcard.miguelangeljaimen.cl/\n2. Búscame en contactos como: ${user.stringId}\n\n¡Vamos a jugar!`,
+      `${user.name} te está invitando a RocketId\n\nUn lugar increíble para organizar eventos deportivos, encontrar equipos y conocer gente que comparte tus pasiones.\n\n1. Inicia sesión: https://dev.sportcard.miguelangeljaimen.cl/\n2. Búscame en contactos como: ${user.stringId}\n\n¡Vamos a jugar!`,
     );
     window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener');
   }

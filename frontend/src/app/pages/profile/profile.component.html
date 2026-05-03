@@ -31,13 +31,13 @@
           <!-- QR Code -->
           <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-3">
             @if (qrDataUrl()) {
-              <img [src]="qrDataUrl()" alt="QR Sport Card" class="w-40 h-40 rounded-lg" />
+              <img [src]="qrDataUrl()" alt="QR RocketId" class="w-40 h-40 rounded-lg" />
             } @else {
               <div class="w-40 h-40 rounded-lg bg-neutral-900 flex items-center justify-center">
                 <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:28px">progress_activity</span>
               </div>
             }
-            <p class="text-[10px] text-neutral-600 text-center mt-2 uppercase tracking-widest">Sport Card ID</p>
+            <p class="text-[10px] text-neutral-600 text-center mt-2 uppercase tracking-widest">RocketId ID</p>
           </div>
 
           <!-- ID badge -->
@@ -264,7 +264,7 @@
             </div>
           } @else {
             <div class="p-4 flex flex-col gap-3">
-              <p class="text-xs text-neutral-500">Ingresa el ID de Sport Card o email del tutor</p>
+              <p class="text-xs text-neutral-500">Ingresa el ID de RocketId o email del tutor</p>
               <div class="flex gap-2">
                 <input type="text" [ngModel]="guardianInput()" (ngModelChange)="guardianInput.set($event)"
                        placeholder="ID o email del tutor"
