@@ -4,34 +4,6 @@
 
   <main class="flex-1 max-w-lg mx-auto w-full px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom))]">
 
-    <!-- Streak card -->
-    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 mb-5">
-      <p class="text-[10px] text-neutral-500 uppercase tracking-wider mb-3 font-semibold">Rachas de actividad</p>
-      <div class="grid grid-cols-2 gap-3">
-        <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-4">
-          <p class="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">Racha actual</p>
-          <p class="text-3xl font-black text-orange-400">
-            @if (loading()) { — } @else { {{ streak()?.current ?? 0 }} }
-          </p>
-          <p class="text-[10px] text-neutral-600 mt-1">días seguidos 🔥</p>
-        </div>
-        <div class="bg-neutral-950 border border-neutral-800 rounded-xl p-4">
-          <p class="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">Mejor racha</p>
-          <p class="text-3xl font-black text-neutral-300">
-            @if (loading()) { — } @else { {{ streak()?.best ?? 0 }} }
-          </p>
-          <p class="text-[10px] text-neutral-600 mt-1">días consecutivos</p>
-        </div>
-      </div>
-
-      @if (!loading() && streak() && !streak()!.todayLogged) {
-        <div class="mt-4 flex items-center gap-2.5 bg-orange-950/40 border border-orange-800/30 rounded-xl px-3.5 py-2.5">
-          <span class="text-lg">⚡</span>
-          <p class="text-xs text-orange-300 font-medium">¡Registra una actividad hoy para mantener tu racha!</p>
-        </div>
-      }
-    </div>
-
     <!-- Log button -->
     <button (click)="openLogSheet()"
             class="w-full flex items-center justify-center gap-2 bg-brand text-neutral-950

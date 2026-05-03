@@ -5,18 +5,11 @@
   <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom))]">
 
     <!-- Stats -->
-    <div class="grid grid-cols-3 gap-3 mb-6">
+    <div class="grid grid-cols-2 gap-3 mb-6">
       <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
         <p class="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">Eventos</p>
         <p class="text-2xl font-black text-brand">{{ eventsThisMonth() }}</p>
         <p class="text-[10px] text-neutral-600 mt-1">este mes</p>
-      </div>
-      <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
-        <p class="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">Racha</p>
-        <p class="text-2xl font-black text-orange-400">{{ streak()?.current ?? 0 }} 🔥</p>
-        <p class="text-[10px] text-neutral-600 mt-1">
-          @if (streak()?.todayLogged) { ¡activo hoy! } @else { días activos }
-        </p>
       </div>
       <button (click)="goToTeams()"
               class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-left hover:border-neutral-700 transition-colors">

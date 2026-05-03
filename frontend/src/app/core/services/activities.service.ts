@@ -13,12 +13,6 @@ export interface Activity {
   createdAt: string;
 }
 
-export interface StreakResult {
-  current: number;
-  best: number;
-  todayLogged: boolean;
-}
-
 export interface CreateActivityPayload {
   sport: string;
   notes?: string;
@@ -36,10 +30,6 @@ export class ActivitiesService {
 
   getMyActivities(): Observable<Activity[]> {
     return this.http.get<Activity[]>(`${environment.apiUrl}/activities`);
-  }
-
-  getStreak(): Observable<StreakResult> {
-    return this.http.get<StreakResult>(`${environment.apiUrl}/activities/streak`);
   }
 
   delete(id: string): Observable<void> {

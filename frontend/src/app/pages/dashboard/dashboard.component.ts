@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { EventsService, EventResponse } from '../../core/services/events.service';
-import { ActivitiesService, Activity, StreakResult } from '../../core/services/activities.service';
+import { ActivitiesService, Activity } from '../../core/services/activities.service';
 import { SportsService } from '../../core/services/sports.service';
 import { TeamsService, TeamSummary } from '../../core/services/teams.service';
 import { HeaderComponent } from '../../shared/header/header.component';
@@ -31,7 +31,6 @@ export class DashboardComponent implements OnInit {
   readonly myActivities      = signal<Activity[]>([]);
   readonly loadingActivities = signal(true);
   readonly activeTimelineTab = signal<'upcoming' | 'past'>('upcoming');
-  readonly streak            = signal<StreakResult | null>(null);
   readonly myTeams           = signal<TeamSummary[]>([]);
 
   readonly teamsAsCoach = computed(() => this.myTeams().filter(t => t.isCoach).length);
@@ -86,7 +85,6 @@ export class DashboardComponent implements OnInit {
       next: acts => { this.myActivities.set(acts); this.loadingActivities.set(false); },
       error: ()   => this.loadingActivities.set(false),
     });
-    this.actSvc.getStreak().subscribe({ next: s => this.streak.set(s), error: () => {} });
     this.teamsSvc.findMine().subscribe({ next: teams => this.myTeams.set(teams), error: () => {} });
   }
 

@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivitiesService, Activity, StreakResult } from '../../core/services/activities.service';
+import { ActivitiesService, Activity } from '../../core/services/activities.service';
 import { SportsService } from '../../core/services/sports.service';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
@@ -25,7 +25,6 @@ export class ActivitiesComponent implements OnInit {
   private readonly svc   = inject(ActivitiesService);
   readonly sportsSvc     = inject(SportsService);
 
-  readonly streak        = signal<StreakResult | null>(null);
   readonly activities    = signal<Activity[]>([]);
   readonly loading       = signal(true);
   readonly showLogSheet  = signal(false);
@@ -59,11 +58,10 @@ export class ActivitiesComponent implements OnInit {
 
   private load(): void {
     this.loading.set(true);
-    let done = 0;
-    const check = () => { if (++done === 2) this.loading.set(false); };
-
-    this.svc.getStreak().subscribe({ next: s => { this.streak.set(s); check(); }, error: () => check() });
-    this.svc.getMyActivities().subscribe({ next: a => { this.activities.set(a); check(); }, error: () => check() });
+    this.svc.getMyActivities().subscribe({
+      next: a => { this.activities.set(a); this.loading.set(false); },
+      error: () => this.loading.set(false),
+    });
   }
 
   openLogSheet(): void {
@@ -117,10 +115,7 @@ export class ActivitiesComponent implements OnInit {
 
   deleteActivity(id: string): void {
     this.svc.delete(id).subscribe({
-      next: () => {
-        this.activities.update(list => list.filter(a => a.id !== id));
-        this.svc.getStreak().subscribe({ next: s => this.streak.set(s), error: () => {} });
-      },
+      next: () => this.activities.update(list => list.filter(a => a.id !== id)),
       error: () => {},
     });
   }

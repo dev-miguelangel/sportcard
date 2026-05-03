@@ -35,11 +35,6 @@ export class ActivitiesController {
     return this.svc.findMyRecent(req.user.id);
   }
 
-  @Get('streak')
-  getStreak(@Request() req: { user: JwtUser }) {
-    return this.svc.getStreak(req.user.id);
-  }
-
   @Delete(':id')
   @HttpCode(204)
   async deleteOwn(@Param('id') id: string, @Request() req: { user: JwtUser }) {
