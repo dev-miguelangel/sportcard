@@ -1,0 +1,354 @@
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
+import { EventsService, EventResponse } from '../../../core/services/events.service';
+import { ContactsService, ContactUser, ContactGroup } from '../../../core/services/contacts.service';
+import { SportsService } from '../../../core/services/sports.service';
+
+const TYPE_LABELS: Record<string, string> = {
+  friendly: 'Amistoso', training: 'Entrenamiento',
+  tournament: 'Torneo', trekking: 'Trekking',
+  running: 'Running', other: 'Otro',
+};
+
+const TYPE_COLORS: Record<string, string> = {
+  friendly:   'text-brand bg-brand/10 border-brand/30',
+  training:   'text-blue-400 bg-blue-400/10 border-blue-400/30',
+  tournament: 'text-purple-400 bg-purple-400/10 border-purple-400/30',
+  trekking:   'text-amber-400 bg-amber-400/10 border-amber-400/30',
+  running:    'text-orange-400 bg-orange-400/10 border-orange-400/30',
+  other:      'text-neutral-400 bg-neutral-400/10 border-neutral-400/30',
+};
+
+@Component({
+  selector: 'app-event-detail',
+  standalone: true,
+  imports: [],
+  templateUrl: './event-detail.component.html',
+})
+export class EventDetailComponent implements OnInit {
+  private readonly router      = inject(Router);
+  private readonly route       = inject(ActivatedRoute);
+  private readonly eventsSvc   = inject(EventsService);
+  private readonly contactsSvc = inject(ContactsService);
+  private readonly sportsSvc   = inject(SportsService);
+  readonly auth                = inject(AuthService);
+
+  readonly event       = signal<EventResponse | null>(null);
+  readonly loading     = signal(true);
+  readonly error       = signal<string | null>(null);
+  readonly joinLoading = signal(false);
+  readonly joinError   = signal<string | null>(null);
+  readonly joinMessage = signal('');
+  readonly showMessageField = signal(false);
+
+  readonly inviteQuery   = signal('');
+  readonly inviteLoading = signal(false);
+  readonly inviteResult  = signal<{ success: boolean; message: string } | null>(null);
+
+  readonly linkCopied = signal(false);
+
+  readonly contacts              = signal<ContactUser[]>([]);
+  readonly contactsLoading       = signal(false);
+  readonly selectedContactIds    = signal<Set<string>>(new Set());
+  readonly inviteContactsLoading = signal(false);
+  readonly inviteContactsResult  = signal<{ success: boolean; message: string } | null>(null);
+
+  readonly allContactsSelected = computed(() =>
+    this.contacts().length > 0 &&
+    this.contacts().every(c => this.selectedContactIds().has(c.id)),
+  );
+
+  readonly closeNotes   = signal('');
+  readonly closeResults = signal('');
+  readonly closeLoading = signal(false);
+  readonly closeError   = signal<string | null>(null);
+  readonly closeSuccess = signal(false);
+  readonly showCloseForm = signal(false);
+
+  readonly groups             = signal<ContactGroup[]>([]);
+  readonly groupsLoading      = signal(false);
+  readonly selectedGroupId    = signal<string | null>(null);
+  readonly inviteGroupLoading = signal(false);
+  readonly inviteGroupResult  = signal<{ invited: number; skipped: number } | null>(null);
+
+  readonly hasSpots = computed(() => {
+    const ev = this.event();
+    if (!ev || ev.maxParticipants === null) return true;
+    return ev.participantCount < ev.maxParticipants;
+  });
+
+  readonly spotsLeft = computed(() => {
+    const ev = this.event();
+    if (!ev || ev.maxParticipants === null) return null;
+    return Math.max(0, ev.maxParticipants - ev.participantCount);
+  });
+
+  ngOnInit(): void {
+    this.sportsSvc.load();
+    const id = this.route.snapshot.paramMap.get('id')!;
+    this.eventsSvc.findOne(id).subscribe({
+      next: ev => {
+        this.event.set(ev);
+        this.loading.set(false);
+        if (this.auth.currentUser()?.id === ev.organizerId) {
+          this.loadContacts();
+          this.loadGroups();
+        }
+      },
+      error: () => { this.error.set('No se pudo cargar el evento.'); this.loading.set(false); },
+    });
+  }
+
+  goBack(): void {
+    this.router.navigate(['/dashboard']);
+  }
+
+  setJoinMessage(value: string): void {
+    this.joinMessage.set(value);
+  }
+
+  toggleMessageField(): void {
+    this.showMessageField.set(!this.showMessageField());
+  }
+
+  confirmJoin(): void {
+    const ev = this.event();
+    if (!ev || this.joinLoading()) return;
+    this.joinLoading.set(true);
+    this.joinError.set(null);
+
+    this.eventsSvc.join(ev.id, this.joinMessage() || undefined).subscribe({
+      next: result => {
+        this.event.update(e => e ? {
+          ...e,
+          myStatus: result.status,
+          participantCount: result.status === 'approved' ? e.participantCount + 1 : e.participantCount,
+        } : e);
+        this.joinLoading.set(false);
+        this.showMessageField.set(false);
+      },
+      error: err => {
+        this.joinError.set(err?.error?.message ?? 'No se pudo procesar la inscripción.');
+        this.joinLoading.set(false);
+      },
+    });
+  }
+
+  confirmLeave(): void {
+    const ev = this.event();
+    if (!ev || this.joinLoading()) return;
+    this.joinLoading.set(true);
+    this.joinError.set(null);
+
+    this.eventsSvc.leave(ev.id).subscribe({
+      next: () => {
+        this.event.update(e => e ? {
+          ...e,
+          myStatus: null,
+          participantCount: e.myStatus === 'approved' ? e.participantCount - 1 : e.participantCount,
+        } : e);
+        this.joinLoading.set(false);
+      },
+      error: err => {
+        this.joinError.set(err?.error?.message ?? 'No se pudo cancelar la inscripción.');
+        this.joinLoading.set(false);
+      },
+    });
+  }
+
+  isOrganizer(): boolean {
+    const ev = this.event();
+    return !!ev && this.auth.currentUser()?.id === ev.organizerId;
+  }
+
+  setInviteQuery(value: string): void {
+    this.inviteQuery.set(value);
+    this.inviteResult.set(null);
+  }
+
+  sendInvite(): void {
+    const ev = this.event();
+    const identifier = this.inviteQuery().trim();
+    if (!ev || !identifier || this.inviteLoading()) return;
+
+    this.inviteLoading.set(true);
+    this.inviteResult.set(null);
+
+    this.eventsSvc.inviteUser(ev.id, identifier).subscribe({
+      next: res => {
+        this.inviteResult.set({ success: true, message: `Invitación enviada a ${res.userName}` });
+        this.inviteQuery.set('');
+        this.inviteLoading.set(false);
+      },
+      error: err => {
+        this.inviteResult.set({ success: false, message: err?.error?.message ?? 'No se pudo enviar la invitación.' });
+        this.inviteLoading.set(false);
+      },
+    });
+  }
+
+  copyShareLink(): void {
+    const ev = this.event();
+    if (!ev?.shareToken) return;
+    const url = `${window.location.origin}/e/${ev.shareToken}`;
+    navigator.clipboard.writeText(url).then(() => {
+      this.linkCopied.set(true);
+      setTimeout(() => this.linkCopied.set(false), 2500);
+    });
+  }
+
+  private loadContacts(): void {
+    this.contactsLoading.set(true);
+    this.contactsSvc.getContacts().subscribe({
+      next: cs => { this.contacts.set(cs); this.contactsLoading.set(false); },
+      error: ()  => this.contactsLoading.set(false),
+    });
+  }
+
+  loadGroups(): void {
+    if (this.groups().length > 0 || this.groupsLoading()) return;
+    this.groupsLoading.set(true);
+    this.contactsSvc.getGroups().subscribe({
+      next: gs => { this.groups.set(gs); this.groupsLoading.set(false); },
+      error: ()  => this.groupsLoading.set(false),
+    });
+  }
+
+  inviteGroup(): void {
+    const ev = this.event();
+    const groupId = this.selectedGroupId();
+    if (!ev || !groupId || this.inviteGroupLoading()) return;
+    this.inviteGroupLoading.set(true);
+    this.inviteGroupResult.set(null);
+
+    this.eventsSvc.inviteGroup(ev.id, groupId).subscribe({
+      next: result => {
+        this.inviteGroupResult.set(result);
+        this.selectedGroupId.set(null);
+        this.inviteGroupLoading.set(false);
+      },
+      error: err => {
+        this.inviteGroupResult.set({ invited: 0, skipped: -1 });
+        this.inviteGroupLoading.set(false);
+      },
+    });
+  }
+
+  toggleContactSelection(id: string): void {
+    const s = new Set(this.selectedContactIds());
+    s.has(id) ? s.delete(id) : s.add(id);
+    this.selectedContactIds.set(s);
+  }
+
+  selectAllContacts(): void {
+    this.selectedContactIds.set(
+      this.allContactsSelected()
+        ? new Set()
+        : new Set(this.contacts().map(c => c.id)),
+    );
+  }
+
+  inviteSelectedContacts(): void {
+    const ev = this.event();
+    const ids = [...this.selectedContactIds()];
+    if (!ev || !ids.length || this.inviteContactsLoading()) return;
+
+    this.inviteContactsLoading.set(true);
+    this.inviteContactsResult.set(null);
+
+    let completed = 0;
+    let successes = 0;
+
+    ids.forEach(contactId => {
+      const contact = this.contacts().find(c => c.id === contactId);
+      if (!contact) { completed++; return; }
+
+      this.eventsSvc.inviteUser(ev.id, contact.stringId).subscribe({
+        next:     () => { successes++; },
+        error:    () => {},
+        complete: () => {
+          completed++;
+          if (completed === ids.length) {
+            this.inviteContactsLoading.set(false);
+            this.inviteContactsResult.set({
+              success: true,
+              message: `${successes} invitación${successes !== 1 ? 'es' : ''} enviada${successes !== 1 ? 's' : ''}`,
+            });
+            this.selectedContactIds.set(new Set());
+          }
+        },
+      });
+    });
+  }
+
+  getContactInitials(name: string): string {
+    return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+  }
+
+  isFinished(): boolean {
+    return this.event()?.status === 'finished';
+  }
+
+  openCloseForm(): void {
+    const ev = this.event();
+    if (ev) {
+      this.closeResults.set(ev.results ?? '');
+      this.closeNotes.set(ev.closingNotes ?? '');
+    }
+    this.closeError.set(null);
+    this.showCloseForm.set(true);
+  }
+
+  submitClose(): void {
+    const ev = this.event();
+    if (!ev || this.closeLoading()) return;
+    this.closeLoading.set(true);
+    this.closeError.set(null);
+
+    this.eventsSvc.closeEvent(ev.id, {
+      closingNotes: this.closeNotes().trim() || undefined,
+      results: this.closeResults().trim() || undefined,
+    }).subscribe({
+      next: updated => {
+        this.event.set({ ...ev, ...updated });
+        this.closeSuccess.set(true);
+        this.closeLoading.set(false);
+        this.showCloseForm.set(false);
+      },
+      error: err => {
+        this.closeError.set(err?.error?.message ?? 'No se pudo guardar el cierre.');
+        this.closeLoading.set(false);
+      },
+    });
+  }
+
+  getBannerGradient(sport: string): string {
+    return this.sportsSvc.getGradient(sport);
+  }
+
+  getSportEmoji(sport: string): string {
+    return this.sportsSvc.getEmoji(sport);
+  }
+
+  getTypeLabel(type: string): string {
+    return TYPE_LABELS[type] ?? type;
+  }
+
+  getTypeColor(type: string): string {
+    return TYPE_COLORS[type] ?? TYPE_COLORS['other'];
+  }
+
+  formatDate(dateStr: string): string {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('es-CL', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    }) + ' · ' + date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  isToday(dateStr: string): boolean {
+    const d = new Date(dateStr);
+    const n = new Date();
+    return d.getDate() === n.getDate() && d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
+  }
+}

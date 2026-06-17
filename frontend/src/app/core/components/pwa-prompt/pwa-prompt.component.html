@@ -1,0 +1,17 @@
+<!-- Banner de actualización (prioridad máxima, no se puede cerrar) -->
+@if (pwa.updateAvailable()) {
+  <div class="fixed bottom-0 left-0 right-0 z-50 p-4"
+       style="padding-bottom: calc(1rem + env(safe-area-inset-bottom))">
+    <div class="max-w-lg mx-auto bg-brand rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-2xl shadow-brand/20">
+      <span class="material-symbols-outlined text-neutral-950 flex-shrink-0" style="font-size:22px">system_update</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-xs font-black text-neutral-950 uppercase tracking-wider">Actualización disponible</p>
+        <p class="text-xs text-neutral-900/70 leading-tight">Nueva versión lista para instalar.</p>
+      </div>
+      <button
+        (click)="pwa.applyUpdate()"
+        class="flex-shrink-0 bg-neutral-950 text-brand text-xs font-bold px-3 py-2 rounded-xl min-h-[36px] hover:bg-neutral-800 transition-colors"
+      >Actualizar</button>
+    </div>
+  </div>
+}

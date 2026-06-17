@@ -1,0 +1,420 @@
+<div class="min-h-screen bg-neutral-950">
+
+  @if (loading()) {
+    <div class="flex items-center justify-center min-h-screen">
+      <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:32px">progress_activity</span>
+    </div>
+  } @else if (error()) {
+    <div class="flex flex-col items-center justify-center min-h-screen text-center px-6">
+      <span class="material-symbols-outlined text-neutral-600 mb-3" style="font-size:48px">error_outline</span>
+      <p class="text-neutral-400 text-sm">{{ error() }}</p>
+    </div>
+  } @else {
+    @if (tournament(); as t) {
+
+    <!-- ── HEADER ──────────────────────────────────────────────────── -->
+    <div class="bg-gradient-to-b from-neutral-900 to-neutral-950 border-b border-neutral-800">
+      <div class="max-w-2xl mx-auto px-5 pt-8 pb-6">
+
+        <!-- Brand -->
+        <div class="flex items-center gap-2 mb-6">
+          <span class="material-symbols-outlined text-brand" style="font-size:22px">emoji_events</span>
+          <span class="text-sm font-black text-white tracking-tight">RocketId · Torneos</span>
+        </div>
+
+        <!-- Sport + name -->
+        <div class="flex items-start gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-3xl flex-shrink-0">
+            {{ sportEmoji(t.sport) }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <h1 class="text-2xl font-black text-white leading-tight">{{ t.name }}</h1>
+            <p class="text-sm text-neutral-400 mt-0.5">{{ formatLabel(t.format) }}</p>
+          </div>
+        </div>
+
+        <!-- Progress steps -->
+        <div class="flex items-center mt-6 gap-0">
+          @for (step of ['Abierto', 'En curso', 'Finalizado']; track step; let i = $index) {
+            @let stepIdx = i + 1;
+            <div class="flex items-center flex-1 min-w-0">
+              <div class="flex flex-col items-center flex-shrink-0">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-colors"
+                     [class]="statusStepIndex() > stepIdx ? 'bg-brand text-neutral-950'
+                            : statusStepIndex() === stepIdx ? 'bg-brand/20 border-2 border-brand text-brand'
+                            : 'bg-neutral-800 border border-neutral-700 text-neutral-600'">
+                  @if (statusStepIndex() > stepIdx) {
+                    <span class="material-symbols-outlined" style="font-size:14px">check</span>
+                  } @else {
+                    {{ stepIdx }}
+                  }
+                </div>
+                <p class="text-[9px] font-semibold mt-1 whitespace-nowrap"
+                   [class]="statusStepIndex() >= stepIdx ? 'text-brand' : 'text-neutral-600'">
+                  {{ step }}
+                </p>
+              </div>
+              @if (i < 2) {
+                <div class="flex-1 h-px mx-2 mt-[-14px]"
+                     [class]="statusStepIndex() > stepIdx ? 'bg-brand' : 'bg-neutral-800'"></div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Stats row -->
+        <div class="grid grid-cols-3 gap-3 mt-5">
+          <div class="bg-neutral-800/60 border border-neutral-700/50 rounded-xl px-3 py-3 text-center">
+            <p class="text-lg font-black text-white">{{ t.approvedTeamCount }}</p>
+            <p class="text-[10px] text-neutral-500 uppercase tracking-wider mt-0.5">Equipos</p>
+          </div>
+          <div class="bg-neutral-800/60 border border-neutral-700/50 rounded-xl px-3 py-3 text-center">
+            <p class="text-lg font-black text-white">{{ t.maxTeams ?? '∞' }}</p>
+            <p class="text-[10px] text-neutral-500 uppercase tracking-wider mt-0.5">Cupos</p>
+          </div>
+          <div class="bg-neutral-800/60 border border-neutral-700/50 rounded-xl px-3 py-3 text-center">
+            @if (t.startDate) {
+              <p class="text-sm font-black text-white">{{ formatStartDate(t.startDate) }}</p>
+            } @else {
+              <p class="text-lg font-black text-white">—</p>
+            }
+            <p class="text-[10px] text-neutral-500 uppercase tracking-wider mt-0.5">Inicio</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── CONTENT ─────────────────────────────────────────────────── -->
+    <div class="max-w-2xl mx-auto px-5 py-5">
+
+      @if (dataLoading()) {
+        <div class="flex justify-center py-12">
+          <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:28px">progress_activity</span>
+        </div>
+      } @else if (dataLoaded() && matches().length > 0) {
+
+        <!-- Tabs -->
+        <div class="flex bg-neutral-900 border border-neutral-800 rounded-xl p-1 mb-5 gap-1">
+          @for (tab of [
+            { id: 'bracket', label: bracketTabLabel() },
+            { id: 'matches', label: 'Partidos' },
+            { id: 'teams',   label: 'Equipos' }
+          ]; track tab.id) {
+            <button (click)="setTab($any(tab.id))"
+                    [class]="activeTab() === tab.id ? 'bg-neutral-800 text-white' : 'text-neutral-500 hover:text-neutral-300'"
+                    class="flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition-colors min-h-[36px]">
+              {{ tab.label }}
+            </button>
+          }
+        </div>
+
+        <!-- ── TAB: BRACKET / TABLA ──────────────────────────────── -->
+        @if (activeTab() === 'bracket') {
+
+          @if (showBracket()) {
+
+            @if (bracket().length === 0) {
+              <div class="flex flex-col items-center py-16 text-center">
+                <span class="material-symbols-outlined text-neutral-700 mb-3" style="font-size:40px">account_tree</span>
+                <p class="text-sm font-semibold text-neutral-400">Bracket aún no disponible</p>
+                <p class="text-xs text-neutral-600 mt-1">Se publicará cuando el torneo avance</p>
+              </div>
+            } @else {
+
+              <!-- Horizontal bracket diagram -->
+              <div class="overflow-x-auto -mx-5 px-5">
+                <div class="flex gap-0 min-w-max pb-4">
+                  @for (round of bracket(); track round.name; let ri = $index) {
+
+                    <!-- Round column -->
+                    <div class="flex flex-col" [style.width]="'168px'">
+                      <p class="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-2 text-center px-2">
+                        {{ round.name }}
+                      </p>
+
+                      @for (match of round.matches; track match.id; let mi = $index) {
+                        <!-- Slot: vertically centered match card within its bracket slot -->
+                        <div class="flex items-center relative"
+                             [style.height]="bracketSlotHeight(ri) + 'px'">
+
+                          <!-- Connector line from previous round (all rounds except first) -->
+                          @if (ri > 0) {
+                            <div class="absolute left-0 top-1/2 w-3 border-t border-neutral-700 -translate-y-px"></div>
+                          }
+
+                          <!-- Connector lines TO next round -->
+                          @if (ri < bracket().length - 1) {
+                            <!-- Top half of pair: line going right + down -->
+                            @if (mi % 2 === 0) {
+                              <div class="absolute right-0 top-1/2 w-3 border-t border-r border-neutral-700 rounded-tr"
+                                   [style.height]="(bracketSlotHeight(ri)) + 'px'"
+                                   style="top: 50%; right: 0; width: 12px; border-top: 1px solid #404040; border-right: 1px solid #404040; position: absolute; border-top-right-radius: 4px;">
+                              </div>
+                            }
+                            <!-- Bottom half of pair: line going right + up -->
+                            @if (mi % 2 === 1) {
+                              <div style="position: absolute; top: 0; right: 0; width: 12px; height: 50%; border-bottom: 1px solid #404040; border-right: 1px solid #404040; border-bottom-right-radius: 4px;">
+                              </div>
+                            }
+                          }
+
+                          <!-- Match card -->
+                          <div class="flex-1 mx-2 bg-neutral-900 border rounded-xl overflow-hidden"
+                               [class]="match.status === 'played' ? 'border-neutral-700' : 'border-neutral-800'">
+
+                            <!-- Home team row -->
+                            <div class="flex items-center gap-2 px-2.5 py-2 border-b border-neutral-800"
+                                 [class]="match.status === 'played' && match.homeScore !== null && match.awayScore !== null
+                                   && match.homeScore > match.awayScore ? 'bg-brand/5' : ''">
+                              <div class="w-5 h-5 rounded bg-neutral-800 flex items-center justify-center text-[9px] font-black flex-shrink-0 text-neutral-300">
+                                {{ match.homeTeam ? initials(match.homeTeam.name) : '?' }}
+                              </div>
+                              <p class="flex-1 text-xs font-semibold truncate"
+                                 [class]="match.status === 'played' && match.homeScore !== null && match.awayScore !== null
+                                   && match.homeScore > match.awayScore ? 'text-white' : 'text-neutral-300'">
+                                {{ match.homeTeam?.name ?? 'TBD' }}
+                              </p>
+                              @if (match.status === 'played') {
+                                <span class="text-sm font-black flex-shrink-0"
+                                      [class]="match.homeScore !== null && match.awayScore !== null && match.homeScore > match.awayScore
+                                        ? 'text-brand' : 'text-neutral-400'">
+                                  {{ match.homeScore }}
+                                </span>
+                              }
+                            </div>
+
+                            <!-- Away team row -->
+                            <div class="flex items-center gap-2 px-2.5 py-2"
+                                 [class]="match.status === 'played' && match.homeScore !== null && match.awayScore !== null
+                                   && match.awayScore > match.homeScore ? 'bg-brand/5' : ''">
+                              <div class="w-5 h-5 rounded bg-neutral-800 flex items-center justify-center text-[9px] font-black flex-shrink-0 text-neutral-300">
+                                {{ match.awayTeam ? initials(match.awayTeam.name) : '?' }}
+                              </div>
+                              <p class="flex-1 text-xs font-semibold truncate"
+                                 [class]="match.status === 'played' && match.homeScore !== null && match.awayScore !== null
+                                   && match.awayScore > match.homeScore ? 'text-white' : 'text-neutral-300'">
+                                {{ match.awayTeam?.name ?? 'TBD' }}
+                              </p>
+                              @if (match.status === 'played') {
+                                <span class="text-sm font-black flex-shrink-0"
+                                      [class]="match.homeScore !== null && match.awayScore !== null && match.awayScore > match.homeScore
+                                        ? 'text-brand' : 'text-neutral-400'">
+                                  {{ match.awayScore }}
+                                </span>
+                              }
+                            </div>
+
+                          </div>
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Gap between rounds -->
+                    @if (ri < bracket().length - 1) {
+                      <div class="w-3 flex-shrink-0"></div>
+                    }
+
+                  }
+                </div>
+              </div>
+
+            }
+
+          } @else {
+
+            <!-- Standings table -->
+            @if (standings().length === 0) {
+              <div class="flex flex-col items-center py-16 text-center">
+                <span class="material-symbols-outlined text-neutral-700 mb-3" style="font-size:40px">leaderboard</span>
+                <p class="text-sm font-semibold text-neutral-400">Tabla sin resultados aún</p>
+                <p class="text-xs text-neutral-600 mt-1">Se actualizará al jugarse los partidos</p>
+              </div>
+            } @else {
+              <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
+                <div class="overflow-x-auto">
+                  <table class="w-full text-xs">
+                    <thead>
+                      <tr class="border-b border-neutral-800 text-neutral-500 uppercase tracking-wider">
+                        <th class="text-left px-4 py-3 font-bold w-6">#</th>
+                        <th class="text-left px-4 py-3 font-bold">Equipo</th>
+                        <th class="text-center px-2 py-3 font-bold">J</th>
+                        <th class="text-center px-2 py-3 font-bold">G</th>
+                        <th class="text-center px-2 py-3 font-bold">E</th>
+                        <th class="text-center px-2 py-3 font-bold">P</th>
+                        <th class="text-center px-2 py-3 font-bold">Dif</th>
+                        <th class="text-center px-3 py-3 font-bold text-brand">Pts</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-neutral-800">
+                      @for (row of standings(); track row.teamId) {
+                        <tr [class]="row.position <= 1 ? 'bg-brand/5' : 'hover:bg-neutral-800/40'" class="transition-colors">
+                          <td class="px-4 py-3 font-black"
+                              [class]="row.position === 1 ? 'text-brand' : 'text-neutral-500'">
+                            {{ row.position }}
+                          </td>
+                          <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                              @if (row.teamLogoUrl) {
+                                <img [src]="row.teamLogoUrl" class="w-6 h-6 rounded object-cover flex-shrink-0">
+                              } @else {
+                                <div class="w-6 h-6 rounded bg-neutral-800 flex items-center justify-center flex-shrink-0 text-[9px] font-black text-brand">
+                                  {{ initials(row.teamName) }}
+                                </div>
+                              }
+                              <span class="font-semibold text-white">{{ row.teamName }}</span>
+                              @if (row.groupName) {
+                                <span class="text-[9px] text-neutral-500">({{ row.groupName }})</span>
+                              }
+                            </div>
+                          </td>
+                          <td class="text-center px-2 py-3 text-neutral-300">{{ row.played }}</td>
+                          <td class="text-center px-2 py-3 text-neutral-300">{{ row.won }}</td>
+                          <td class="text-center px-2 py-3 text-neutral-300">{{ row.drawn }}</td>
+                          <td class="text-center px-2 py-3 text-neutral-300">{{ row.lost }}</td>
+                          <td class="text-center px-2 py-3"
+                              [class]="row.goalDiff > 0 ? 'text-brand' : row.goalDiff < 0 ? 'text-red-400' : 'text-neutral-400'">
+                            {{ row.goalDiff > 0 ? '+' : '' }}{{ row.goalDiff }}
+                          </td>
+                          <td class="text-center px-3 py-3 font-black text-white">{{ row.points }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            }
+
+          }
+        }
+
+        <!-- ── TAB: PARTIDOS ─────────────────────────────────────── -->
+        @if (activeTab() === 'matches') {
+
+          @if (matches().length === 0) {
+            <div class="flex flex-col items-center py-16 text-center">
+              <span class="material-symbols-outlined text-neutral-700 mb-3" style="font-size:40px">calendar_today</span>
+              <p class="text-sm font-semibold text-neutral-400">Sin partidos programados</p>
+            </div>
+          } @else {
+            <div class="flex flex-col gap-5">
+              @for (group of matchesByRound(); track group.round) {
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-2">{{ group.round }}</p>
+                  <div class="bg-neutral-900 border border-neutral-800 rounded-2xl divide-y divide-neutral-800 overflow-hidden">
+                    @for (match of group.matches; track match.id) {
+                      <div class="p-4">
+
+                        <!-- Teams + score -->
+                        <div class="flex items-center gap-3">
+                          <div class="flex-1 flex items-center gap-2 min-w-0">
+                            <div class="w-8 h-8 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-xs font-black flex-shrink-0 text-neutral-300">
+                              {{ match.homeTeam ? initials(match.homeTeam.name) : '?' }}
+                            </div>
+                            <p class="text-sm font-semibold text-white truncate">{{ match.homeTeam?.name ?? 'TBD' }}</p>
+                          </div>
+
+                          <div class="flex-shrink-0 text-center min-w-[52px]">
+                            @if (match.status === 'played') {
+                              <div class="flex items-center justify-center gap-1">
+                                <span class="text-lg font-black"
+                                      [class]="match.homeScore !== null && match.awayScore !== null && match.homeScore > match.awayScore
+                                        ? 'text-white' : 'text-neutral-500'">
+                                  {{ match.homeScore }}
+                                </span>
+                                <span class="text-neutral-700 text-sm font-bold">—</span>
+                                <span class="text-lg font-black"
+                                      [class]="match.homeScore !== null && match.awayScore !== null && match.awayScore > match.homeScore
+                                        ? 'text-white' : 'text-neutral-500'">
+                                  {{ match.awayScore }}
+                                </span>
+                              </div>
+                            } @else {
+                              <span class="text-xs font-bold text-neutral-600">VS</span>
+                            }
+                          </div>
+
+                          <div class="flex-1 flex items-center justify-end gap-2 min-w-0">
+                            <p class="text-sm font-semibold text-white truncate text-right">{{ match.awayTeam?.name ?? 'TBD' }}</p>
+                            <div class="w-8 h-8 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-xs font-black flex-shrink-0 text-neutral-300">
+                              {{ match.awayTeam ? initials(match.awayTeam.name) : '?' }}
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Meta -->
+                        <div class="flex items-center justify-between mt-2">
+                          <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                                [class]="match.status === 'played'    ? 'text-brand bg-brand/10'
+                                       : match.status === 'scheduled' ? 'text-blue-400 bg-blue-400/10'
+                                       : match.status === 'cancelled' ? 'text-red-400 bg-red-400/10'
+                                       : 'text-neutral-500 bg-neutral-800'">
+                            {{ match.status === 'played' ? 'Jugado'
+                             : match.status === 'scheduled' ? 'Programado'
+                             : match.status === 'cancelled' ? 'Cancelado'
+                             : 'Pendiente' }}
+                          </span>
+                          @if (match.playedAt) {
+                            <span class="text-xs text-neutral-500">{{ formatMatchDate(match.playedAt) }}</span>
+                          }
+                        </div>
+
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        }
+
+        <!-- ── TAB: EQUIPOS ──────────────────────────────────────── -->
+        @if (activeTab() === 'teams') {
+          <div class="flex flex-col items-center py-16 text-center">
+            <span class="material-symbols-outlined text-neutral-700 mb-3" style="font-size:40px">groups</span>
+            <p class="text-sm font-semibold text-neutral-400">{{ t.approvedTeamCount }} equipos inscritos</p>
+            <p class="text-xs text-neutral-600 mt-1">Inicia sesión para ver el detalle de los equipos</p>
+          </div>
+        }
+
+      } @else if (dataLoaded() && matches().length === 0) {
+
+        <!-- No fixture yet -->
+        <div class="flex flex-col items-center py-16 text-center">
+          <span class="material-symbols-outlined text-neutral-700 mb-4" style="font-size:48px">emoji_events</span>
+          <p class="text-base font-black text-neutral-300">
+            @if (t.status === 'open') { ¡Inscripciones abiertas! }
+            @else if (t.status === 'draft') { Próximamente }
+            @else { Torneo en preparación }
+          </p>
+          <p class="text-sm text-neutral-500 mt-2">
+            @if (t.status === 'open') { Hay {{ t.approvedTeamCount }} equipos inscritos. ¡Sé parte! }
+            @else { Los resultados aparecerán aquí cuando el torneo comience }
+          </p>
+        </div>
+
+      }
+
+      <!-- ── CTA ──────────────────────────────────────────────────── -->
+      <div class="mt-6 pt-5 border-t border-neutral-800">
+        @if (t.status === 'open' && t.registrationOpen) {
+          <button (click)="joinOrLogin()"
+            class="w-full flex items-center justify-center gap-2 bg-brand text-neutral-950 font-black py-3.5 rounded-xl hover:bg-brand/90 transition-colors min-h-[52px]">
+            <span class="material-symbols-outlined" style="font-size:20px">how_to_reg</span>
+            {{ auth.isLoggedIn() ? 'Inscribir mi equipo' : 'Iniciar sesión para inscribirse' }}
+          </button>
+        } @else {
+          <button (click)="joinOrLogin()"
+            class="w-full flex items-center justify-center gap-2 bg-neutral-800 text-white font-bold py-3.5 rounded-xl hover:bg-neutral-700 transition-colors min-h-[52px]">
+            <span class="material-symbols-outlined" style="font-size:20px">open_in_new</span>
+            {{ auth.isLoggedIn() ? 'Ver torneo completo' : 'Ver en RocketId Torneos' }}
+          </button>
+        }
+        <p class="text-center text-xs text-neutral-600 mt-3">Necesitas una cuenta RocketId para participar</p>
+      </div>
+
+    </div>
+    }
+  }
+
+</div>

@@ -1,0 +1,245 @@
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Event, EventStatus } from './entities/event.entity';
+import { EventParticipant, ParticipantStatus } from './entities/event-participant.entity';
+import { JoinEventDto } from './dto/join-event.dto';
+import { UpdateParticipantStatusDto } from './dto/update-participant-status.dto';
+import { UsersService } from '../users/users.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { ContactGroup } from '../contacts/entities/contact-group.entity';
+import { ContactGroupMember } from '../contacts/entities/contact-group-member.entity';
+import { TeamMember } from '../teams/entities/team-member.entity';
+
+@Injectable()
+export class ParticipantsService {
+  constructor(
+    @InjectRepository(Event)
+    private readonly eventsRepository: Repository<Event>,
+    @InjectRepository(EventParticipant)
+    private readonly participantsRepository: Repository<EventParticipant>,
+    @InjectRepository(ContactGroup)
+    private readonly groupRepo: Repository<ContactGroup>,
+    @InjectRepository(ContactGroupMember)
+    private readonly groupMemberRepo: Repository<ContactGroupMember>,
+    @InjectRepository(TeamMember)
+    private readonly teamMemberRepo: Repository<TeamMember>,
+    private readonly usersService: UsersService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
+
+  async join(eventId: string, userId: string, dto: JoinEventDto): Promise<EventParticipant> {
+    const event = await this.eventsRepository.findOne({ where: { id: eventId } });
+    if (!event) throw new NotFoundException('Evento no encontrado');
+    if (event.status !== EventStatus.OPEN) {
+      throw new BadRequestException('El evento no está disponible para inscripciones');
+    }
+
+    const existing = await this.participantsRepository.findOne({
+      where: { eventId, userId },
+    });
+    if (existing) {
+      throw new BadRequestException('Ya tienes una inscripción en este evento');
+    }
+
+    if (event.type === 'desafio' && event.challengerTeamId && event.challengedTeamId) {
+      const isChallengerMember = await this.teamMemberRepo.findOne({
+        where: { teamId: event.challengerTeamId, userId, status: 'confirmed' },
+      });
+      const isChallengedMember = await this.teamMemberRepo.findOne({
+        where: { teamId: event.challengedTeamId, userId, status: 'confirmed' },
+      });
+      if (isChallengerMember && isChallengedMember) {
+        throw new ConflictException('No puedes participar en ambos equipos del mismo desafío');
+      }
+      if (!isChallengerMember && !isChallengedMember) {
+        throw new ForbiddenException('Debes ser miembro de uno de los equipos para participar');
+      }
+    }
+
+    const joiningUser = await this.usersService.findById(userId);
+    const needsGuardianApproval =
+      event.organizerId !== userId &&
+      joiningUser?.birthDate != null &&
+      joiningUser.guardianId != null &&
+      Math.floor(
+        (Date.now() - new Date(joiningUser.birthDate + 'T00:00:00').getTime()) / (365.25 * 24 * 3600 * 1000),
+      ) < 18;
+
+    let status: ParticipantStatus;
+    if (event.organizerId === userId) {
+      status = ParticipantStatus.APPROVED;
+    } else if (needsGuardianApproval) {
+      status = ParticipantStatus.PENDING;
+    } else if (event.requiresApproval) {
+      status = ParticipantStatus.PENDING;
+    } else {
+      const approvedCount = await this.participantsRepository.count({
+        where: { eventId, status: ParticipantStatus.APPROVED },
+      });
+      status =
+        event.maxParticipants !== null && approvedCount >= event.maxParticipants
+          ? ParticipantStatus.WAITING
+          : ParticipantStatus.APPROVED;
+    }
+
+    const participant = this.participantsRepository.create({
+      eventId,
+      userId,
+      status,
+      message: dto.message ?? null,
+    });
+    const saved = await this.participantsRepository.save(participant);
+
+    if (needsGuardianApproval) {
+      await this.notificationsService.createGuardianApproval(
+        joiningUser!.guardianId!,
+        saved.id,
+        eventId,
+        joiningUser!.name,
+        event.title,
+      );
+    }
+
+    return saved;
+  }
+
+  async guardianApprove(
+    eventId: string,
+    participantId: string,
+    approve: boolean,
+    callerId: string,
+  ): Promise<EventParticipant> {
+    const event = await this.eventsRepository.findOne({ where: { id: eventId } });
+    if (!event) throw new NotFoundException('Evento no encontrado');
+
+    const participant = await this.participantsRepository.findOne({
+      where: { id: participantId, eventId },
+      relations: ['user'],
+    });
+    if (!participant) throw new NotFoundException('Participante no encontrado');
+
+    if (participant.user.guardianId !== callerId) {
+      throw new ForbiddenException('No eres el tutor de este participante');
+    }
+
+    participant.status = approve ? ParticipantStatus.APPROVED : ParticipantStatus.REJECTED;
+    return this.participantsRepository.save(participant);
+  }
+
+  async leave(eventId: string, userId: string): Promise<void> {
+    const participant = await this.participantsRepository.findOne({
+      where: { eventId, userId },
+    });
+    if (!participant) throw new NotFoundException('No tienes ninguna inscripción en este evento');
+    await this.participantsRepository.remove(participant);
+  }
+
+  async getParticipants(eventId: string, requestingUserId: string): Promise<EventParticipant[]> {
+    const event = await this.eventsRepository.findOne({ where: { id: eventId } });
+    if (!event) throw new NotFoundException('Evento no encontrado');
+    if (event.organizerId !== requestingUserId) {
+      throw new ForbiddenException('Solo el organizador puede ver la lista de participantes');
+    }
+    return this.participantsRepository.find({
+      where: { eventId },
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  async updateStatus(
+    eventId: string,
+    participantId: string,
+    dto: UpdateParticipantStatusDto,
+    requestingUserId: string,
+  ): Promise<EventParticipant> {
+    const event = await this.eventsRepository.findOne({ where: { id: eventId } });
+    if (!event) throw new NotFoundException('Evento no encontrado');
+    if (event.organizerId !== requestingUserId) {
+      throw new ForbiddenException('Solo el organizador puede gestionar inscripciones');
+    }
+
+    const participant = await this.participantsRepository.findOne({
+      where: { id: participantId, eventId },
+    });
+    if (!participant) throw new NotFoundException('Participante no encontrado');
+
+    participant.status = dto.status;
+    return this.participantsRepository.save(participant);
+  }
+
+  async inviteUser(
+    eventId: string,
+    organizerId: string,
+    identifier: string,
+  ): Promise<{ success: true; userName: string }> {
+    const event = await this.eventsRepository.findOne({ where: { id: eventId } });
+    if (!event) throw new NotFoundException('Evento no encontrado');
+    if (event.organizerId !== organizerId) {
+      throw new ForbiddenException('Solo el organizador puede enviar invitaciones');
+    }
+
+    const isStringId = /^[1-9A-Z]{6}$/i.test(identifier);
+    const user = isStringId
+      ? await this.usersService.findByStringId(identifier.toUpperCase())
+      : await this.usersService.findByEmail(identifier);
+
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    if (user.id === organizerId) {
+      throw new BadRequestException('No puedes invitarte a ti mismo');
+    }
+
+    const existing = await this.participantsRepository.findOne({
+      where: { eventId, userId: user.id },
+    });
+    if (existing) {
+      throw new BadRequestException('El usuario ya tiene una inscripción en este evento');
+    }
+
+    await this.notificationsService.createInvitation(user.id, eventId, event.title);
+    return { success: true, userName: user.name };
+  }
+
+  async inviteGroup(
+    organizerId: string,
+    eventId: string,
+    groupId: string,
+  ): Promise<{ invited: number; skipped: number }> {
+    const event = await this.eventsRepository.findOne({ where: { id: eventId } });
+    if (!event) throw new NotFoundException('Evento no encontrado');
+    if (event.organizerId !== organizerId) {
+      throw new ForbiddenException('Solo el organizador puede enviar invitaciones');
+    }
+
+    const group = await this.groupRepo.findOne({ where: { id: groupId } });
+    if (!group) throw new NotFoundException('Grupo no encontrado');
+    if (group.ownerId !== organizerId) {
+      throw new ForbiddenException('No tienes permiso para usar este grupo');
+    }
+
+    const members = await this.groupMemberRepo.find({
+      where: { groupId },
+      relations: ['user'],
+    });
+
+    let invited = 0;
+    let skipped = 0;
+
+    for (const member of members) {
+      try {
+        await this.inviteUser(eventId, organizerId, member.user.stringId);
+        invited++;
+      } catch {
+        skipped++;
+      }
+    }
+
+    return { invited, skipped };
+  }
+}

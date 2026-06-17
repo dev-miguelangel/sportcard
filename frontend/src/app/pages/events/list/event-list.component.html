@@ -1,0 +1,621 @@
+<div class="min-h-screen bg-neutral-950 flex flex-col">
+
+  <!-- ── Sticky header ───────────────────────────────────── -->
+  <div class="sticky top-0 z-10 bg-neutral-950/95 backdrop-blur-sm border-b border-neutral-800"
+    style="padding-top: env(safe-area-inset-top)">
+
+    <!-- Title row -->
+    <div class="max-w-lg mx-auto flex items-center gap-3 px-4 h-14">
+      <h1 class="font-black tracking-tight flex-1">Eventos</h1>
+      @if (activeFiltersCount() > 0) {
+      <button (click)="clearFilters()" class="text-[0.7rem] font-bold text-brand flex items-center gap-1 min-h-[36px]">
+        <span class="material-symbols-outlined" style="font-size:14px">filter_list_off</span>
+        Limpiar ({{ activeFiltersCount() }})
+      </button>
+      }
+      <button (click)="goToCreate()"
+        class="w-9 h-9 flex items-center justify-center rounded-xl bg-brand min-h-[36px] flex-shrink-0">
+        <span class="material-symbols-outlined text-neutral-950 font-black" style="font-size:20px">add</span>
+      </button>
+    </div>
+
+    <!-- Search bar -->
+    <div class="max-w-lg mx-auto px-4 pb-3">
+      <div class="flex items-center gap-2 bg-neutral-900 border border-neutral-800 rounded-xl px-3 min-h-[44px]
+                  focus-within:border-neutral-600 transition-colors">
+        <span class="material-symbols-outlined text-neutral-600 flex-shrink-0" style="font-size:20px">search</span>
+        <input type="search" placeholder="Buscar por nombre, deporte o lugar..." [value]="searchQuery()"
+          (input)="setSearch($any($event.target).value)"
+          class="flex-1 bg-transparent text-[0.85rem] placeholder:text-neutral-600 focus:outline-none py-2 min-w-0" />
+        @if (searchQuery()) {
+        <button (click)="setSearch('')" class="flex-shrink-0">
+          <span class="material-symbols-outlined text-neutral-600" style="font-size:18px">close</span>
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="max-w-lg mx-auto flex border-t border-neutral-800">
+      <button (click)="switchTab('upcoming')" class="flex-1 py-2.5 text-xs font-bold transition-colors min-h-[40px]"
+        [class]="activeTab() === 'upcoming' ? 'text-brand border-b-2 border-brand' : 'text-neutral-500'">
+        Próximos
+      </button>
+      <button (click)="switchTab('past')" class="flex-1 py-2.5 text-xs font-bold transition-colors min-h-[40px]"
+        [class]="activeTab() === 'past' ? 'text-brand border-b-2 border-brand' : 'text-neutral-500'">
+        Pasados
+      </button>
+      <button (click)="switchTab('tournaments')" class="flex-1 py-2.5 text-xs font-bold transition-colors min-h-[40px]"
+        [class]="activeTab() === 'tournaments' ? 'text-brand border-b-2 border-brand' : 'text-neutral-500'">
+        Torneos
+      </button>
+    </div>
+
+    <!-- Sport chips — solo en Próximos -->
+    @if (activeTab() === 'upcoming') {
+    <div
+      class="max-w-lg mx-auto flex gap-2 px-4 pb-2 overflow-x-auto [scrollbar-width:none] [-webkit-overflow-scrolling:touch]"
+      style="-ms-overflow-style:none;">
+      @for (sport of sportsSvc.sports(); track sport.name) {
+      <button (click)="selectSport(sport.name)"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.7rem] font-semibold flex-shrink-0 border transition-colors min-h-[32px]"
+        [class]="selectedSport() === sport.name
+                    ? 'bg-brand/15 border-brand/50 text-brand'
+                    : 'bg-neutral-900 border-neutral-800 text-neutral-400'">
+        <span>{{ sport.emoji }}</span>
+        {{ sport.name }}
+      </button>
+      }
+    </div>
+
+    <!-- Sub-filters — solo en Próximos -->
+    <div
+      class="max-w-lg mx-auto flex gap-2 px-4 pb-3 overflow-x-auto [scrollbar-width:none] [-webkit-overflow-scrolling:touch]"
+      style="-ms-overflow-style:none;">
+      <button (click)="selectWhen('today')"
+        class="flex items-center gap-1 px-3 py-1.5 rounded-full text-[0.7rem] font-semibold flex-shrink-0 border transition-colors min-h-[32px]"
+        [class]="selectedWhen() === 'today'
+                  ? 'bg-brand/15 border-brand/50 text-brand'
+                  : 'bg-neutral-900 border-neutral-800 text-neutral-400'">
+        <span class="material-symbols-outlined" style="font-size:13px">today</span>
+        Hoy
+      </button>
+      <button (click)="selectWhen('tomorrow')"
+        class="flex items-center gap-1 px-3 py-1.5 rounded-full text-[0.7rem] font-semibold flex-shrink-0 border transition-colors min-h-[32px]"
+        [class]="selectedWhen() === 'tomorrow'
+                  ? 'bg-brand/15 border-brand/50 text-brand'
+                  : 'bg-neutral-900 border-neutral-800 text-neutral-400'">
+        <span class="material-symbols-outlined" style="font-size:13px">calendar_today</span>
+        Mañana
+      </button>
+      <button (click)="selectWhen('this_week')"
+        class="flex items-center gap-1 px-3 py-1.5 rounded-full text-[0.7rem] font-semibold flex-shrink-0 border transition-colors min-h-[32px]"
+        [class]="selectedWhen() === 'this_week'
+                  ? 'bg-brand/15 border-brand/50 text-brand'
+                  : 'bg-neutral-900 border-neutral-800 text-neutral-400'">
+        <span class="material-symbols-outlined" style="font-size:13px">date_range</span>
+        Esta semana
+      </button>
+      <button (click)="toggleWithSpots()"
+        class="flex items-center gap-1 px-3 py-1.5 rounded-full text-[0.7rem] font-semibold flex-shrink-0 border transition-colors min-h-[32px]"
+        [class]="withSpots()
+                  ? 'bg-brand/15 border-brand/50 text-brand'
+                  : 'bg-neutral-900 border-neutral-800 text-neutral-400'">
+        <span class="material-symbols-outlined" style="font-size:13px">group</span>
+        Con cupos
+      </button>
+    </div>
+    }
+
+  </div>
+
+  <!-- ── Content ─────────────────────────────────────────── -->
+  <main class="flex-1 max-w-lg mx-auto w-full px-4 py-3 pb-[calc(5rem+env(safe-area-inset-bottom))]">
+
+    <!-- ── Pestaña Próximos ── -->
+    @if (activeTab() === 'upcoming') {
+
+    <!-- Loading -->
+    @if (loading()) {
+    <div class="flex flex-col gap-2">
+      @for (i of [1,2,3]; track i) {
+      <div class="h-[68px] bg-neutral-900 border border-neutral-800 rounded-xl animate-pulse"></div>
+      }
+    </div>
+    }
+
+    <!-- Error -->
+    @if (error()) {
+    <div class="flex items-center gap-3 bg-red-950/50 border border-red-800/50 rounded-xl p-4 text-sm text-red-400">
+      <span class="material-symbols-outlined flex-shrink-0" style="font-size:20px">error</span>
+      {{ error() }}
+    </div>
+    }
+
+    <!-- Events list -->
+    @if (!loading() && !error()) {
+
+    <!-- Result count -->
+    <p class="text-[0.72rem] text-neutral-500 mb-3">
+      @if (filteredEvents().length === 0) {
+      Sin resultados
+      } @else if (filteredEvents().length === 1) {
+      1 evento
+      } @else {
+      {{ filteredEvents().length }} eventos
+      }
+      @if (activeFiltersCount() > 0) {
+      <span class="text-neutral-600"> · con filtros activos</span>
+      }
+    </p>
+
+    <!-- Empty state -->
+    @if (filteredEvents().length === 0) {
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-10 text-center">
+      <span class="material-symbols-outlined text-neutral-700 mb-4 block" style="font-size:48px">search_off</span>
+      @if (activeFiltersCount() > 0 || searchQuery()) {
+      <h2 class="font-bold text-neutral-400 mb-2">Sin resultados para esta búsqueda</h2>
+      <p class="text-sm text-neutral-600 mb-5">Prueba con otros filtros o busca algo diferente.</p>
+      <button (click)="clearFilters()"
+        class="text-sm font-bold text-brand flex items-center gap-1.5 mx-auto min-h-[44px]">
+        <span class="material-symbols-outlined" style="font-size:16px">filter_list_off</span>
+        Limpiar filtros
+      </button>
+      } @else {
+      <h2 class="font-bold text-neutral-400 mb-2">Sin eventos por ahora</h2>
+      <p class="text-sm text-neutral-600 mb-5">Sé el primero en crear uno.</p>
+      <button (click)="goToCreate()"
+        class="bg-brand text-neutral-950 font-bold px-5 py-3 rounded-xl flex items-center gap-2 mx-auto min-h-[44px]">
+        <span class="material-symbols-outlined" style="font-size:18px">add</span>
+        Crear evento
+      </button>
+      }
+    </div>
+    }
+
+    <!-- Cards -->
+    <div class="flex flex-col gap-2">
+      @for (event of filteredEvents(); track event.id) {
+      <button (click)="goToDetail(event.id)"
+        class="w-full rounded-xl overflow-hidden border border-neutral-800/50 bg-neutral-900 hover:brightness-110 transition-all text-left">
+        <div class="h-[3px]" [style.background]="getBannerGradient(event.sport)"></div>
+        <div class="flex items-center gap-3 px-4 py-2.5 min-h-[44px]">
+          <div class="w-12 text-right flex-shrink-0">
+            <p class="text-sm font-black text-white leading-none">{{ getDay(event.startDatetime) }}</p>
+            <p class="text-[9px] text-neutral-500 uppercase tracking-wider">{{ getMonth(event.startDatetime) }}</p>
+            <p class="text-base font-black text-white leading-none tabular-nums">{{ getTime(event.startDatetime) }}</p>
+            <p class="text-[9px] text-neutral-500 uppercase tracking-wider mt-0.5">{{ getWeekday(event.startDatetime) }}</p>
+          </div>
+          <div class="w-px self-stretch bg-neutral-800 flex-shrink-0"></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-white truncate leading-none">{{ event.title }}</p>
+            <p class="text-xs text-neutral-500 mt-0.5 truncate">{{ getSportEmoji(event.sport) }} {{ event.sport }} · {{ event.locationName }}</p>
+          </div>
+          <div class="flex flex-col items-end gap-1 flex-shrink-0">
+            <span class="text-[10px] font-bold" [class]="getEventStatusColor(event)">{{ getEventStatusLabel(event) }}</span>
+            @if (event.maxParticipants) {
+            <span class="text-[10px] text-neutral-600">{{ event.participantCount }} / {{ event.maxParticipants }}</span>
+            }
+          </div>
+        </div>
+      </button>
+      }
+    </div>
+
+    }
+
+    }
+
+    <!-- ── Pestaña Pasados ── -->
+    @if (activeTab() === 'past') {
+
+    <!-- Loading -->
+    @if (loadingPast()) {
+    <div class="flex flex-col gap-2">
+      @for (i of [1,2,3]; track i) {
+      <div class="h-[68px] bg-neutral-900 border border-neutral-800 rounded-xl animate-pulse"></div>
+      }
+    </div>
+    }
+
+    @if (!loadingPast()) {
+
+    <!-- Result count -->
+    <p class="text-[0.72rem] text-neutral-500 mb-3">
+      @if (filteredPastEvents().length === 0) {
+      Sin resultados
+      } @else if (filteredPastEvents().length === 1) {
+      1 evento
+      } @else {
+      {{ filteredPastEvents().length }} eventos
+      }
+    </p>
+
+    <!-- Empty state -->
+    @if (filteredPastEvents().length === 0) {
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-10 text-center">
+      <span class="material-symbols-outlined text-neutral-700 mb-4 block" style="font-size:48px">history</span>
+      <h2 class="font-bold text-neutral-400 mb-2">No hay eventos pasados</h2>
+      <p class="text-sm text-neutral-600">Los eventos finalizados aparecerán aquí.</p>
+    </div>
+    }
+
+    <!-- Past cards -->
+    <div class="flex flex-col gap-2">
+      @for (event of filteredPastEvents(); track event.id) {
+      <button (click)="goToDetail(event.id)"
+        class="w-full rounded-xl overflow-hidden border border-neutral-800/50 bg-neutral-900 transition-all text-left opacity-60">
+        <div class="h-[3px]" [style.background]="getBannerGradient(event.sport)"></div>
+        <div class="flex items-center gap-3 px-4 py-2.5 min-h-[44px]">
+          <div class="w-12 text-right flex-shrink-0">
+            <p class="text-sm font-black text-neutral-300 leading-none">{{ getDay(event.startDatetime) }}</p>
+            <p class="text-[9px] text-neutral-600 uppercase tracking-wider">{{ getMonth(event.startDatetime) }}</p>
+            <p class="text-base font-black text-neutral-300 leading-none tabular-nums">{{ getTime(event.startDatetime) }}</p>
+            <p class="text-[9px] text-neutral-600 uppercase tracking-wider mt-0.5">{{ getWeekday(event.startDatetime) }}</p>
+          </div>
+          <div class="w-px self-stretch bg-neutral-800 flex-shrink-0"></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-neutral-300 truncate leading-none">{{ event.title }}</p>
+            <p class="text-xs text-neutral-600 mt-0.5 truncate">{{ getSportEmoji(event.sport) }} {{ event.sport }} · {{ event.locationName }}</p>
+          </div>
+          <div class="flex flex-col items-end gap-1 flex-shrink-0">
+            <span class="text-[10px] font-bold text-neutral-500">Finalizado</span>
+            @if (event.maxParticipants) {
+            <span class="text-[10px] text-neutral-700">{{ event.participantCount }} / {{ event.maxParticipants }}</span>
+            }
+          </div>
+        </div>
+      </button>
+      }
+    </div>
+
+    }
+
+    }
+
+    <!-- ── Pestaña Torneos ── -->
+    @if (activeTab() === 'tournaments') {
+
+    <!-- Loading -->
+    @if (loadingTournaments()) {
+    <div class="flex flex-col gap-2">
+      @for (i of [1,2,3]; track i) {
+      <div class="h-[68px] bg-neutral-900 border border-neutral-800 rounded-xl animate-pulse"></div>
+      }
+    </div>
+    }
+
+    @if (!loadingTournaments()) {
+
+    <!-- Result count -->
+    <p class="text-[0.72rem] text-neutral-500 mb-3">
+      @if (filteredTournaments().length === 0) {
+      Sin resultados
+      } @else if (filteredTournaments().length === 1) {
+      1 torneo
+      } @else {
+      {{ filteredTournaments().length }} torneos
+      }
+    </p>
+
+    <!-- Empty state -->
+    @if (filteredTournaments().length === 0) {
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-10 text-center">
+      <span class="material-symbols-outlined text-neutral-700 mb-4 block" style="font-size:48px">emoji_events</span>
+      <h2 class="font-bold text-neutral-400 mb-2">Sin torneos por ahora</h2>
+      <p class="text-sm text-neutral-600">Los torneos abiertos aparecerán aquí.</p>
+    </div>
+    }
+
+    <!-- Tournament cards -->
+    <div class="flex flex-col gap-2">
+      @for (t of filteredTournaments(); track t.id) {
+      <button (click)="goToTournament(t.id)"
+        class="w-full rounded-xl overflow-hidden border border-neutral-800/50 bg-neutral-900 hover:brightness-110 transition-all text-left">
+        <div class="h-[3px]" [style.background]="getBannerGradient(t.sport)"></div>
+        <div class="flex items-center gap-3 px-4 py-2.5 min-h-[44px]">
+          <div class="w-12 text-right flex-shrink-0">
+            @if (t.startDate) {
+            <p class="text-sm font-black text-white leading-none">{{ getTournamentDay(t.startDate) }}</p>
+            <p class="text-[9px] text-neutral-500 uppercase tracking-wider">{{ getTournamentMonth(t.startDate) }}</p>
+            <p class="text-[9px] text-neutral-500 uppercase tracking-wider mt-1">{{ getTournamentWeekday(t.startDate) }}</p>
+            } @else {
+            <p class="text-2xl leading-none">{{ getSportEmoji(t.sport) }}</p>
+            }
+          </div>
+          <div class="w-px self-stretch bg-neutral-800 flex-shrink-0"></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-white truncate leading-none">{{ t.name }}</p>
+            <p class="text-xs text-neutral-500 mt-0.5 truncate">{{ getSportEmoji(t.sport) }} {{ t.sport }} · {{ getTournamentFormatLabel(t.format) }}</p>
+          </div>
+          <div class="flex flex-col items-end gap-1 flex-shrink-0">
+            <span class="text-[10px] font-bold" [class]="getTournamentStatusTextColor(t.status)">{{ getTournamentStatusLabel(t.status) }}</span>
+            <span class="text-[10px] text-neutral-600">{{ t.approvedTeamCount }}{{ t.maxTeams ? ' / ' + t.maxTeams : '' }} equipos</span>
+          </div>
+        </div>
+      </button>
+      }
+    </div>
+
+    }
+
+    }
+
+  </main>
+
+  <app-bottom-nav activeTab="events" />
+
+</div>
+
+<!-- ── Bottom sheet overlay ─────────────────────────────── -->
+@if (sheetEvent()) {
+<!-- Backdrop -->
+<div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" (click)="closeSheet()"></div>
+
+<!-- Sheet -->
+<div
+  class="fixed bottom-0 left-0 right-0 z-50 bg-neutral-900 rounded-t-3xl border-t border-neutral-800 max-w-lg mx-auto"
+  style="padding-bottom: env(safe-area-inset-bottom)">
+
+  <!-- Handle -->
+  <div class="flex justify-center pt-3 pb-1">
+    <div class="w-10 h-1 bg-neutral-700 rounded-full"></div>
+  </div>
+
+  <!-- Sport banner strip -->
+  <div class="mx-4 mt-2 rounded-2xl overflow-hidden">
+    <div class="h-20 flex items-center justify-center relative"
+      [style.background]="getBannerGradient(sheetEvent()!.sport)">
+      <span class="text-4xl">{{ getSportEmoji(sheetEvent()!.sport) }}</span>
+
+      <!-- Badges -->
+      <span class="absolute top-2.5 left-3 text-[0.55rem] font-black tracking-wider uppercase px-2 py-0.5 rounded-full"
+        [class]="sheetEvent()!.isPublic
+                ? 'bg-brand/20 text-brand border border-brand/30'
+                : 'bg-blue-400/15 text-blue-400 border border-blue-400/30'">
+        {{ sheetEvent()!.isPublic ? 'Público' : 'Privado' }}
+      </span>
+
+      @if (sheetEvent()!.requiresApproval) {
+      <span
+        class="absolute top-2.5 right-3 text-[0.55rem] font-black tracking-wider uppercase px-2 py-0.5 rounded-full bg-yellow-400/20 text-yellow-400 border border-yellow-400/30">
+        Requiere aprobación
+      </span>
+      }
+    </div>
+  </div>
+
+  <!-- Event info -->
+  <div class="px-5 pt-4 pb-2">
+    <h2 class="font-black text-lg tracking-tight leading-snug mb-2">{{ sheetEvent()!.title }}</h2>
+    <div class="flex flex-col gap-1.5">
+      <div class="flex items-center gap-2 text-sm text-neutral-400">
+        <span class="material-symbols-outlined text-neutral-600 flex-shrink-0"
+          style="font-size:16px">calendar_today</span>
+        {{ formatDate(sheetEvent()!.startDatetime) }}
+      </div>
+      <div class="flex items-center gap-2 text-sm text-neutral-400">
+        <span class="material-symbols-outlined text-neutral-600 flex-shrink-0" style="font-size:16px">location_on</span>
+        {{ sheetEvent()!.locationName }}
+      </div>
+      @if (sheetEvent()!.maxParticipants) {
+      <div class="flex items-center gap-2 text-sm" [class]="sheetHasSpots() ? 'text-neutral-400' : 'text-orange-400'">
+        <span class="material-symbols-outlined text-neutral-600 flex-shrink-0" style="font-size:16px">group</span>
+        {{ sheetEvent()!.participantCount }}/{{ sheetEvent()!.maxParticipants }} participantes
+        @if (!sheetHasSpots()) {
+        · <span class="font-semibold">Sin cupos disponibles</span>
+        }
+      </div>
+      }
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div class="mx-5 my-3 border-t border-neutral-800"></div>
+
+  <!-- ── Flujo según estado ─────────────────────── -->
+  <div class="px-5 pb-5">
+
+    <!-- Estado: No inscrito -->
+    @if (sheetEvent()!.myStatus === null) {
+
+    <!-- Flujo B: Requiere aprobación del organizador -->
+    @if (sheetEvent()!.requiresApproval) {
+    <div class="mb-4">
+      <p class="text-sm font-semibold text-neutral-300 mb-1">Este evento requiere aprobación del organizador</p>
+      <p class="text-xs text-neutral-500 mb-3">Puedes incluir un mensaje opcional con tu solicitud.</p>
+      <textarea placeholder="Mensaje para el organizador (opcional)..." rows="3" [value]="joinMessage()"
+        (input)="setJoinMessage($any($event.target).value)" class="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-neutral-200
+                     placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500 resize-none
+                     transition-colors"></textarea>
+    </div>
+
+    @if (joinError()) {
+    <p class="text-xs text-red-400 mb-3 flex items-center gap-1.5">
+      <span class="material-symbols-outlined" style="font-size:14px">error</span>
+      {{ joinError() }}
+    </p>
+    }
+
+    <button (click)="confirmJoin()" [disabled]="joinLoading()" class="w-full flex items-center justify-center gap-2 bg-yellow-400 text-neutral-950
+                         font-black rounded-2xl min-h-[56px] text-base transition-opacity
+                         disabled:opacity-60">
+      @if (joinLoading()) {
+      <span class="material-symbols-outlined animate-spin" style="font-size:20px">progress_activity</span>
+      } @else {
+      <span class="material-symbols-outlined" style="font-size:20px">send</span>
+      }
+      Solicitar inscripción
+    </button>
+    }
+
+    <!-- Flujo A: Evento con cupos — inscripción directa -->
+    @else if (sheetHasSpots()) {
+    <p class="text-sm text-neutral-400 mb-4">
+      Al confirmar quedarás inscrito de inmediato y podrás ver el evento en tu dashboard.
+    </p>
+
+    @if (joinError()) {
+    <p class="text-xs text-red-400 mb-3 flex items-center gap-1.5">
+      <span class="material-symbols-outlined" style="font-size:14px">error</span>
+      {{ joinError() }}
+    </p>
+    }
+
+    <button (click)="confirmJoin()" [disabled]="joinLoading()" class="w-full flex items-center justify-center gap-2 bg-brand text-neutral-950
+                         font-black rounded-2xl min-h-[56px] text-base transition-opacity
+                         disabled:opacity-60">
+      @if (joinLoading()) {
+      <span class="material-symbols-outlined animate-spin" style="font-size:20px">progress_activity</span>
+      } @else {
+      <span class="material-symbols-outlined" style="font-size:20px">check</span>
+      }
+      Confirmar inscripción
+    </button>
+    }
+
+    <!-- Flujo A: Evento lleno — lista de espera -->
+    @else {
+    <div class="flex items-start gap-3 bg-orange-950/40 border border-orange-800/40 rounded-xl p-3.5 mb-4">
+      <span class="material-symbols-outlined text-orange-400 flex-shrink-0 mt-0.5" style="font-size:18px">info</span>
+      <p class="text-sm text-orange-300">
+        Este evento está completo. Puedes unirte a la <strong>lista de espera</strong> y te notificaremos si se libera
+        un cupo.
+      </p>
+    </div>
+
+    @if (joinError()) {
+    <p class="text-xs text-red-400 mb-3 flex items-center gap-1.5">
+      <span class="material-symbols-outlined" style="font-size:14px">error</span>
+      {{ joinError() }}
+    </p>
+    }
+
+    <button (click)="confirmJoin()" [disabled]="joinLoading()" class="w-full flex items-center justify-center gap-2 bg-orange-500 text-white
+                         font-black rounded-2xl min-h-[56px] text-base transition-opacity
+                         disabled:opacity-60">
+      @if (joinLoading()) {
+      <span class="material-symbols-outlined animate-spin" style="font-size:20px">progress_activity</span>
+      } @else {
+      <span class="material-symbols-outlined" style="font-size:20px">queue</span>
+      }
+      Unirme a lista de espera
+    </button>
+    }
+
+    }
+
+    <!-- Estado: Inscrito (approved) -->
+    @else if (sheetEvent()!.myStatus === 'approved') {
+    <div class="flex items-center gap-3 bg-brand/10 border border-brand/25 rounded-xl p-4 mb-5">
+      <span class="material-symbols-outlined filled text-brand flex-shrink-0" style="font-size:24px">check_circle</span>
+      <div>
+        <p class="text-sm font-bold text-brand">Estás inscrito</p>
+        <p class="text-xs text-neutral-500 mt-0.5">Tu participación está confirmada en este evento.</p>
+      </div>
+    </div>
+
+    @if (joinError()) {
+    <p class="text-xs text-red-400 mb-3 flex items-center gap-1.5">
+      <span class="material-symbols-outlined" style="font-size:14px">error</span>
+      {{ joinError() }}
+    </p>
+    }
+
+    <button (click)="confirmLeave()" [disabled]="joinLoading()" class="w-full flex items-center justify-center gap-2 bg-neutral-800 text-red-400
+                       font-bold rounded-2xl min-h-[56px] text-sm border border-neutral-700
+                       transition-opacity disabled:opacity-60">
+      @if (joinLoading()) {
+      <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+      } @else {
+      <span class="material-symbols-outlined" style="font-size:18px">exit_to_app</span>
+      }
+      Salir del evento
+    </button>
+    }
+
+    <!-- Estado: Pendiente de aprobación -->
+    @else if (sheetEvent()!.myStatus === 'pending') {
+    <div class="flex items-center gap-3 bg-yellow-950/40 border border-yellow-800/40 rounded-xl p-4 mb-5">
+      <span class="material-symbols-outlined text-yellow-400 flex-shrink-0"
+        style="font-size:24px">hourglass_empty</span>
+      <div>
+        <p class="text-sm font-bold text-yellow-400">Solicitud enviada</p>
+        <p class="text-xs text-neutral-500 mt-0.5">El organizador revisará tu solicitud pronto.</p>
+      </div>
+    </div>
+
+    @if (joinError()) {
+    <p class="text-xs text-red-400 mb-3 flex items-center gap-1.5">
+      <span class="material-symbols-outlined" style="font-size:14px">error</span>
+      {{ joinError() }}
+    </p>
+    }
+
+    <button (click)="confirmLeave()" [disabled]="joinLoading()" class="w-full flex items-center justify-center gap-2 bg-neutral-800 text-neutral-300
+                       font-bold rounded-2xl min-h-[56px] text-sm border border-neutral-700
+                       transition-opacity disabled:opacity-60">
+      @if (joinLoading()) {
+      <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+      } @else {
+      <span class="material-symbols-outlined" style="font-size:18px">cancel</span>
+      }
+      Cancelar solicitud
+    </button>
+    }
+
+    <!-- Estado: Lista de espera -->
+    @else if (sheetEvent()!.myStatus === 'waiting') {
+    <div class="flex items-center gap-3 bg-blue-950/40 border border-blue-800/40 rounded-xl p-4 mb-5">
+      <span class="material-symbols-outlined text-blue-400 flex-shrink-0" style="font-size:24px">queue</span>
+      <div>
+        <p class="text-sm font-bold text-blue-400">Estás en lista de espera</p>
+        <p class="text-xs text-neutral-500 mt-0.5">Te avisaremos si se libera un cupo.</p>
+      </div>
+    </div>
+
+    @if (joinError()) {
+    <p class="text-xs text-red-400 mb-3 flex items-center gap-1.5">
+      <span class="material-symbols-outlined" style="font-size:14px">error</span>
+      {{ joinError() }}
+    </p>
+    }
+
+    <button (click)="confirmLeave()" [disabled]="joinLoading()" class="w-full flex items-center justify-center gap-2 bg-neutral-800 text-neutral-300
+                       font-bold rounded-2xl min-h-[56px] text-sm border border-neutral-700
+                       transition-opacity disabled:opacity-60">
+      @if (joinLoading()) {
+      <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+      } @else {
+      <span class="material-symbols-outlined" style="font-size:18px">remove_circle</span>
+      }
+      Salir de lista de espera
+    </button>
+    }
+
+    <!-- Estado: Rechazado -->
+    @else if (sheetEvent()!.myStatus === 'rejected') {
+    <div class="flex items-center gap-3 bg-red-950/40 border border-red-800/40 rounded-xl p-4 mb-5">
+      <span class="material-symbols-outlined text-red-400 flex-shrink-0" style="font-size:24px">cancel</span>
+      <div>
+        <p class="text-sm font-bold text-red-400">Solicitud rechazada</p>
+        <p class="text-xs text-neutral-500 mt-0.5">El organizador no aprobó tu inscripción en este evento.</p>
+      </div>
+    </div>
+
+    <button (click)="closeSheet()" class="w-full flex items-center justify-center gap-2 bg-neutral-800 text-neutral-300
+                       font-bold rounded-2xl min-h-[56px] text-sm border border-neutral-700">
+      Cerrar
+    </button>
+    }
+
+    <!-- Cancel button (when not joined) -->
+    @if (sheetEvent()!.myStatus === null) {
+    <button (click)="closeSheet()" class="w-full mt-3 text-sm text-neutral-500 min-h-[44px] font-medium">
+      Cancelar
+    </button>
+    }
+
+  </div>
+</div>
+}

@@ -1,0 +1,669 @@
+<div class="min-h-screen bg-neutral-950 flex flex-col">
+
+  <!-- ── Header ─────────────────────────────────────────── -->
+  <header class="sticky top-0 z-10 bg-neutral-950/95 backdrop-blur-sm border-b border-neutral-800"
+          style="padding-top: env(safe-area-inset-top)">
+    <div class="max-w-lg mx-auto flex items-center gap-3 px-4 h-14">
+      <button (click)="goBack()"
+              class="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 min-h-[36px] flex-shrink-0">
+        <span class="material-symbols-outlined text-neutral-400" style="font-size:20px">arrow_back</span>
+      </button>
+      <h1 class="font-black tracking-tight flex-1 text-[0.95rem] truncate">
+        {{ event()?.title ?? 'Detalle del evento' }}
+      </h1>
+    </div>
+  </header>
+
+  <!-- ── Loading ─────────────────────────────────────────── -->
+  @if (loading()) {
+    <main class="flex-1 max-w-lg mx-auto w-full pb-8">
+      <div class="h-52 bg-neutral-800 animate-pulse"></div>
+      <div class="px-4 py-5 flex flex-col gap-4">
+        <div class="h-6 bg-neutral-800 rounded-lg w-3/4 animate-pulse"></div>
+        <div class="h-4 bg-neutral-800 rounded-lg w-1/2 animate-pulse"></div>
+        <div class="h-4 bg-neutral-800 rounded-lg w-2/3 animate-pulse"></div>
+      </div>
+    </main>
+  }
+
+  <!-- ── Error ───────────────────────────────────────────── -->
+  @if (error()) {
+    <main class="flex-1 max-w-lg mx-auto w-full px-4 py-8">
+      <div class="flex items-center gap-3 bg-red-950/50 border border-red-800/50 rounded-xl p-4 text-sm text-red-400">
+        <span class="material-symbols-outlined flex-shrink-0" style="font-size:20px">error</span>
+        {{ error() }}
+      </div>
+    </main>
+  }
+
+  <!-- ── Content ─────────────────────────────────────────── -->
+  @if (!loading() && !error() && event()) {
+    <main class="flex-1 max-w-lg mx-auto w-full pb-[calc(2rem+env(safe-area-inset-bottom))]">
+
+      <!-- Banner -->
+      <div class="h-52 flex items-center justify-center relative"
+           [style.background]="getBannerGradient(event()!.sport)">
+        <span class="text-7xl">{{ getSportEmoji(event()!.sport) }}</span>
+
+        <!-- Public/private badge -->
+        <span class="absolute top-4 left-4 text-[0.6rem] font-black tracking-wider uppercase px-2.5 py-1 rounded-full"
+              [class]="event()!.isPublic
+                ? 'bg-brand/20 text-brand border border-brand/30'
+                : 'bg-blue-400/15 text-blue-400 border border-blue-400/30'">
+          {{ event()!.isPublic ? 'Público' : 'Privado' }}
+        </span>
+
+        <!-- Approval required badge -->
+        @if (event()!.requiresApproval) {
+          <span class="absolute top-4 right-4 text-[0.6rem] font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-yellow-400/20 text-yellow-400 border border-yellow-400/30">
+            Requiere aprobación
+          </span>
+        }
+
+        <!-- HOY badge -->
+        @if (isToday(event()!.startDatetime) && !isFinished()) {
+          <span class="absolute bottom-4 right-4 text-[0.6rem] font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-orange-400/20 text-orange-400 border border-orange-400/30">
+            HOY
+          </span>
+        }
+
+        <!-- Finalizado badge -->
+        @if (isFinished()) {
+          <span class="absolute bottom-4 right-4 text-[0.6rem] font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-neutral-400/20 text-neutral-300 border border-neutral-400/30">
+            Finalizado
+          </span>
+        }
+      </div>
+
+      <!-- Body -->
+      <div class="px-4 pt-5 flex flex-col gap-5">
+
+        <!-- Title + type -->
+        <div class="flex items-start justify-between gap-3">
+          <h2 class="font-black text-xl tracking-tight leading-snug flex-1">{{ event()!.title }}</h2>
+          <span class="text-[0.65rem] font-bold px-2.5 py-1 rounded-full border flex-shrink-0 mt-0.5"
+                [class]="getTypeColor(event()!.type)">
+            {{ getTypeLabel(event()!.type) }}
+          </span>
+        </div>
+
+        <!-- Info rows -->
+        <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden divide-y divide-neutral-800">
+
+          <div class="flex items-center gap-3 px-4 py-3.5">
+            <span class="material-symbols-outlined text-neutral-500 flex-shrink-0" style="font-size:20px">sports</span>
+            <div>
+              <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-0.5">Deporte</p>
+              <p class="text-sm font-semibold">{{ event()!.sport }}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 px-4 py-3.5">
+            <span class="material-symbols-outlined flex-shrink-0"
+                  style="font-size:20px"
+                  [class]="isToday(event()!.startDatetime) ? 'text-brand' : 'text-neutral-500'">
+              calendar_today
+            </span>
+            <div>
+              <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-0.5">Fecha y hora</p>
+              <p class="text-sm font-semibold capitalize"
+                 [class]="isToday(event()!.startDatetime) ? 'text-brand' : ''">
+                {{ formatDate(event()!.startDatetime) }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 px-4 py-3.5">
+            <span class="material-symbols-outlined flex-shrink-0"
+                  style="font-size:20px"
+                  [class]="isFinished() ? 'text-neutral-500' : 'text-neutral-500'">
+              event_available
+            </span>
+            <div>
+              <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-0.5">Fin del evento</p>
+              <p class="text-sm font-semibold capitalize">{{ formatDate(event()!.endDatetime) }}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 px-4 py-3.5">
+            <span class="material-symbols-outlined text-neutral-500 flex-shrink-0" style="font-size:20px">location_on</span>
+            <div>
+              <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-0.5">Ubicación</p>
+              <p class="text-sm font-semibold">{{ event()!.locationName }}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 px-4 py-3.5">
+            <span class="material-symbols-outlined flex-shrink-0"
+                  style="font-size:20px"
+                  [class]="spotsLeft() === 0 ? 'text-red-400' : spotsLeft() !== null && spotsLeft()! <= 3 ? 'text-orange-400' : 'text-neutral-500'">
+              group
+            </span>
+            <div class="flex-1">
+              <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-0.5">Participantes</p>
+              @if (event()!.maxParticipants) {
+                <div class="flex items-center gap-2">
+                  <p class="text-sm font-semibold"
+                     [class]="spotsLeft() === 0 ? 'text-red-400' : spotsLeft() !== null && spotsLeft()! <= 3 ? 'text-orange-400' : ''">
+                    {{ event()!.participantCount }} / {{ event()!.maxParticipants }}
+                  </p>
+                  @if (spotsLeft() === 0) {
+                    <span class="text-[0.6rem] font-bold text-red-400 bg-red-950/50 border border-red-800/50 px-2 py-0.5 rounded-full">Sin cupos</span>
+                  } @else if (spotsLeft() !== null && spotsLeft()! <= 3) {
+                    <span class="text-[0.6rem] font-bold text-orange-400 bg-orange-950/50 border border-orange-800/50 px-2 py-0.5 rounded-full">{{ spotsLeft() }} cupo{{ spotsLeft() === 1 ? '' : 's' }}</span>
+                  }
+                </div>
+                <!-- Spots bar -->
+                <div class="mt-1.5 h-1 bg-neutral-800 rounded-full overflow-hidden w-32">
+                  <div class="h-full rounded-full transition-all"
+                       [class]="spotsLeft() === 0 ? 'bg-red-500' : spotsLeft() !== null && spotsLeft()! <= 3 ? 'bg-orange-400' : 'bg-brand'"
+                       [style.width]="(event()!.participantCount / event()!.maxParticipants! * 100) + '%'"></div>
+                </div>
+              } @else {
+                <p class="text-sm font-semibold">{{ event()!.participantCount }} inscritos · Sin límite</p>
+              }
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Description -->
+        @if (event()!.description) {
+          <div>
+            <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-2">Descripción</p>
+            <p class="text-sm text-neutral-300 leading-relaxed">{{ event()!.description }}</p>
+          </div>
+        }
+
+        <!-- ── Closing info (visible to all when finished) ── -->
+        @if (isFinished()) {
+          <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden flex flex-col gap-0">
+
+            @if (event()!.results) {
+              <div class="px-4 py-4 border-b border-neutral-800">
+                <p class="text-[0.65rem] text-neutral-500 uppercase tracking-wider font-bold mb-2 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined" style="font-size:14px">emoji_events</span>
+                  Resultados
+                </p>
+                <p class="text-sm text-neutral-200 leading-relaxed whitespace-pre-line">{{ event()!.results }}</p>
+              </div>
+            }
+
+            @if (event()!.closingNotes) {
+              <div class="px-4 py-4">
+                <p class="text-[0.65rem] text-neutral-500 uppercase tracking-wider font-bold mb-2 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined" style="font-size:14px">book</span>
+                  Notas del organizador
+                </p>
+                <p class="text-sm text-neutral-300 leading-relaxed whitespace-pre-line">{{ event()!.closingNotes }}</p>
+              </div>
+            }
+
+            @if (!event()!.results && !event()!.closingNotes && !isOrganizer()) {
+              <div class="px-4 py-4 flex items-center gap-2 text-neutral-600">
+                <span class="material-symbols-outlined" style="font-size:18px">info</span>
+                <p class="text-sm">El organizador no ha agregado notas de cierre.</p>
+              </div>
+            }
+
+          </div>
+
+          <!-- Organizer closing form -->
+          @if (isOrganizer()) {
+            <div class="flex flex-col gap-3">
+              @if (!showCloseForm()) {
+                <button (click)="openCloseForm()"
+                        class="flex items-center gap-2 text-[0.8rem] font-bold text-neutral-400 hover:text-neutral-200 transition-colors min-h-[36px]">
+                  <span class="material-symbols-outlined" style="font-size:18px">edit_note</span>
+                  {{ event()!.results || event()!.closingNotes ? 'Editar notas de cierre' : 'Agregar notas de cierre' }}
+                </button>
+              } @else {
+                <div class="flex flex-col gap-3">
+                  <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold">Notas de cierre</p>
+
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-[0.62rem] text-neutral-500 px-0.5">Resultados</label>
+                    <textarea placeholder="Ej: Ganamos 3-2, el equipo azul fue el MVP..."
+                              rows="3"
+                              maxlength="2000"
+                              [value]="closeResults()"
+                              (input)="closeResults.set($any($event.target).value)"
+                              class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 text-[0.82rem] placeholder:text-neutral-600 focus:outline-none focus:border-neutral-600 transition-colors resize-none text-neutral-200"></textarea>
+                  </div>
+
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-[0.62rem] text-neutral-500 px-0.5">Bitácora / notas</label>
+                    <textarea placeholder="Reflexiones, incidencias, qué mejorar..."
+                              rows="4"
+                              maxlength="2000"
+                              [value]="closeNotes()"
+                              (input)="closeNotes.set($any($event.target).value)"
+                              class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 text-[0.82rem] placeholder:text-neutral-600 focus:outline-none focus:border-neutral-600 transition-colors resize-none text-neutral-200"></textarea>
+                  </div>
+
+                  @if (closeError()) {
+                    <p class="text-xs text-red-400 flex items-center gap-1.5">
+                      <span class="material-symbols-outlined" style="font-size:14px">error</span>
+                      {{ closeError() }}
+                    </p>
+                  }
+
+                  <div class="flex gap-2">
+                    <button (click)="showCloseForm.set(false)"
+                            class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 text-neutral-300 font-bold rounded-xl min-h-[44px] text-sm border border-neutral-700 transition-opacity">
+                      Cancelar
+                    </button>
+                    <button (click)="submitClose()"
+                            [disabled]="closeLoading()"
+                            class="flex-1 flex items-center justify-center gap-1.5 bg-brand text-neutral-950 font-black rounded-xl min-h-[44px] text-sm transition-opacity disabled:opacity-60">
+                      @if (closeLoading()) {
+                        <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+                      } @else {
+                        <span class="material-symbols-outlined" style="font-size:18px">save</span>
+                      }
+                      Guardar
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        }
+
+        <!-- ── Participation section ─────────────────────── -->
+        <div class="border-t border-neutral-800 pt-4 flex flex-col gap-3">
+
+            <!-- No inscrito -->
+            @if (event()!.myStatus === null) {
+
+              <!-- Approval required: message field -->
+              @if (event()!.requiresApproval) {
+                <div class="bg-yellow-950/30 border border-yellow-800/40 rounded-xl p-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-yellow-400" style="font-size:18px">approval</span>
+                    <p class="text-sm font-bold text-yellow-400">Requiere aprobación del organizador</p>
+                  </div>
+                  <p class="text-xs text-neutral-500 mb-3">Tu solicitud será revisada antes de confirmar la inscripción.</p>
+                  <textarea
+                    placeholder="Mensaje para el organizador (opcional)..."
+                    rows="2"
+                    [value]="joinMessage()"
+                    (input)="setJoinMessage($any($event.target).value)"
+                    class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-neutral-200
+                           placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500 resize-none transition-colors">
+                  </textarea>
+                </div>
+              }
+
+              <!-- Event full: waiting list info -->
+              @if (!event()!.requiresApproval && !hasSpots()) {
+                <div class="flex items-start gap-3 bg-orange-950/30 border border-orange-800/40 rounded-xl p-4">
+                  <span class="material-symbols-outlined text-orange-400 flex-shrink-0 mt-0.5" style="font-size:18px">info</span>
+                  <p class="text-sm text-orange-300">
+                    El evento está completo. Al inscribirte entrarás a la <strong>lista de espera</strong> y serás notificado si se libera un cupo.
+                  </p>
+                </div>
+              }
+
+              @if (joinError()) {
+                <p class="text-xs text-red-400 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined" style="font-size:14px">error</span>
+                  {{ joinError() }}
+                </p>
+              }
+
+              <button (click)="confirmJoin()" [disabled]="joinLoading()"
+                      class="w-full flex items-center justify-center gap-2 font-black rounded-2xl min-h-[56px] text-base transition-opacity disabled:opacity-60"
+                      [class]="event()!.requiresApproval
+                        ? 'bg-yellow-400 text-neutral-950'
+                        : !hasSpots()
+                          ? 'bg-orange-500 text-white'
+                          : 'bg-brand text-neutral-950'">
+                @if (joinLoading()) {
+                  <span class="material-symbols-outlined animate-spin" style="font-size:20px">progress_activity</span>
+                } @else if (event()!.requiresApproval) {
+                  <span class="material-symbols-outlined" style="font-size:20px">send</span>
+                } @else if (!hasSpots()) {
+                  <span class="material-symbols-outlined" style="font-size:20px">queue</span>
+                } @else {
+                  <span class="material-symbols-outlined" style="font-size:20px">check</span>
+                }
+                @if (event()!.requiresApproval) { Solicitar inscripción }
+                @else if (!hasSpots()) { Unirme a lista de espera }
+                @else { Confirmar inscripción }
+              </button>
+            }
+
+            <!-- Inscrito (approved) -->
+            @else if (event()!.myStatus === 'approved') {
+              <div class="flex items-center gap-3 bg-brand/10 border border-brand/25 rounded-xl p-4">
+                <span class="material-symbols-outlined filled text-brand flex-shrink-0" style="font-size:24px">check_circle</span>
+                <div>
+                  <p class="text-sm font-bold text-brand">Estás inscrito</p>
+                  <p class="text-xs text-neutral-500 mt-0.5">Tu participación está confirmada.</p>
+                </div>
+              </div>
+              @if (joinError()) {
+                <p class="text-xs text-red-400 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined" style="font-size:14px">error</span>
+                  {{ joinError() }}
+                </p>
+              }
+              <button (click)="confirmLeave()" [disabled]="joinLoading()"
+                      class="w-full flex items-center justify-center gap-2 bg-neutral-800 text-red-400
+                             font-bold rounded-2xl min-h-[56px] text-sm border border-neutral-700
+                             transition-opacity disabled:opacity-60">
+                @if (joinLoading()) {
+                  <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+                } @else {
+                  <span class="material-symbols-outlined" style="font-size:18px">exit_to_app</span>
+                }
+                Cancelar asistencia
+              </button>
+            }
+
+            <!-- Pendiente -->
+            @else if (event()!.myStatus === 'pending') {
+              <div class="flex items-center gap-3 bg-yellow-950/40 border border-yellow-800/40 rounded-xl p-4">
+                <span class="material-symbols-outlined text-yellow-400 flex-shrink-0" style="font-size:24px">hourglass_empty</span>
+                <div>
+                  <p class="text-sm font-bold text-yellow-400">Solicitud enviada</p>
+                  <p class="text-xs text-neutral-500 mt-0.5">El organizador revisará tu solicitud pronto.</p>
+                </div>
+              </div>
+              @if (joinError()) {
+                <p class="text-xs text-red-400 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined" style="font-size:14px">error</span>
+                  {{ joinError() }}
+                </p>
+              }
+              <button (click)="confirmLeave()" [disabled]="joinLoading()"
+                      class="w-full flex items-center justify-center gap-2 bg-neutral-800 text-neutral-300
+                             font-bold rounded-2xl min-h-[56px] text-sm border border-neutral-700
+                             transition-opacity disabled:opacity-60">
+                @if (joinLoading()) {
+                  <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+                } @else {
+                  <span class="material-symbols-outlined" style="font-size:18px">cancel</span>
+                }
+                Cancelar solicitud
+              </button>
+            }
+
+            <!-- Lista de espera -->
+            @else if (event()!.myStatus === 'waiting') {
+              <div class="flex items-center gap-3 bg-blue-950/40 border border-blue-800/40 rounded-xl p-4">
+                <span class="material-symbols-outlined text-blue-400 flex-shrink-0" style="font-size:24px">queue</span>
+                <div>
+                  <p class="text-sm font-bold text-blue-400">En lista de espera</p>
+                  <p class="text-xs text-neutral-500 mt-0.5">Te notificaremos si se libera un cupo.</p>
+                </div>
+              </div>
+              @if (joinError()) {
+                <p class="text-xs text-red-400 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined" style="font-size:14px">error</span>
+                  {{ joinError() }}
+                </p>
+              }
+              <button (click)="confirmLeave()" [disabled]="joinLoading()"
+                      class="w-full flex items-center justify-center gap-2 bg-neutral-800 text-neutral-300
+                             font-bold rounded-2xl min-h-[56px] text-sm border border-neutral-700
+                             transition-opacity disabled:opacity-60">
+                @if (joinLoading()) {
+                  <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+                } @else {
+                  <span class="material-symbols-outlined" style="font-size:18px">remove_circle</span>
+                }
+                Salir de lista de espera
+              </button>
+            }
+
+            <!-- Rechazado -->
+            @else if (event()!.myStatus === 'rejected') {
+              <div class="flex items-center gap-3 bg-red-950/40 border border-red-800/40 rounded-xl p-4">
+                <span class="material-symbols-outlined text-red-400 flex-shrink-0" style="font-size:24px">cancel</span>
+                <div>
+                  <p class="text-sm font-bold text-red-400">Solicitud rechazada</p>
+                  <p class="text-xs text-neutral-500 mt-0.5">El organizador no aprobó tu inscripción.</p>
+                </div>
+              </div>
+            }
+
+        </div>
+
+        <!-- Organizer badge + invite section -->
+        @if (isOrganizer()) {
+          <div class="border-t border-neutral-800 pt-4 flex flex-col gap-4">
+
+            <div class="flex items-center gap-3 bg-brand/10 border border-brand/25 rounded-xl p-4">
+              <span class="material-symbols-outlined text-brand flex-shrink-0" style="font-size:24px">manage_accounts</span>
+              <div>
+                <p class="text-sm font-bold text-brand">Eres el organizador</p>
+                <p class="text-xs text-neutral-500 mt-0.5">Creaste este evento.</p>
+              </div>
+            </div>
+
+            <!-- Share link -->
+            <div>
+              <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-2">Link de invitación</p>
+              <button (click)="copyShareLink()"
+                      class="w-full flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-xl px-4 min-h-[52px] text-left transition-colors hover:border-neutral-600">
+                <span class="material-symbols-outlined flex-shrink-0"
+                      style="font-size:20px"
+                      [class]="linkCopied() ? 'text-brand' : 'text-neutral-500'">
+                  {{ linkCopied() ? 'check_circle' : 'link' }}
+                </span>
+                <span class="flex-1 text-[0.8rem] font-mono truncate text-neutral-500">
+                  {{ '/e/' + event()!.shareToken }}
+                </span>
+                <span class="text-[0.7rem] font-bold flex-shrink-0"
+                      [class]="linkCopied() ? 'text-brand' : 'text-neutral-500'">
+                  {{ linkCopied() ? 'Copiado' : 'Copiar' }}
+                </span>
+              </button>
+              <p class="text-[0.65rem] text-neutral-700 mt-2">
+                Cualquiera con este link puede ver el evento y unirse.
+              </p>
+            </div>
+
+            <!-- Invite section -->
+            <div>
+              <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-2">Invitar personas</p>
+              <div class="flex gap-2">
+                <input type="text"
+                       placeholder="ID de usuario o correo..."
+                       [value]="inviteQuery()"
+                       (input)="setInviteQuery($any($event.target).value)"
+                       (keydown.enter)="sendInvite()"
+                       class="flex-1 bg-neutral-900 border border-neutral-800 rounded-xl px-3 text-sm
+                              text-neutral-200 placeholder:text-neutral-600 focus:outline-none
+                              focus:border-neutral-600 transition-colors min-h-[44px]" />
+                <button (click)="sendInvite()"
+                        [disabled]="!inviteQuery().trim() || inviteLoading()"
+                        class="flex items-center gap-1.5 bg-brand text-neutral-950 font-black px-4
+                               rounded-xl min-h-[44px] text-sm transition-opacity disabled:opacity-40 flex-shrink-0">
+                  @if (inviteLoading()) {
+                    <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+                  } @else {
+                    <span class="material-symbols-outlined" style="font-size:18px">send</span>
+                  }
+                  Invitar
+                </button>
+              </div>
+
+              @if (inviteResult()) {
+                <p class="text-xs mt-2 flex items-center gap-1.5"
+                   [class]="inviteResult()!.success ? 'text-brand' : 'text-red-400'">
+                  <span class="material-symbols-outlined" style="font-size:14px">
+                    {{ inviteResult()!.success ? 'check_circle' : 'error' }}
+                  </span>
+                  {{ inviteResult()!.message }}
+                </p>
+              }
+
+              <p class="text-[0.65rem] text-neutral-700 mt-2">
+                Ingresa el ID de 6 caracteres del usuario o su correo registrado.
+              </p>
+            </div>
+
+            <!-- Invitar desde mis contactos -->
+            @if (contactsLoading() || contacts().length > 0) {
+              <div>
+                <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-2">Desde mis contactos</p>
+
+                @if (contactsLoading()) {
+                  <div class="flex flex-col gap-2">
+                    @for (i of [1, 2]; track i) {
+                      <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2.5 animate-pulse">
+                        <div class="w-8 h-8 rounded-full bg-neutral-800 flex-shrink-0"></div>
+                        <div class="flex-1 h-3 bg-neutral-800 rounded-md"></div>
+                      </div>
+                    }
+                  </div>
+                } @else {
+
+                  <!-- Seleccionar todos -->
+                  <div class="flex items-center justify-between mb-2">
+                    <button (click)="selectAllContacts()"
+                            class="text-[0.65rem] font-bold text-neutral-500 hover:text-neutral-300 transition-colors min-h-[28px]">
+                      {{ allContactsSelected() ? 'Deseleccionar todos' : 'Seleccionar todos' }}
+                    </button>
+                    @if (selectedContactIds().size > 0) {
+                      <span class="text-[0.65rem] text-brand font-bold">
+                        {{ selectedContactIds().size }} seleccionado{{ selectedContactIds().size !== 1 ? 's' : '' }}
+                      </span>
+                    }
+                  </div>
+
+                  <!-- Lista checkeable -->
+                  <div class="flex flex-col gap-1.5">
+                    @for (contact of contacts(); track contact.id) {
+                      <button (click)="toggleContactSelection(contact.id)"
+                              class="flex items-center gap-3 border rounded-xl px-3 py-2.5 text-left transition-colors w-full"
+                              [class]="selectedContactIds().has(contact.id)
+                                ? 'bg-brand/5 border-brand/40'
+                                : 'bg-neutral-900 border-neutral-800'">
+
+                        <!-- Checkbox -->
+                        <div class="w-5 h-5 rounded-md border flex-shrink-0 flex items-center justify-center transition-colors"
+                             [class]="selectedContactIds().has(contact.id)
+                               ? 'bg-brand border-brand'
+                               : 'border-neutral-600'">
+                          @if (selectedContactIds().has(contact.id)) {
+                            <span class="material-symbols-outlined text-neutral-950" style="font-size:13px">check</span>
+                          }
+                        </div>
+
+                        <!-- Avatar -->
+                        @if (contact.avatar) {
+                          <img [src]="contact.avatar" [alt]="contact.name"
+                               class="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                        } @else {
+                          <div class="w-7 h-7 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
+                            <span class="text-[0.6rem] font-black text-brand">{{ getContactInitials(contact.name) }}</span>
+                          </div>
+                        }
+
+                        <!-- Info -->
+                        <span class="text-sm font-semibold truncate flex-1">{{ contact.name }}</span>
+                        <span class="text-[0.65rem] font-mono text-neutral-600 flex-shrink-0">{{ contact.stringId }}</span>
+
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Botón invitar seleccionados -->
+                  @if (selectedContactIds().size > 0) {
+                    <button (click)="inviteSelectedContacts()"
+                            [disabled]="inviteContactsLoading()"
+                            class="w-full flex items-center justify-center gap-2 bg-brand text-neutral-950
+                                   font-black rounded-xl min-h-[44px] text-sm mt-3
+                                   transition-opacity disabled:opacity-60">
+                      @if (inviteContactsLoading()) {
+                        <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+                      } @else {
+                        <span class="material-symbols-outlined" style="font-size:18px">send</span>
+                      }
+                      Invitar {{ selectedContactIds().size }} contacto{{ selectedContactIds().size !== 1 ? 's' : '' }}
+                    </button>
+                  }
+
+                  @if (inviteContactsResult()) {
+                    <p class="text-xs mt-2 flex items-center gap-1.5"
+                       [class]="inviteContactsResult()!.success ? 'text-brand' : 'text-red-400'">
+                      <span class="material-symbols-outlined" style="font-size:14px">
+                        {{ inviteContactsResult()!.success ? 'check_circle' : 'error' }}
+                      </span>
+                      {{ inviteContactsResult()!.message }}
+                    </p>
+                  }
+
+                }
+              </div>
+            }
+
+            <!-- Invitar por grupo -->
+            @if (groups().length > 0 || groupsLoading()) {
+              <div>
+                <p class="text-[0.65rem] text-neutral-600 uppercase tracking-wider font-bold mb-2">Invitar grupo</p>
+
+                @if (groupsLoading()) {
+                  <div class="flex flex-col gap-1.5">
+                    @for (i of [1, 2]; track i) {
+                      <div class="h-11 bg-neutral-900 border border-neutral-800 rounded-xl animate-pulse"></div>
+                    }
+                  </div>
+                } @else {
+                  <div class="flex flex-col gap-1.5">
+                    @for (group of groups(); track group.id) {
+                      <button (click)="selectedGroupId.set(selectedGroupId() === group.id ? null : group.id)"
+                              class="flex items-center gap-3 border rounded-xl px-3 py-2.5 text-left transition-colors w-full min-h-[44px]"
+                              [class]="selectedGroupId() === group.id
+                                ? 'bg-brand/5 border-brand/40'
+                                : 'bg-neutral-900 border-neutral-800'">
+                        <div class="w-5 h-5 rounded-md border flex-shrink-0 flex items-center justify-center transition-colors"
+                             [class]="selectedGroupId() === group.id ? 'bg-brand border-brand' : 'border-neutral-600'">
+                          @if (selectedGroupId() === group.id) {
+                            <span class="material-symbols-outlined text-neutral-950" style="font-size:13px">check</span>
+                          }
+                        </div>
+                        <span class="material-symbols-outlined text-neutral-500 flex-shrink-0" style="font-size:18px">group</span>
+                        <span class="text-sm font-semibold flex-1 truncate">{{ group.name }}</span>
+                        <span class="text-[0.65rem] text-neutral-600 flex-shrink-0">{{ group.memberCount }} miembro{{ group.memberCount !== 1 ? 's' : '' }}</span>
+                      </button>
+                    }
+                  </div>
+
+                  @if (selectedGroupId()) {
+                    <button (click)="inviteGroup()"
+                            [disabled]="inviteGroupLoading()"
+                            class="w-full flex items-center justify-center gap-2 bg-brand text-neutral-950
+                                   font-black rounded-xl min-h-[44px] text-sm mt-3
+                                   transition-opacity disabled:opacity-60">
+                      @if (inviteGroupLoading()) {
+                        <span class="material-symbols-outlined animate-spin" style="font-size:18px">progress_activity</span>
+                      } @else {
+                        <span class="material-symbols-outlined" style="font-size:18px">group_add</span>
+                      }
+                      Invitar grupo seleccionado
+                    </button>
+                  }
+
+                  @if (inviteGroupResult() && inviteGroupResult()!.skipped !== -1) {
+                    <p class="text-xs mt-2 flex items-center gap-1.5 text-brand">
+                      <span class="material-symbols-outlined" style="font-size:14px">check_circle</span>
+                      {{ inviteGroupResult()!.invited }} invitado{{ inviteGroupResult()!.invited !== 1 ? 's' : '' }}{{ inviteGroupResult()!.skipped > 0 ? ', ' + inviteGroupResult()!.skipped + ' ya participaban' : '' }}
+                    </p>
+                  }
+                }
+              </div>
+            }
+
+          </div>
+        }
+
+      </div>
+    </main>
+  }
+
+</div>

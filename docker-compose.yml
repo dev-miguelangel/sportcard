@@ -47,5 +47,22 @@ services:
       - backend
     command: npm run start -- --host 0.0.0.0 --poll 1000
 
+  frontend-torneos:
+    build:
+      context: ./frontend-torneos
+      target: development
+    restart: unless-stopped
+    ports:
+      - '4201:4201'
+    environment:
+      API_URL: http://backend:3000
+    env_file:
+      - .env
+    volumes:
+      - ./frontend-torneos/src:/app/src
+    depends_on:
+      - backend
+    command: npm run start -- --host 0.0.0.0 --poll 1000
+
 volumes:
   postgres_data:

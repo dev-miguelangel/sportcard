@@ -12,11 +12,12 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN npm run build
+ARG BUILD_CONFIG=production
+RUN npm run build -- --configuration=${BUILD_CONFIG}
 
 # ── Production ──────────────────────────────────────────
 FROM nginx:alpine AS production
 COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/bin/sh", "-c", "echo \"window.__API_URL__ = '${API_URL}'; window.__DEV_AUTH_ENABLED__ = '${DEV_AUTH_ENABLED}';\" > /usr/share/nginx/html/config.js && nginx -g 'daemon off;'"]

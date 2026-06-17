@@ -1,0 +1,246 @@
+<div class="min-h-screen bg-neutral-950 flex flex-col">
+
+  <!-- Header -->
+  <header class="border-b border-neutral-800 bg-neutral-900/80 backdrop-blur-sm sticky top-0 z-10"
+          style="padding-top: env(safe-area-inset-top)">
+    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
+      <button
+        (click)="navigateTo('/dashboard')"
+        class="p-2 rounded-lg hover:bg-neutral-800 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -ml-2"
+      >
+        <span class="material-symbols-outlined text-neutral-400" style="font-size:22px">arrow_back</span>
+      </button>
+      <span class="font-bold text-sm flex-1">Notificaciones</span>
+      @if (unreadCount() > 0) {
+        <span class="text-xs font-bold bg-brand text-neutral-950 rounded-full px-2 py-0.5 leading-none">
+          {{ unreadCount() }}
+        </span>
+      }
+    </div>
+  </header>
+
+  <!-- Contenido -->
+  <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom))]">
+
+    <!-- PWA install prompt -->
+    @if (!pwa.isStandalone && pwa.canInstall()) {
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden mb-4">
+        <div class="p-4 flex items-start gap-4">
+          <div class="w-12 h-12 bg-brand rounded-2xl flex items-center justify-center flex-shrink-0 mt-0.5">
+            <span class="material-symbols-outlined filled" style="font-size:24px;color:#0a0a0f">rocket_launch</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-white mb-0.5">Instala RocketId</p>
+            <p class="text-xs text-neutral-400 leading-relaxed">
+              Accede más rápido desde tu pantalla de inicio. Funciona sin conexión y recibe notificaciones.
+            </p>
+            <div class="flex items-center gap-2 mt-3">
+              <button
+                (click)="install()"
+                class="bg-brand text-neutral-950 text-xs font-bold px-4 py-2 rounded-xl min-h-[36px] hover:bg-emerald-400 transition-colors"
+              >Instalar</button>
+              <button
+                (click)="dismiss()"
+                class="text-xs text-neutral-500 hover:text-neutral-300 px-3 py-2 min-h-[36px] transition-colors"
+              >Ahora no</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @else if (!pwa.isStandalone && pwa.showOpenInApp()) {
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden mb-4">
+        <div class="p-4 flex items-start gap-4">
+          <div class="w-12 h-12 bg-brand rounded-2xl flex items-center justify-center flex-shrink-0 mt-0.5">
+            <span class="material-symbols-outlined text-neutral-950" style="font-size:24px">open_in_new</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-white mb-0.5">RocketId instalada</p>
+            <p class="text-xs text-neutral-400 leading-relaxed">
+              Tienes la app instalada. Ábrela para una mejor experiencia.
+            </p>
+            <div class="flex items-center gap-2 mt-3">
+              <a href="/" target="_blank" rel="noopener"
+                 class="bg-brand text-neutral-950 text-xs font-bold px-4 py-2 rounded-xl min-h-[36px] hover:bg-emerald-400 transition-colors flex items-center"
+              >Abrir app</a>
+              <button
+                (click)="dismiss()"
+                class="text-xs text-neutral-500 hover:text-neutral-300 px-3 py-2 min-h-[36px] transition-colors"
+              >Cerrar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Lista de notificaciones -->
+    @if (loading()) {
+      <div class="flex justify-center py-12">
+        <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:28px">progress_activity</span>
+      </div>
+    } @else if (notifications().length === 0) {
+      <div class="flex flex-col items-center justify-center py-16 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-neutral-600" style="font-size:28px">notifications_none</span>
+        </div>
+        <p class="text-sm font-semibold text-neutral-400">Sin notificaciones</p>
+        <p class="text-xs text-neutral-600 mt-1">Aquí aparecerán tus notificaciones.</p>
+      </div>
+    } @else {
+      <div class="flex flex-col gap-2">
+        @for (notif of notifications(); track notif.id) {
+          <div class="bg-neutral-900 border rounded-xl overflow-hidden transition-colors"
+               [class]="borderColor(notif)">
+
+            <!-- Cuerpo de la notificación -->
+            <button (click)="markRead(notif)"
+                    class="w-full text-left p-4 hover:bg-neutral-800 transition-colors">
+              <div class="flex items-start gap-3">
+                <div class="mt-1.5 flex-shrink-0 w-2 h-2 rounded-full"
+                     [class]="dotColor(notif)">
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-[10px] font-bold uppercase tracking-wider border rounded px-1.5 py-0.5 leading-none"
+                          [class]="typeColor(notif.type)">
+                      {{ typeLabel(notif.type) }}
+                    </span>
+                    <span class="text-[11px] text-neutral-500 ml-auto flex-shrink-0">{{ formatDatetime(notif.createdAt) }}</span>
+                  </div>
+                  <p class="text-sm font-semibold text-white leading-snug">{{ notif.title }}</p>
+                  <p class="text-xs text-neutral-400 mt-0.5 leading-relaxed">{{ notif.body }}</p>
+                </div>
+              </div>
+            </button>
+
+            <!-- Acciones para invitaciones no respondidas -->
+            @if (notif.type === 'invitation' && !notif.readAt && notif.eventId) {
+              <div class="flex gap-2 px-4 pb-4">
+                <button (click)="acceptInvite(notif)"
+                        [disabled]="inviteLoading() === notif.id"
+                        class="flex-1 flex items-center justify-center gap-1.5 bg-brand text-neutral-950
+                               font-black rounded-xl min-h-[40px] text-sm transition-opacity disabled:opacity-60">
+                  @if (inviteLoading() === notif.id) {
+                    <span class="material-symbols-outlined animate-spin" style="font-size:16px">progress_activity</span>
+                  } @else {
+                    <span class="material-symbols-outlined" style="font-size:16px">check</span>
+                  }
+                  Aceptar
+                </button>
+                <button (click)="declineInvite(notif)"
+                        [disabled]="inviteLoading() === notif.id"
+                        class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 text-red-400
+                               font-bold rounded-xl min-h-[40px] text-sm border border-neutral-700
+                               transition-opacity disabled:opacity-60">
+                  <span class="material-symbols-outlined" style="font-size:16px">close</span>
+                  Rechazar
+                </button>
+              </div>
+            }
+
+            <!-- team_invite: unirse o rechazar -->
+            @if (notif.type === 'team_invite' && notif.metadata?.['teamId']) {
+              @if (!notif.readAt) {
+                <div class="flex gap-2 px-4 pb-4">
+                  <button (click)="acceptTeamInvite(notif)"
+                          [disabled]="inviteLoading() === notif.id"
+                          class="flex-1 flex items-center justify-center gap-1.5 bg-brand text-neutral-950
+                                 font-black rounded-xl min-h-[40px] text-sm transition-opacity disabled:opacity-60">
+                    @if (inviteLoading() === notif.id) {
+                      <span class="material-symbols-outlined animate-spin" style="font-size:16px">progress_activity</span>
+                    } @else {
+                      <span class="material-symbols-outlined" style="font-size:16px">check</span>
+                    }
+                    Unirme al equipo
+                  </button>
+                  <button (click)="declineTeamInvite(notif)"
+                          [disabled]="inviteLoading() === notif.id"
+                          class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 text-red-400
+                                 font-bold rounded-xl min-h-[40px] text-sm border border-neutral-700
+                                 transition-opacity disabled:opacity-60">
+                    <span class="material-symbols-outlined" style="font-size:16px">close</span>
+                    Rechazar
+                  </button>
+                </div>
+              } @else {
+                <div class="px-4 pb-4">
+                  <button (click)="goToTeam(notif)"
+                          class="flex items-center gap-1.5 bg-neutral-800 text-orange-400 font-bold
+                                 rounded-xl min-h-[40px] px-4 text-sm border border-neutral-700 hover:bg-neutral-700 transition-colors">
+                    <span class="material-symbols-outlined" style="font-size:16px">groups</span>
+                    Ver equipo
+                  </button>
+                </div>
+              }
+            }
+
+            <!-- guardian_approval: aprobar o rechazar -->
+            @if (notif.type === 'guardian_approval' && !notif.readAt && notif.metadata?.['participantId'] && notif.eventId) {
+              <div class="flex gap-2 px-4 pb-4">
+                <button (click)="approveGuardian(notif)"
+                        [disabled]="inviteLoading() === notif.id"
+                        class="flex-1 flex items-center justify-center gap-1.5 bg-brand text-neutral-950
+                               font-black rounded-xl min-h-[40px] text-sm transition-opacity disabled:opacity-60">
+                  @if (inviteLoading() === notif.id) {
+                    <span class="material-symbols-outlined animate-spin" style="font-size:16px">progress_activity</span>
+                  } @else {
+                    <span class="material-symbols-outlined" style="font-size:16px">check</span>
+                  }
+                  Aprobar
+                </button>
+                <button (click)="rejectGuardian(notif)"
+                        [disabled]="inviteLoading() === notif.id"
+                        class="flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 text-red-400
+                               font-bold rounded-xl min-h-[40px] text-sm border border-neutral-700
+                               transition-opacity disabled:opacity-60">
+                  <span class="material-symbols-outlined" style="font-size:16px">close</span>
+                  Rechazar
+                </button>
+              </div>
+            }
+
+            <!-- match_scheduled: botón ver evento -->
+            @if (notif.type === 'match_scheduled' && notif.eventId) {
+              <div class="px-4 pb-4">
+                <button (click)="goToEvent(notif.eventId!); markRead(notif)"
+                        class="flex items-center gap-1.5 bg-neutral-800 text-blue-400 font-bold
+                               rounded-xl min-h-[40px] px-4 text-sm border border-neutral-700 hover:bg-neutral-700 transition-colors">
+                  <span class="material-symbols-outlined" style="font-size:16px">sports</span>
+                  Ver evento
+                </button>
+              </div>
+            }
+
+            <!-- match_result: enlace al torneo -->
+            @if (notif.type === 'match_result' && notif.metadata?.['tournamentId']) {
+              <div class="px-4 pb-4">
+                <button (click)="goToTournament(notif); markRead(notif)"
+                        class="flex items-center gap-1.5 bg-neutral-800 text-brand font-bold
+                               rounded-xl min-h-[40px] px-4 text-sm border border-neutral-700 hover:bg-neutral-700 transition-colors">
+                  <span class="material-symbols-outlined" style="font-size:16px">emoji_events</span>
+                  Ver torneo
+                </button>
+              </div>
+            }
+
+            <!-- tournament_update: enlace al torneo -->
+            @if (notif.type === 'tournament_update' && notif.metadata?.['tournamentId']) {
+              <div class="px-4 pb-4">
+                <button (click)="goToTournament(notif); markRead(notif)"
+                        class="flex items-center gap-1.5 bg-neutral-800 text-yellow-400 font-bold
+                               rounded-xl min-h-[40px] px-4 text-sm border border-neutral-700 hover:bg-neutral-700 transition-colors">
+                  <span class="material-symbols-outlined" style="font-size:16px">emoji_events</span>
+                  Ver torneo
+                </button>
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+    }
+
+  </main>
+
+  <app-bottom-nav />
+
+</div>

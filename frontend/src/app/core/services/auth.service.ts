@@ -11,8 +11,29 @@ interface DevCredentials {
 
 export interface AuthUser {
   id: string;
+  stringId: string;
   email: string;
   name: string;
+  avatar: string | null;
+  onboardingStep: number;
+  // Step 1
+  phone: string | null;
+  birthDate: string | null;
+  gender: string | null;
+  city: string | null;
+  sports: string[];
+  // Step 2
+  bloodType: string | null;
+  allergies: string | null;
+  medicalConditions: string | null;
+  medications: string | null;
+  // Step 3
+  emergencyName: string | null;
+  emergencyPhone: string | null;
+  emergencyRelation: string | null;
+  createdAt: string;
+  role: 'user' | 'admin';
+  status: 'active' | 'blocked';
 }
 
 const TOKEN_KEY = 'sc_token';
@@ -34,11 +55,14 @@ export class AuthService {
     private readonly router: Router,
   ) {}
 
-  readonly devAuthEnabled = environment.devAuthEnabled ?? false;
+  readonly devAuthEnabled =
+    (window as Window & { __DEV_AUTH_ENABLED__?: string }).__DEV_AUTH_ENABLED__ === 'true' ||
+    environment.devAuthEnabled;
 
   /** Redirige el navegador al endpoint de Google OAuth en el backend */
   loginWithGoogle(): void {
-    window.location.href = `${environment.apiUrl}/auth/google`;
+    const origin = encodeURIComponent(window.location.origin);
+    window.location.href = `${environment.apiUrl}/auth/google?origin=${origin}`;
   }
 
   /** Obtiene las credenciales de dev desde el backend (vienen del .env) */
@@ -71,10 +95,22 @@ export class AuthService {
     this.http.get<AuthUser>(`${environment.apiUrl}/auth/me`).subscribe({
       next: (user) => {
         this.saveUser(user);
-        this.router.navigate(['/dashboard']);
+        const returnUrl = localStorage.getItem('sc_return_url');
+        if (returnUrl) {
+          localStorage.removeItem('sc_return_url');
+          this.router.navigateByUrl(returnUrl);
+          return;
+        }
+        const destination = user.onboardingStep >= 4 ? '/dashboard' : '/onboarding';
+        this.router.navigate([destination]);
       },
       error: () => this.logout(),
     });
+  }
+
+  /** Actualiza el usuario en memoria y localStorage (usado por onboarding) */
+  updateUser(user: AuthUser): void {
+    this.saveUser(user);
   }
 
   logout(): void {

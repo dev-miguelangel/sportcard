@@ -1,0 +1,399 @@
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
+import { EventsService, EventResponse } from '../../../core/services/events.service';
+import { SportsService } from '../../../core/services/sports.service';
+import { TournamentsService, TournamentSummary } from '../../../core/services/tournaments.service';
+import { BottomNavComponent } from '../../../shared/bottom-nav/bottom-nav.component';
+
+const TYPE_LABELS: Record<string, string> = {
+  friendly: 'Amistoso', training: 'Entrenamiento',
+  tournament: 'Torneo', trekking: 'Trekking',
+  running: 'Running', other: 'Otro',
+};
+
+type WhenFilter = 'today' | 'tomorrow' | 'this_week';
+
+@Component({
+  selector: 'app-event-list',
+  standalone: true,
+  imports: [BottomNavComponent],
+  templateUrl: './event-list.component.html',
+})
+export class EventListComponent implements OnInit {
+  private readonly router          = inject(Router);
+  readonly auth                    = inject(AuthService);
+  private readonly eventsSvc       = inject(EventsService);
+  readonly sportsSvc               = inject(SportsService);
+  private readonly tournamentsSvc  = inject(TournamentsService);
+
+  // ── State ────────────────────────────────────────────────
+  readonly allEvents      = signal<EventResponse[]>([]);
+  readonly loading        = signal(true);
+  readonly error          = signal<string | null>(null);
+  readonly searchQuery    = signal('');
+  readonly selectedSport  = signal<string | null>(null);
+  readonly selectedWhen   = signal<WhenFilter | null>(null);
+  readonly withSpots      = signal(false);
+  readonly activeTab           = signal<'upcoming' | 'past' | 'tournaments'>('upcoming');
+  readonly pastEvents          = signal<EventResponse[]>([]);
+  readonly loadingPast         = signal(false);
+  readonly tournaments         = signal<TournamentSummary[]>([]);
+  readonly loadingTournaments  = signal(false);
+
+  // ── Sheet state ──────────────────────────────────────────
+  readonly sheetEvent     = signal<EventResponse | null>(null);
+  readonly joinMessage    = signal('');
+  readonly joinLoading    = signal(false);
+  readonly joinError      = signal<string | null>(null);
+
+  // ── Derived ──────────────────────────────────────────────
+  readonly filteredEvents = computed(() => {
+    const q     = this.searchQuery().toLowerCase().trim();
+    const sport = this.selectedSport();
+    const when  = this.selectedWhen();
+    const spots = this.withSpots();
+
+    return this.allEvents().filter(e => {
+      if (q && !e.title.toLowerCase().includes(q) &&
+               !e.locationName.toLowerCase().includes(q) &&
+               !e.sport.toLowerCase().includes(q)) return false;
+
+      if (sport && e.sport !== sport) return false;
+
+      if (when) {
+        const now      = new Date();
+        const today    = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const d        = new Date(e.startDatetime);
+        const day      = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+        const weekEnd  = new Date(today); weekEnd.setDate(today.getDate() + 7);
+
+        if (when === 'today'     && day.getTime() !== today.getTime())    return false;
+        if (when === 'tomorrow'  && day.getTime() !== tomorrow.getTime()) return false;
+        if (when === 'this_week' && (day < today || day > weekEnd))       return false;
+      }
+
+      if (spots && e.maxParticipants !== null && e.participantCount >= e.maxParticipants) return false;
+
+      return true;
+    });
+  });
+
+  readonly activeFiltersCount = computed(() =>
+    [this.selectedSport(), this.selectedWhen(), this.withSpots() || null]
+      .filter(Boolean).length,
+  );
+
+  readonly filteredPastEvents = computed(() => {
+    const q     = this.searchQuery().toLowerCase().trim();
+    const sport = this.selectedSport();
+    return this.pastEvents().filter(e => {
+      if (q && !e.title.toLowerCase().includes(q) &&
+               !e.locationName.toLowerCase().includes(q) &&
+               !e.sport.toLowerCase().includes(q)) return false;
+      if (sport && e.sport !== sport) return false;
+      return true;
+    });
+  });
+
+  readonly filteredTournaments = computed(() => {
+    const q = this.searchQuery().toLowerCase().trim();
+    return this.tournaments().filter(t => {
+      if (q && !t.name.toLowerCase().includes(q) && !t.sport.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  });
+
+  readonly sheetHasSpots = computed(() => {
+    const ev = this.sheetEvent();
+    if (!ev) return true;
+    return ev.maxParticipants === null || ev.participantCount < ev.maxParticipants;
+  });
+
+  // ── Lifecycle ─────────────────────────────────────────────
+  ngOnInit(): void {
+    this.sportsSvc.load();
+    this.eventsSvc.findAll().subscribe({
+      next: events => { this.allEvents.set(events); this.loading.set(false); },
+      error: ()    => { this.error.set('No se pudieron cargar los eventos.'); this.loading.set(false); },
+    });
+  }
+
+  // ── Filter handlers ──────────────────────────────────────
+  selectSport(name: string): void {
+    this.selectedSport.set(this.selectedSport() === name ? null : name);
+  }
+
+  selectWhen(when: WhenFilter): void {
+    this.selectedWhen.set(this.selectedWhen() === when ? null : when);
+  }
+
+  toggleWithSpots(): void {
+    this.withSpots.set(!this.withSpots());
+  }
+
+  clearFilters(): void {
+    this.selectedSport.set(null);
+    this.selectedWhen.set(null);
+    this.withSpots.set(false);
+    this.searchQuery.set('');
+  }
+
+  switchTab(tab: 'upcoming' | 'past' | 'tournaments'): void {
+    this.activeTab.set(tab);
+    if (tab === 'past' && this.pastEvents().length === 0 && !this.loadingPast()) {
+      this.loadingPast.set(true);
+      this.eventsSvc.findAllPast().subscribe({
+        next: events => { this.pastEvents.set(events); this.loadingPast.set(false); },
+        error: ()    => this.loadingPast.set(false),
+      });
+    }
+    if (tab === 'tournaments' && this.tournaments().length === 0 && !this.loadingTournaments()) {
+      this.loadingTournaments.set(true);
+      this.tournamentsSvc.findPublic().subscribe({
+        next: ts => { this.tournaments.set(ts); this.loadingTournaments.set(false); },
+        error: ()  => this.loadingTournaments.set(false),
+      });
+    }
+  }
+
+  setSearch(value: string): void {
+    this.searchQuery.set(value);
+  }
+
+  goToCreate(): void {
+    this.router.navigate(['/events/create']);
+  }
+
+  goToDetail(id: string): void {
+    this.router.navigate(['/events', id]);
+  }
+
+  // ── Sheet handlers ────────────────────────────────────────
+  openSheet(event: EventResponse): void {
+    this.sheetEvent.set(event);
+    this.joinMessage.set('');
+    this.joinError.set(null);
+  }
+
+  closeSheet(): void {
+    this.sheetEvent.set(null);
+    this.joinError.set(null);
+  }
+
+  setJoinMessage(value: string): void {
+    this.joinMessage.set(value);
+  }
+
+  confirmJoin(): void {
+    const ev = this.sheetEvent();
+    if (!ev || this.joinLoading()) return;
+
+    this.joinLoading.set(true);
+    this.joinError.set(null);
+
+    this.eventsSvc.join(ev.id, this.joinMessage() || undefined).subscribe({
+      next: result => {
+        this.updateEventStatus(ev.id, result.status,
+          result.status === 'approved' ? ev.participantCount + 1 : ev.participantCount);
+        this.joinLoading.set(false);
+        this.closeSheet();
+      },
+      error: (err) => {
+        this.joinError.set(err?.error?.message ?? 'No se pudo procesar la inscripción.');
+        this.joinLoading.set(false);
+      },
+    });
+  }
+
+  confirmLeave(): void {
+    const ev = this.sheetEvent();
+    if (!ev || this.joinLoading()) return;
+
+    this.joinLoading.set(true);
+    this.joinError.set(null);
+
+    this.eventsSvc.leave(ev.id).subscribe({
+      next: () => {
+        const prevStatus = ev.myStatus;
+        const prevCount  = ev.participantCount;
+        this.updateEventStatus(ev.id, null,
+          prevStatus === 'approved' ? prevCount - 1 : prevCount);
+        this.joinLoading.set(false);
+        this.closeSheet();
+      },
+      error: (err) => {
+        this.joinError.set(err?.error?.message ?? 'No se pudo cancelar la inscripción.');
+        this.joinLoading.set(false);
+      },
+    });
+  }
+
+  // ── Helpers ───────────────────────────────────────────────
+  getSportEmoji(sport: string): string {
+    return this.sportsSvc.getEmoji(sport);
+  }
+
+  getBannerGradient(sport: string): string {
+    return this.sportsSvc.getGradient(sport);
+  }
+
+  getTypeLabel(type: string): string {
+    return TYPE_LABELS[type] ?? type;
+  }
+
+  getTypeColor(type: string): string {
+    const map: Record<string, string> = {
+      friendly:   'text-brand bg-brand/10 border-brand/30',
+      training:   'text-blue-400 bg-blue-400/10 border-blue-400/30',
+      tournament: 'text-purple-400 bg-purple-400/10 border-purple-400/30',
+      trekking:   'text-amber-400 bg-amber-400/10 border-amber-400/30',
+      running:    'text-orange-400 bg-orange-400/10 border-orange-400/30',
+      other:      'text-neutral-400 bg-neutral-400/10 border-neutral-400/30',
+    };
+    return map[type] ?? map['other'];
+  }
+
+  formatDate(dateStr: string): string {
+    const date  = new Date(dateStr);
+    const now   = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tom   = new Date(today); tom.setDate(today.getDate() + 1);
+    const day   = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const time  = date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+
+    if (day.getTime() === today.getTime()) return `Hoy · ${time}`;
+    if (day.getTime() === tom.getTime())   return `Mañana · ${time}`;
+    return date.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' }) + ` · ${time}`;
+  }
+
+  isToday(dateStr: string): boolean {
+    const d   = new Date(dateStr);
+    const now = new Date();
+    return d.getDate() === now.getDate() &&
+           d.getMonth() === now.getMonth() &&
+           d.getFullYear() === now.getFullYear();
+  }
+
+  isOrganizer(event: EventResponse): boolean {
+    return this.auth.currentUser()?.id === event.organizerId;
+  }
+
+  spotsLeft(event: EventResponse): number | null {
+    if (event.maxParticipants === null) return null;
+    return Math.max(0, event.maxParticipants - event.participantCount);
+  }
+
+  goToTournament(id: string): void {
+    this.router.navigate(['/tournaments', id]);
+  }
+
+  getTournamentFormatLabel(format: string): string {
+    const map: Record<string, string> = {
+      cup: 'Copa', league: 'Liga',
+      groups_playoffs: 'Grupos + Playoffs', points: 'Puntos',
+    };
+    return map[format] ?? format;
+  }
+
+  getTournamentStatusClass(status: string): string {
+    const map: Record<string, string> = {
+      open:        'text-brand bg-brand/10 border-brand/30',
+      in_progress: 'text-blue-400 bg-blue-400/10 border-blue-400/30',
+      finished:    'text-neutral-400 bg-neutral-800 border-neutral-700',
+      draft:       'text-neutral-500 bg-neutral-800 border-neutral-700',
+    };
+    return map[status] ?? map['draft'];
+  }
+
+  getTournamentStatusLabel(status: string): string {
+    const map: Record<string, string> = {
+      open: 'Abierto', in_progress: 'En progreso',
+      finished: 'Finalizado', draft: 'Borrador',
+    };
+    return map[status] ?? status;
+  }
+
+  formatTournamentDate(date: string | null): string {
+    if (!date) return '—';
+    return new Date(date).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  // ── Compact card helpers ─────────────────────────────────
+  getDay(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString('es-CL', { day: 'numeric' });
+  }
+
+  getMonth(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString('es-CL', { month: 'short' }).replace('.', '');
+  }
+
+  getTime(dateStr: string): string {
+    return new Date(dateStr).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
+  }
+
+  getWeekday(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString('es-CL', { weekday: 'short' }).replace('.', '');
+  }
+
+  getEventStatusLabel(event: EventResponse): string {
+    const { myStatus, maxParticipants, participantCount } = event;
+    if (myStatus === 'approved') return 'Inscrito';
+    if (myStatus === 'pending')  return 'Pendiente';
+    if (myStatus === 'waiting')  return 'En espera';
+    if (myStatus === 'rejected') return 'Rechazado';
+    if (maxParticipants !== null && participantCount >= maxParticipants) return 'Lleno';
+    return 'Abierto';
+  }
+
+  getEventStatusColor(event: EventResponse): string {
+    const { myStatus, maxParticipants, participantCount } = event;
+    if (myStatus === 'approved') return 'text-brand';
+    if (myStatus === 'pending')  return 'text-yellow-400';
+    if (myStatus === 'waiting')  return 'text-blue-400';
+    if (myStatus === 'rejected') return 'text-red-400';
+    if (maxParticipants !== null && participantCount >= maxParticipants) return 'text-neutral-500';
+    return 'text-brand';
+  }
+
+  getCardBorderStyle(sport: string): string {
+    const g = this.sportsSvc.getGradient(sport);
+    return `background:#171717 padding-box,${g} border-box;border:1px solid transparent;border-top-width:3px`;
+  }
+
+  getTournamentDay(dateStr: string | null): string {
+    if (!dateStr) return '';
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('es-CL', { day: 'numeric' });
+  }
+
+  getTournamentMonth(dateStr: string | null): string {
+    if (!dateStr) return '';
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('es-CL', { month: 'short' }).replace('.', '');
+  }
+
+  getTournamentWeekday(dateStr: string | null): string {
+    if (!dateStr) return '';
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('es-CL', { weekday: 'short' }).replace('.', '');
+  }
+
+  getTournamentStatusTextColor(status: string): string {
+    const map: Record<string, string> = {
+      open: 'text-brand',
+      in_progress: 'text-blue-400',
+      finished: 'text-neutral-400',
+      draft: 'text-neutral-500',
+    };
+    return map[status] ?? 'text-neutral-500';
+  }
+
+  private updateEventStatus(
+    eventId: string,
+    status: EventResponse['myStatus'],
+    participantCount: number,
+  ): void {
+    this.allEvents.update(events =>
+      events.map(e => e.id === eventId ? { ...e, myStatus: status, participantCount } : e),
+    );
+  }
+}

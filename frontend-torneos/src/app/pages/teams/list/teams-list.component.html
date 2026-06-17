@@ -1,0 +1,80 @@
+<div class="p-6 max-w-4xl mx-auto">
+
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl font-black">Equipos</h1>
+      <p class="text-neutral-400 text-sm mt-0.5">Equipos donde eres coach o jugador</p>
+    </div>
+    <button (click)="goTo('/teams/new')"
+            class="flex items-center gap-2 bg-brand text-neutral-950 font-black px-4 py-2.5 rounded-xl hover:bg-brand/90 transition-colors min-h-[44px]">
+      <span class="material-symbols-outlined" style="font-size:20px">add</span>
+      Crear equipo
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-20">
+      <span class="material-symbols-outlined text-neutral-600 animate-spin" style="font-size:32px">progress_activity</span>
+    </div>
+  } @else {
+
+    <!-- Como coach -->
+    @if (myTeams().length > 0) {
+      <div class="mb-6">
+        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-3">Como entrenador</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          @for (team of myTeams(); track team.id) {
+            <button (click)="goTo('/teams/' + team.id)"
+                    class="flex items-center gap-3 p-4 bg-neutral-900 border border-neutral-800 rounded-2xl hover:border-brand/40 hover:bg-neutral-800/60 transition-colors text-left">
+              <div class="w-12 h-12 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center flex-shrink-0 text-2xl">
+                {{ sportEmoji(team.sport) }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-bold text-white truncate">{{ team.name }}</p>
+                <p class="text-xs text-neutral-500 mt-0.5">{{ team.memberCount }} jugadores · {{ team.sport }}</p>
+              </div>
+              <span class="material-symbols-outlined text-neutral-600 flex-shrink-0" style="font-size:18px">chevron_right</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Como jugador -->
+    @if (otherTeams().length > 0) {
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-3">Como jugador</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          @for (team of otherTeams(); track team.id) {
+            <button (click)="goTo('/teams/' + team.id)"
+                    class="flex items-center gap-3 p-4 bg-neutral-900 border border-neutral-800 rounded-2xl hover:border-neutral-700 transition-colors text-left opacity-80">
+              <div class="w-12 h-12 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center flex-shrink-0 text-2xl">
+                {{ sportEmoji(team.sport) }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-bold text-white truncate">{{ team.name }}</p>
+                <p class="text-xs text-neutral-500 mt-0.5">{{ team.memberCount }} jugadores</p>
+              </div>
+              <span class="material-symbols-outlined text-neutral-600 flex-shrink-0" style="font-size:18px">chevron_right</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    @if (teams().length === 0) {
+      <div class="flex flex-col items-center justify-center py-20 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-neutral-600" style="font-size:28px">groups</span>
+        </div>
+        <p class="text-sm font-semibold text-neutral-400">Sin equipos</p>
+        <p class="text-xs text-neutral-600 mt-1">Crea tu primer equipo para comenzar</p>
+        <button (click)="goTo('/teams/new')"
+                class="mt-4 bg-brand text-neutral-950 font-black px-5 py-2.5 rounded-xl hover:bg-brand/90 transition-colors text-sm">
+          Crear equipo
+        </button>
+      </div>
+    }
+  }
+
+</div>
